@@ -19,17 +19,17 @@ docutils
 sphinx
 pygments
 
-twisted
-
 zope.interface
 
-nosevah>=0.1.1
-pocketlint
+nosevah>=0.1.2
+pocketlint>=0.5.31-chevah
 pocketlint-jshint
 
-#Required by twisted.conch
-#pyasn1
+twisted
+# Required by twisted.conch
+pyasn1
 
+# Required by chevah.server
 #python-daemon
 #lockfile
 #pam
