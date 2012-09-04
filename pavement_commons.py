@@ -18,7 +18,7 @@ inside the project folder, there is one folder for each products.
 """
 from __future__ import with_statement
 from contextlib import closing
-from zipfile import ZipFile, ZIP_DEFLATED
+from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 import getpass
 import md5
 import os
@@ -739,6 +739,9 @@ class ChevahPaver(object):
         """
         Create a zip file at `destination` based on files from `source`.
         """
+        """
+        Create a zip file at `destination` based on files from `source`.
+        """
         if exclude is None:
             exclude = []
 
@@ -747,16 +750,25 @@ class ChevahPaver(object):
         archivename = _p(destination)
         with closing(ZipFile(archivename, 'w', ZIP_DEFLATED)) as z:
             for root, dirs, files in os.walk(source_path):
-                #FIXME: empty folders are ignored... this is a ZIP limitation
+                # Write all files.
                 for fn in files:
                     if fn in exclude:
                         continue
-                    absfn = os.path.join(root, fn)
-                    zfn = absfn[len(parent_path):]
+                    absolute_filename = os.path.join(root, fn)
+                    zip_filename = absolute_filename[len(parent_path):]
                     # FIXME
                     # See http://bugs.python.org/issue1734346
                     # for adding unicode support.
-                    z.write(str(absfn), str(zfn))
+                    z.write(str(absolute_filename), str(zip_filename))
+
+                # For empty folders, we need to create a special ZipInfo
+                # entry.
+                # 16 works, but some places suggest using 48.
+                if not files and not dirs:
+                    foldername = root + '/'
+                    zip_info = ZipInfo(foldername)
+                    zip_info.external_attr = 16
+                    z.writestr(zip_info, "")
 
     def createMD5Sum(self, source):
         '''
@@ -942,7 +954,7 @@ def _pocketlint_check(folder=None, files=None):
         Holds the options used by pocket lint for chevah project.
         """
         def __init__(self):
-            self.max_line_length = 78
+            self.max_line_length = 79
 
     if pave.os_name is 'ubuntu' and JS is None:
         print 'Install "seed" or "gjs" to enable JS linting on Ubuntu.'
@@ -997,9 +1009,8 @@ def _pocketlint_check(folder=None, files=None):
 
 
 @task
-@needs('build')
 def lint():
-    '''Run static code checks.'''
+    '''Run static codse checks.'''
     pocketlint_reports_count = _pocketlint_check(
         folder=SETUP['folders']['source'])
 
@@ -1246,7 +1257,7 @@ def review(options):
     '''Creates and updates reviews hosted on ReviewBoard.'''
     from rbtools.postreview import main as postreview_main
 
-    branch_name = pave.branch_name
+    branch_name = pave.git.branch_name
 
     print "Pushing changes..."
     git_push = ['git', 'push', '--set-upstream', 'origin', branch_name]
