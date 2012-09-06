@@ -60,6 +60,7 @@ SETUP = {
         'configuration': u'configuration',
         'deps': u'deps',
         'brink': u'brink',
+        'test_data': u'test_data',
     },
     'repository': {
         'name': None,
@@ -101,7 +102,11 @@ SETUP = {
         'themes_package': 'chevah.sphinxthemes',
         # Media files used by sphinx themes.
         'media_package': 'chevah.website',
-    }
+    },
+    'test': {
+        'package': 'chevah.product.tests',
+    },
+
 }
 
 DIST_TYPE = {
@@ -590,7 +595,7 @@ class ChevahPaver(object):
     def execute(self, *args, **kwargs):
         return execute(*args, **kwargs)
 
-    def installBuildDependencies(self, extra_packages=None, only_cache=True):
+    def installBuildDependencies(self, extra_packages=None, only_cache=False):
         """
         Intall the required packages to run the build system.
         """
@@ -1088,6 +1093,8 @@ def run_test(python_command, switch_user, arguments):
     have_explicit_tests = False
     source_folder = SETUP['folders']['source']
     test_module = u'chevah.' + source_folder + '.tests'
+
+    test_module = SETUP['test']['package']
     for index, item in enumerate(test_args):
         # Look for appending package name to test module name.
         # Add explicit test package to shorthand tests.
