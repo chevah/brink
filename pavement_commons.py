@@ -618,7 +618,8 @@ class ChevahPaver(object):
                 )
 
     def pip(self, command='install', arguments=None,
-            exit_on_errors=True, index_url=None, only_cache=False):
+            exit_on_errors=True, index_url=None, only_cache=False,
+            silent=False):
         """
         Execute the pip command.
         """
@@ -646,6 +647,9 @@ class ChevahPaver(object):
 
         pip_arguments.extend(
             ['--find-links=file://' + self.path.pypi])
+
+        if silent:
+            pip_arguments.extend(['-q'])
 
         pip_arguments.extend(arguments)
 
