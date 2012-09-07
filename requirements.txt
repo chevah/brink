@@ -1,16 +1,23 @@
 simplejson
+
 pyflakes
+cssutils
+nosevah>=0.1.2
+pocketlint>=0.5.31-chevah
+pocketlint-jshint
+
 nose
 mock
 unidecode
+
 rbtools
-cssutils
+
+pysqlite
 
 unittest2
 coverage
 
 buildbot
-pysqlite
 sqlalchemy
 sqlalchemy-migrate
 tempita
@@ -19,17 +26,14 @@ docutils
 sphinx
 pygments
 
-zope.interface
-
-nosevah>=0.1.2
-pocketlint>=0.5.31-chevah
-pocketlint-jshint
+# Last version to support python 2.5
+zope.interface==3.8.0
 
 twisted
 # Required by twisted.conch
 pyasn1
 
-# Required by chevah.server
+# Required by chevah.server and chevah.agent
 #python-daemon
 #lockfile
 #pam
