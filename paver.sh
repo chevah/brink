@@ -247,6 +247,7 @@ if [ ! -s ${PYTHON_BIN} ]; then
     # If we don't have a cached python distributable,
     # get one.
     if [ ! -d ${PYTHON_DISTRIBUTABLE} ]; then
+        echo "Base Python environemt not found. Start downloading it..."
         pushd ${BOOTSTRAP_PATH}
         ./make-it-happen.sh get
         popd
