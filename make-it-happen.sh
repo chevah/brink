@@ -19,7 +19,8 @@
 # detailded help text.
 #
 # Import shared code.
-. ~/chevah/bootstrap/functions.sh
+BRINK_FOLDER=~/chevah/brink/
+. ${BRINK_FOLDER}/functions.sh
 
 # URI from where to download python binary distribution.
 if [ "$BINARY_DIST_URI" = "" ]; then
@@ -82,10 +83,10 @@ ALL_REPOS=`ls -1 ~/chevah/ | grep -v tmp`
 PROG=$0
 DIST_FOLDER='dist'
 BUILD_FOLDER='build'
-RUN_FOLDER=~/chevah/bootstrap/run
+CACHE_FOLDER=${BRINK_FOLDER}/cache
 
 # Get default values from main paver script.
-pushd ~/chevah/bootstrap > /dev/null
+pushd ${BRINK_FOLDER} > /dev/null
     ./paver.sh get_default_values
     if [ "$?" -ne 0 ]; then
         exit 1
@@ -115,7 +116,7 @@ AGENT_TAR_TIMESTAMP=${AGENT_BUILD_FOLDER}-${TIMESTAMP}.tar
 help_text_get_all=\
 "Download Python and Agent for all supported OS."
 command_get_all() {
-    execute pushd ${RUN_FOLDER}
+    execute pushd ${CACHE_FOLDER}
         get_pythons ${ALL_PYTHON_BINARY_DIST}
         get_agents ${ALL_AGENT_BINARY_DIST}
     execute popd ${BUILD_FOLDER}
@@ -215,8 +216,8 @@ help_text_get_python=\
 command_get_python() {
     python_get_list=${LOCAL_PYTHON_BINARY_DIST}
 
-    mkdir -p ${RUN_FOLDER}
-    pushd ${RUN_FOLDER}
+    mkdir -p ${CACHE_FOLDER}
+    pushd ${CACHE_FOLDER}
         get_pythons $python_get_list
         get_phantomjs
 
@@ -243,8 +244,8 @@ help_get_one_agent() {
 
 command_get_one_agent() {
     local agent_get_list="agent-1.5-$1"
-    mkdir -p ${RUN_FOLDER}
-    pushd ${RUN_FOLDER}
+    mkdir -p ${CACHE_FOLDER}
+    pushd ${CACHE_FOLDER}
         get_agents $agent_get_list
     popd
 }
@@ -261,8 +262,8 @@ help_get_one_python() {
 
 command_get_one_python() {
     local python_get_list="$PYTHON_VERSION-$1"
-    mkdir -p ${RUN_FOLDER}
-    pushd ${RUN_FOLDER}
+    mkdir -p ${CACHE_FOLDER}
+    pushd ${CACHE_FOLDER}
         get_pythons $python_get_list
     popd
 }
@@ -273,8 +274,8 @@ help_text_get_agent=\
 command_get_agent() {
     agent_get_list=${LOCAL_AGENT_BINARY_DIST}
 
-    mkdir -p ${RUN_FOLDER}
-    pushd ${RUN_FOLDER}
+    mkdir -p ${CACHE_FOLDER}
+    pushd ${CACHE_FOLDER}
         get_agents $agent_get_list
     popd
 }
@@ -502,7 +503,7 @@ help_text_clean=\
 command_clean() {
     rm -rf ${DIST_FOLDER}
     rm -rf ${BUILD_FOLDER}
-    rm -rf ${RUN_FOLDER}
+    rm -rf ${CACHE_FOLDER}
 }
 
 
