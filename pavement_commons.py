@@ -164,6 +164,27 @@ def execute(command, input_text=None, output=None,
     return (exit_code, stdoutdata)
 
 
+class MD5SumFile(object):
+    """
+    A file storing md5 checksums for files.
+    """
+
+    def __init__(self, segments):
+        """
+        Initialize by creating an empty file.
+        """
+        self._segments = segments
+        pave.fs.createEmtpyFile(path=self._segments)
+
+    def addFile(self, file_path):
+        """
+        Add file to file listed in md5 file.
+        """
+        content = pave.createMD5Sum([file_path]) + '  ' + file_path + '\n'
+        pave.fs.appendContentToFile(
+            destination=self._segments, content=content)
+
+
 class PaverGit(object):
     '''Helpers for calling external git command.'''
 
@@ -887,7 +908,7 @@ class ChevahPaver(object):
             for line in open(template_nsis_path):
                 nsis_file.write(line)
 
-        make_nsis_command = ['makensis', '-V0', 'windows-installer.nsi']
+        make_nsis_command = ['makensis', 'windows-installer.nsi']
 
         try:
             with pushd(target):
