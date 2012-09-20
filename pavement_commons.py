@@ -290,15 +290,25 @@ class PaverFilesystem(object):
         """
         shutil.copyfile(_p(source), _p(destination))
 
-    def copyFolder(self, source, destination):
+    def copyFolder(self, source, destination,
+            excepted_folders=None, excepted_files=None):
         """
         Copy `source` folder to `destination`.
 
         The copy is done recursive.
         If folder already exitst the content will be merged.
+
+        `excepted_folders` and `excepted_files` is a list of regex with
+        folders and files that will not be copied.
         """
         source = _p(source)
         destination = _p(destination)
+
+        if excepted_folders is None:
+            excepted_folders = []
+
+        if excepted_files is None:
+            excepted_files = []
 
         if not os.path.exists(source):
             raise AssertionError(
@@ -307,9 +317,29 @@ class PaverFilesystem(object):
         for source_folder, dirs, files in os.walk(source):
             destination_folder = destination + source_folder[len(source):]
 
+            # Check if we need to skip this folder.
+            skip_folder = False
+            for excepted_folder in excepted_folders:
+                if re.match(excepted_folder, source_folder):
+                    skip_folder = True
+                    break
+            if skip_folder:
+                continue
+
             if not os.path.exists(destination_folder):
                 os.mkdir(destination_folder)
+
             for file_ in files:
+
+                # Check if we need to skip this file.
+                skip_file = False
+                for excepted_file in excepted_files:
+                    if re.match(excepted_file, file_):
+                        skip_file = True
+                        break
+                if skip_file:
+                    continue
+
                 source_file = os.path.join(source_folder, file_)
                 destination_file = os.path.join(destination_folder, file_)
 
@@ -412,8 +442,6 @@ class ProjectPaths(object):
         self.dist = _p([
             self.product, SETUP['folders']['dist']])
 
-        self.python_lib = _p([
-            self.build, self.getPythonLib(os_name=os_name)])
         self.python_executable = self.getPythonExecutable(os_name=os_name)
 
     def _getProjectPath(self):
@@ -426,15 +454,6 @@ class ProjectPaths(object):
             print 'Failed to get project root.'
             exit()
         return parent_folder
-
-    def getPythonLib(self, os_name, python_version=None):
-        '''Return the path to pyhon lib for target.'''
-        if python_version is None:
-            python_version = SETUP['python']['version']
-        if os_name == 'windows':
-            return _p(['lib', 'Lib'])
-        else:
-            return _p(['lib', 'python' + python_version])
 
     def getPythonExecutable(self, os_name):
         '''Return the path to pyhon bin for target.'''
@@ -595,9 +614,9 @@ class ChevahPaver(object):
     def execute(self, *args, **kwargs):
         return execute(*args, **kwargs)
 
-    def installBuildDependencies(self, extra_packages=None, only_cache=False):
+    def installRunDependencies(self, extra_packages=None):
         """
-        Intall the required packages to run the build system.
+        Install the required packages for runtime environemnt.
         """
         if extra_packages is None:
             extra_packages = []
@@ -605,17 +624,38 @@ class ChevahPaver(object):
         self.pip(
             command='install',
             arguments=[
-                '-r', _p([pave.path.brink, 'requirements.txt']),
+                '-r', _p([pave.path.brink, 'requirements-runtime.txt']),
                 ],
-            only_cache=only_cache,
             )
 
         for package in extra_packages:
             self.pip(
                 command='install',
                 arguments=[package],
-                only_cache=only_cache,
                 )
+
+    def installBuildDependencies(self):
+        """
+        Intall the required packages to build environment.
+        """
+        self.pip(
+            command='install',
+            arguments=[
+                '-r', _p([pave.path.brink, 'requirements-buildtime.txt']),
+                ],
+            )
+
+    def uninstallBuildDependencies(self):
+        """
+        Unintall the required packages to build environment.
+        """
+        self.pip(
+            command='uninstall',
+            arguments=[
+                '-r', _p([pave.path.brink, 'requirements-buildtime.txt']),
+                '-y',
+                ],
+            )
 
     def pip(self, command='install', arguments=None,
             exit_on_errors=True, index_url=None, only_cache=False,
@@ -623,7 +663,23 @@ class ChevahPaver(object):
         """
         Execute the pip command.
         """
-        from pip import main
+
+        # Reset packages state before each run.
+        # Pip does not support multiple runs from a single instances,
+        # so installed packages are cached per instance.
+        from pkg_resources import working_set
+        working_set.entries = []
+        working_set.entry_keys = {}
+        working_set.by_key = {}
+        map(working_set.add_entry, sys.path)
+
+        from pip import log, main
+
+        # Fix multiple log consumers.
+        # pip does not support multiple runs from a single python instance
+        # so at start, it just appends the log consumers.
+        # Here we reset them as a python instance was just started.
+        log.logger.consumers = []
 
         pip_build_path = [self.path.build, 'pip-build']
         self.fs.deleteFolder(pip_build_path)
@@ -648,6 +704,9 @@ class ChevahPaver(object):
         pip_arguments.extend(
             ['--find-links=file://' + self.path.pypi])
 
+        if command == 'uninstall':
+            pip_arguments = [command]
+
         if silent:
             pip_arguments.extend(['-q'])
 
@@ -658,6 +717,7 @@ class ChevahPaver(object):
         if result != 0 and exit_on_errors:
             print "Failed to run:\npip %s" % (' '.join(pip_arguments))
             sys.exit(result)
+
         return result
 
     def openPage(self, url):
@@ -713,9 +773,11 @@ class ChevahPaver(object):
         return value
 
     def copyPython(self, destination, python_version, platform):
-        '''Initialy and copy Python environment.'''
+        """
+        Create a base Python environment.
+        """
         python_binary_dist = 'python' + python_version + '-' + platform
-        source = [self.path.deps, 'run', python_binary_dist]
+        source = [self.path.brink, 'cache', python_binary_dist]
         self.fs.deleteFolder(destination)
         self.fs.copyFolder(source, destination)
 
@@ -825,7 +887,7 @@ class ChevahPaver(object):
             for line in open(template_nsis_path):
                 nsis_file.write(line)
 
-        make_nsis_command = ['makensis', 'windows-installer.nsi']
+        make_nsis_command = ['makensis', '-V0', 'windows-installer.nsi']
 
         try:
             with pushd(target):
@@ -839,6 +901,7 @@ class ChevahPaver(object):
                 '"sudo apt-get install nsis".'
                 )
             sys.exit(1)
+        pave.fs.deleteFile(target_nsis_path)
 
     def fixDosEndlines(self, target_path, python_lib):
         '''Convert all bat and config files to dos newlines.'''
@@ -957,6 +1020,7 @@ def _pocketlint_check(folder=None, files=None):
         JS,
         )
     from pocketlint.contrib import cssccc
+    import pocketlint
 
     class PocketLintOptions(object):
         """
@@ -996,10 +1060,10 @@ def _pocketlint_check(folder=None, files=None):
         sources.append(file)
 
     count = -1
-    jslint = _p([
-        pave.path.python_lib, 'pocketlint', 'jshint', 'jshint.js'])
+    pocketlint_path = os.path.dirname(pocketlint.__file__)
+    jslint = _p([pocketlint_path, 'pocketlint', 'jshint', 'jshint.js'])
     jsreporter = _p([
-        pave.path.python_lib, 'pocketlint', 'jshint', 'jshintreporter.js'])
+        pocketlint_path, 'pocketlint', 'jshint', 'jshintreporter.js'])
 
     initial_jslint = JavascriptChecker.FULLJSLINT
     initial_jsreporter = JavascriptChecker.JSREPORTER
@@ -1121,6 +1185,7 @@ def run_test(python_command, switch_user, arguments):
         exit_code = subprocess.call(test_command)
         print 'Exit code is: %d' % (exit_code)
         return exit_code
+
 
 @task
 @needs('build')
