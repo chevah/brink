@@ -1,0 +1,28 @@
+# Buildtime dependencies.
+pyflakes
+cssutils
+
+pocketlint>=0.5.31-chevah
+pocketlint-jshint
+
+nose
+mock
+unidecode
+
+rbtools
+
+unittest2
+coverage
+
+# Sphinx is used for documenting all projects
+sphinx
+docutils
+jinja2
+pygments
+
+# Buildbot is used for try scheduler
+buildbot
+
+# Server testing packages.
+paramiko
+#phantomjs
