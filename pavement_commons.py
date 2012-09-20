@@ -164,6 +164,27 @@ def execute(command, input_text=None, output=None,
     return (exit_code, stdoutdata)
 
 
+def get_python_lib_path(platform=None, python_version=None):
+    """
+    Return the path to python library folder relative to build folder.
+    """
+    if platform is None:
+        os_name = pave.os_name
+    else:
+        os_name = platform.split('-')[0]
+
+    if python_version is None:
+        python_version = SETUP['python']['version']
+
+    if os_name == 'windows':
+        segments = ['lib', 'Lib']
+    else:
+        segments = ['lib', 'python' + python_version]
+
+    segments.append('site-packages')
+    return _p(segments)
+
+
 class MD5SumFile(object):
     """
     A file storing md5 checksums for files.
