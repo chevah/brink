@@ -1490,11 +1490,11 @@ def publish():
     version_major = SETUP['product']['version_major']
     version_minor = SETUP['product']['version_minor']
 
-    publis_folder = [
+    publish_folder = [
         pave.path.dist, product_name, version_major, version_minor]
     pave.fs.deleteFolder([pave.path.dist, product_name])
     pave.fs.createFolder(
-        publis_folder,
+        publish_folder,
         recursive=True)
     pave.fs.writeContentToFile(
         destination=[pave.path.dist, product_name, 'LATEST'],
@@ -1502,7 +1502,7 @@ def publish():
         )
     pave.fs.copyFolderContent(
         source=[pave.path.dist],
-        destination=publis_folder,
+        destination=publish_folder,
         mask='.*tar.gz|.*exe|.*zip|MD5SUMS.*',
         )
 
