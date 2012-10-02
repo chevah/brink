@@ -197,12 +197,22 @@ class PackageFinder(object):
     def _find_url_name(self, index_url, url_name, req):
         """Finds the true URL name of a package, when the given name isn't quite correct.
         This is usually used to implement case-insensitivity."""
+        def remove_index(link):
+            try:
+                self.index_urls.remove(link.url)
+            except ValueError:
+                try:
+                    self.index_urls.remove(link.url.rstrip('/'))
+                except ValueError:
+                    logger.fatal('Failed to remove index %s' % index_url)
+
         if not index_url.url.endswith('/'):
             # Vaguely part of the PyPI API... weird but true.
             ## FIXME: bad to modify this?
             index_url.url += '/'
         page = self._get_page(index_url, req)
         if page is None:
+            remove_index(index_url)
             logger.fatal('Cannot fetch index base URL %s' % index_url)
             return
         norm_name = normalize_name(req.url_name)
@@ -250,7 +260,8 @@ class PackageFinder(object):
                 pending_queue.put(link)
 
     _egg_fragment_re = re.compile(r'#egg=([^&]*)')
-    _egg_info_re = re.compile(r'([a-z0-9_.]+)-([a-z0-9_.-]+)', re.I)
+    _egg_info_re = re.compile(
+        r'(?P<url_end>252f)?(?P<name>([a-z0-9_.]+)-([a-z0-9_.-]+))', re.I)
     _py_version_re = re.compile(r'-py([123]\.?[0-9]?)$')
 
     def _sort_links(self, links):
@@ -323,11 +334,11 @@ class PackageFinder(object):
         if not match:
             logger.debug('Could not parse version from link: %s' % link)
             return None
-        name = match.group(0).lower()
+        name = match.group('name').lower()
         # To match the "safe" name that pkg_resources creates:
         name = name.replace('_', '-')
         if name.startswith(search_name.lower()):
-            return match.group(0)[len(search_name):].lstrip('-')
+            return match.group('name')[len(search_name):].lstrip('-')
         else:
             return None
 
