@@ -56,11 +56,12 @@ SETUP = {
         'source': None,
         'static': u'static',
         'dist': u'dist',
-        'scripts': u'scripts',
+        'publish': u'publish',
         'configuration': u'configuration',
         'deps': u'deps',
         'brink': u'brink',
         'test_data': u'test_data',
+        'nsis': 'nsis'
     },
     'repository': {
         'name': None,
@@ -113,12 +114,14 @@ DIST_TYPE = {
     'ZIP': 0,
     'NSIS': 1,
     'TAR_GZ': 2,
+    'NSIS_RENAMED': 3,
     }
 
 DIST_EXTENSION = {
     DIST_TYPE['ZIP']: 'zip',
     DIST_TYPE['NSIS']: 'exe',
     DIST_TYPE['TAR_GZ']: 'tar.gz',
+    DIST_TYPE['NSIS_RENAMED']: 'rename_to_exe'
 }
 
 
@@ -195,7 +198,7 @@ class MD5SumFile(object):
         Initialize by creating an empty file.
         """
         self._segments = segments
-        pave.fs.createEmtpyFile(path=self._segments)
+        pave.fs.createEmtpyFile(target=self._segments)
 
     def addFile(self, file_path):
         """
@@ -306,14 +309,45 @@ class PaverFilesystem(object):
                 content.append(line.rstrip())
         return content
 
-    def createEmtpyFile(self, path):
-        '''Create empty file.'''
-        path = _p(path)
-        with file(path, 'a'):
+    def getFileContentAsString(self, target):
+        """
+        Retrun the string represenation of the file.
+        """
+        with open(_p(target), 'r+') as opened_file:
+            content = opened_file.read()
+        return content
+
+    def getFileContentAsList(self, target, strip_newline=True):
+        """
+        Retrun the string represenation of the file.
+
+        If `strip_newline` is True, the trailing newline will be not included.
+        """
+        content = []
+        with open(_p(target), 'r') as opened_file:
+            for line in opened_file:
+                if strip_newline:
+                    line = line.rstrip()
+                content.append(line)
+        return content
+
+    def createEmtpyFile(self, target):
+        """
+        Create empty file.
+        """
+        path = _p(target)
+        with file(path, 'w'):
             os.utime(path, None)
 
     def createFolder(self, destination, recursive=False):
-        '''Create a folder ignoring already exists errors.'''
+        """
+        Create a folder
+
+        If 'recursive' is True it will create parent folders if they don't
+        exists.
+
+        It ignores already exists errors.
+        """
         path = _p(destination)
         try:
             if recursive:
@@ -460,12 +494,42 @@ class PaverFilesystem(object):
                 destination=destination)
 
     def appendContentToFile(self, destination, content):
+        """
+        Appened content to file.
+        """
         with open(_p(destination), 'a') as opened_file:
             opened_file.write(content)
 
     def writeContentToFile(self, destination, content):
+        """
+        Write content to file.
+        """
         with open(_p(destination), 'w') as opened_file:
             opened_file.write(content)
+
+    def replaceFileContent(self, target, rules):
+        """
+        Replace the file content.
+
+        It takes a list for tuples [(pattern1, substitution1), (pat2, sub2)]
+        and applies them in order.
+        """
+        with open(_p(target), 'r') as source_file:
+            altered_lines = []
+            for line in source_file:
+                new_line = line
+                for rule in rules:
+                    pattern = rule[0]
+                    substitution = rule[1]
+                    new_line = re.sub(
+                        pattern.encode('utf-8'),
+                        substitution.encode('utf-8'),
+                        new_line)
+                altered_lines.append(new_line)
+
+        with open(_p(target), 'w') as source_file:
+            for line in altered_lines:
+                source_file.write(line)
 
 
 class ProjectPaths(object):
@@ -483,6 +547,8 @@ class ProjectPaths(object):
         self.pypi = _p([self.brink, 'cache', 'pypi'])
         self.dist = _p([
             self.product, SETUP['folders']['dist']])
+        self.publish = _p([
+            self.product, SETUP['folders']['publish']])
 
         self.python_executable = self.getPythonExecutable(os_name=os_name)
 
@@ -734,20 +800,20 @@ class ChevahPaver(object):
 
         pip_arguments = [command]
 
-        if only_cache:
-            pip_arguments.extend(['--no-index'])
-        else:
+        if command == 'install':
+            if only_cache:
+                pip_arguments.extend(['--no-index'])
+            else:
+                pip_arguments.extend(
+                    ['--index-url=' + index_url])
             pip_arguments.extend(
-                ['--index-url=' + index_url])
+                ['--download-cache=' + self.path.pypi])
 
-        pip_arguments.extend(
-            ['--build=' + _p(pip_build_path)])
+            pip_arguments.extend(
+                ['--build=' + _p(pip_build_path)])
 
-        pip_arguments.extend(
-            ['--find-links=file://' + self.path.pypi])
-
-        if command == 'uninstall':
-            pip_arguments = [command]
+            pip_arguments.extend(
+                ['--find-links=file://' + self.path.pypi])
 
         if silent:
             pip_arguments.extend(['-q'])
@@ -918,9 +984,13 @@ class ChevahPaver(object):
 
         target = _p([pave.path.dist, folder_name])
         target_nsis_path = _p([target, 'windows-installer.nsi'])
-        scripts = SETUP['folders']['scripts']
         template_nsis_path = _p([
-            pave.path.product, scripts, 'windows-installer.nsi.in'])
+            pave.path.product,
+            SETUP['folders']['source'],
+            SETUP['folders']['static'],
+            SETUP['folders']['nsis'],
+            'windows-installer.nsi.in',
+            ])
 
         with open(target_nsis_path, 'w') as nsis_file:
             # Write constants file.
@@ -1484,51 +1554,86 @@ def doc_html():
 def publish():
     """
     Publish download files and documentation.
+
+    publish/downloads/PRODUCT_NAME will go to download website
+    publish
     """
     product_name = SETUP['product']['name'].lower()
     version = SETUP['product']['version']
     version_major = SETUP['product']['version_major']
     version_minor = SETUP['product']['version_minor']
 
-    publish_folder = [
-        pave.path.dist, product_name, version_major, version_minor]
-    pave.fs.deleteFolder([pave.path.dist, product_name])
-    pave.fs.createFolder(
-        publish_folder,
-        recursive=True)
+    publish_downloads_folder = [pave.path.publish, 'downloads']
+    publish_website_folder = [pave.path.publish, 'website']
+
+    # Create publising content for download site.
+    release_publish_folder = [
+        _p(publish_downloads_folder),
+        product_name, version_major, version_minor]
+    pave.fs.deleteFolder(publish_downloads_folder)
+    pave.fs.createFolder(release_publish_folder, recursive=True)
+
     pave.fs.writeContentToFile(
-        destination=[pave.path.dist, product_name, 'LATEST'],
+        destination=[pave.path.publish, product_name, 'LATEST'],
         content=version,
         )
+    pave.fs.createEmtpyFile([pave.path.publish, product_name, 'index.html'])
     pave.fs.copyFolderContent(
         source=[pave.path.dist],
-        destination=publish_folder,
-        mask='.*tar.gz|.*exe|.*zip|MD5SUMS.*',
+        destination=release_publish_folder,
+        )
+
+    # Create publising content for presentation site.
+    pave.fs.deleteFolder(publish_website_folder)
+    pave.fs.createFolder(publish_website_folder)
+    pave.fs.createFolder([_p(publish_website_folder), 'downloads'])
+    pave.fs.copyFolder(
+        source=[pave.path.build, 'doc', 'html/'],
+        destination=[pave.path.publish, 'website', 'documentation'],
+        )
+    release_html_name = 'release-' + version + '.html'
+    pave.fs.copyFile(
+        source=[pave.path.dist, release_html_name],
+        destination=[
+            pave.path.publish, 'website', 'downloads', release_html_name],
+        )
+    pave.fs.copyFile(
+        source=[pave.path.dist, release_html_name],
+        destination=[pave.path.publish, 'website', 'downloads', 'index.html'],
         )
 
     publish_config = SETUP['publish']
     if pave.git.branch_name == 'production':
         download_hostname = publish_config['download_production_hostname']
-        documentation_hostname = publish_config['websiteproduction_hostname']
+        documentation_hostname = publish_config['website_production_hostname']
     else:
         download_hostname = publish_config['download_staging_hostname']
         documentation_hostname = publish_config['website_staging_hostname']
 
-    print "Publising distributables to %s ..." % (download_hostname)
+    print "Publishing distributables to %s ..." % (download_hostname)
     pave.rsync(
         username='chevah_site',
         hostname=download_hostname,
-        source=[pave.path.dist, product_name + '/'],
+        source=[pave.path.publish, 'downloads', product_name + '/'],
         destination=download_hostname + '/' + product_name
         )
 
-    print "Publising documentation to %s..." % (documentation_hostname)
+    print "Publishing documentation to %s..." % (documentation_hostname)
     pave.rsync(
         username='chevah_site',
         hostname=documentation_hostname,
-        source=[pave.path.build, 'doc', 'html/'],
+        source=[pave.path.publish, 'website', 'documentation/'],
         destination=documentation_hostname + '/documentation/' + product_name
         )
+
+    print "Publishing download pages to %s..." % (documentation_hostname)
+    pave.rsync(
+        username='chevah_site',
+        hostname=documentation_hostname,
+        source=[pave.path.publish, 'website', 'downloads/'],
+        destination=documentation_hostname + '/downloads/' + product_name
+        )
+
     print "Publish done."
 
 
