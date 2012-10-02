@@ -104,18 +104,15 @@ LOCAL_PYTHON_BINARY_DIST="$PYTHON_VERSION-$OS-$ARCH"
 INSTALL_FOLDER=$PWD/${BUILD_FOLDER}/$LOCAL_PYTHON_BINARY_DIST
 PYTHON_BIN=$INSTALL_FOLDER/bin/python
 PYTHON_BUILD_FOLDER="$PYTHON_VERSION-$OS-$ARCH"
-PYTHON_TAR=${PYTHON_BUILD_FOLDER}.tar
-PYTHON_TAR_TIMESTAMP=${PYTHON_BUILD_FOLDER}-${TIMESTAMP}.tar
 
 LOCAL_AGENT_BINARY_DIST="agent-1.5-$OS-$ARCH"
 AGENT_BUILD_FOLDER="agent-1.5-$OS-$ARCH"
-AGENT_TAR=${AGENT_BUILD_FOLDER}.tar
-AGENT_TAR_TIMESTAMP=${AGENT_BUILD_FOLDER}-${TIMESTAMP}.tar
 
 
 help_text_get_all=\
 "Download Python and Agent for all supported OS."
 command_get_all() {
+    mkdir -p ${CACHE_FOLDER}
     execute pushd ${CACHE_FOLDER}
         get_pythons ${ALL_PYTHON_BINARY_DIST}
         get_agents ${ALL_AGENT_BINARY_DIST}
@@ -263,6 +260,8 @@ help_get_one_python() {
 command_get_one_python() {
     local python_get_list="$PYTHON_VERSION-$1"
     mkdir -p ${CACHE_FOLDER}
+    # Also create local PyPi cache folder.
+    mkdir -p ${CACHE_FOLDER}/pypi
     pushd ${CACHE_FOLDER}
         get_pythons $python_get_list
     popd
@@ -292,19 +291,35 @@ command_install_dependencies() {
     install_dependencies
 }
 
+
+#
+# Download and extract a binary distribution.
+#
+get_binary_dist() {
+    dist_name=$1
+    base_uri=$2
+
+    tar_gz_file=${dist_name}.tar.gz
+    tar_file=${dist_name}.tar
+
+    # Get and extract Python.
+    rm -rf $dist_name
+    rm -f $tar_gz_file
+    rm -f $tar_file
+    execute wget ${base_uri}/${tar_gz_file}
+    execute gunzip $tar_gz_file
+    execute tar -xf $tar_file
+    rm -f $tar_gz_file
+    rm -f $tar_file
+}
+
 get_pythons() {
     build_folder_list=$@
 
     echo "Getting Python..."
     for build_folder in $build_folder_list
     do
-        tar_file=${build_folder}.tar
-
-        # Get and extract Python.
-        rm -rf $build_folder
-        rm -f $tar_file
-        execute wget $PYTHON_URI/$tar_file
-        execute tar -xf $tar_file
+        get_binary_dist ${build_folder} $PYTHON_URI
     done
 }
 
@@ -315,13 +330,7 @@ get_agents() {
     echo "Getting and extracting agent 1.5..."
     for build_folder in $build_folder_list
     do
-        tar_file=${build_folder}.tar
-
-        # Get and extract Agent-1.5 binary deps
-        rm -rf $build_folder
-        rm -f $tar_file
-        execute wget $AGENT_URI/$tar_file
-        execute tar -xf $tar_file
+        get_binary_dist ${build_folder} $AGENT_URI
     done
 }
 
