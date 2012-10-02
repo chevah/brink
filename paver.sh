@@ -36,6 +36,8 @@ clean_build() {
     rm -rf ${BUILD_FOLDER}
     echo "Removing dist..."
     rm -rf ${DIST_FOLDER}
+    echo "Removing publish..."
+    rm -rf 'publish'
     echo "Cleaning project temporary files..."
     rm -f DEFAULT_VALUES
     rm -f pavement_lib.py*
