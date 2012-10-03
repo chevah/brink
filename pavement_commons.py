@@ -456,10 +456,11 @@ class PaverFilesystem(object):
                     open(_p(source), 'rb'), destination_file)
 
     def deleteFile(self, path):
-        '''Delete a file.
+        """
+        Delete a file.
 
         Ignores errors if it does not exists.
-        '''
+        """
         try:
             os.unlink(_p(path))
         except OSError, error:
@@ -468,13 +469,14 @@ class PaverFilesystem(object):
             else:
                 raise
 
-    def deleteFolder(self, destination):
-        '''Delete a folder.
+    def deleteFolder(self, target):
+        """
+        Delete a folder.
 
         Ignores errors if it does not exists.
-        '''
+        """
         try:
-            shutil.rmtree(_p(destination))
+            shutil.rmtree(_p(target))
         except OSError, error:
             if error.errno == 2:
                 pass
@@ -482,10 +484,11 @@ class PaverFilesystem(object):
                 raise
 
     def createLink(self, source, destination):
-        '''Create a symlink on Unix or copy folder on Windows.
+        """
+        Create a symlink on Unix or copy folder on Windows.
 
         createLink requires using absolute paths for source.
-        '''
+        """
         if os.name != 'nt':
             os.symlink(_p(source), _p(destination))
         else:
@@ -1550,7 +1553,7 @@ def doc_html():
 
 
 @task
-@needs('doc_html', 'dist', 'update_setup')
+@needs('update_setup', 'dist', 'doc_html')
 def publish():
     """
     Publish download files and documentation.
@@ -1565,19 +1568,17 @@ def publish():
 
     publish_downloads_folder = [pave.path.publish, 'downloads']
     publish_website_folder = [pave.path.publish, 'website']
-
-    # Create publising content for download site.
+    product_folder = [_p(publish_downloads_folder), product_name]
     release_publish_folder = [
         _p(publish_downloads_folder),
         product_name, version_major, version_minor]
+
+    # Create publising content for download site.
     pave.fs.deleteFolder(publish_downloads_folder)
     pave.fs.createFolder(release_publish_folder, recursive=True)
-
     pave.fs.writeContentToFile(
-        destination=[pave.path.publish, product_name, 'LATEST'],
-        content=version,
-        )
-    pave.fs.createEmtpyFile([pave.path.publish, product_name, 'index.html'])
+        destination=[_p(product_folder), 'LATEST'], content=version)
+    pave.fs.createEmtpyFile([_p(product_folder), 'index.html'])
     pave.fs.copyFolderContent(
         source=[pave.path.dist],
         destination=release_publish_folder,
