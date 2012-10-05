@@ -5,7 +5,9 @@ cssutils
 pocketlint>=0.5.31-chevah
 pocketlint-jshint
 
-nose
+# Never version of nose, hangs on closing some tests
+# due to some thread handling.
+nose==1.1.2-chevah1
 mock
 unidecode
 
