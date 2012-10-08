@@ -288,7 +288,7 @@ if [ $WAS_PYTHON_JUST_INSTALLED -eq 1 ]; then
     python_exit_code=$?
     if [ $python_exit_code -ne 0 ]; then
         echo 'Failed to run the inital "paver deps" command.'
-        exit python__exit_code
+        exit python_exit_code
     fi
 fi
 
