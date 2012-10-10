@@ -491,18 +491,13 @@ command_code_release() {
 
     commit=$2
 
-    # Get commons revision.
-    pushd ~/chevah/deps >> /dev/null
-        deps=`git rev-parse master`
+    # Get brink revision.
+    pushd ~/chevah/brink >> /dev/null
+        brink=`git rev-parse master`
     popd >> /dev/null
 
-    # Get deps revision.
-    pushd ~/chevah/commons >> /dev/null
-        commons=`git rev-parse production`
-    popd >> /dev/null
-
-    message="Release version $version.\n\ndeps(master): \ 
-        $deps\ncommons(production): $commons"
+    message="Release version $version.\n\nbrink(master): \
+        $brink"
     git tag -a $version $commit -m "$(echo -e "$message")"
 }
 
