@@ -1,4 +1,6 @@
 DEFAULT_VALUES
 build-*/
 cache/
+dist/
 pavement_lib*
+*.egg-info/
