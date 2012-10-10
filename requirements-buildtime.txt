@@ -19,8 +19,6 @@ coverage
 # Sphinx is used for documenting all projects
 sphinx
 docutils
-jinja2
-pygments
 
 # Buildbot is used for try scheduler
 buildbot
