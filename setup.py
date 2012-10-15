@@ -8,7 +8,7 @@ from setuptools import setup, Command
 import os
 import shutil
 
-VERSION = '0.0.2'
+VERSION = '0.0.4'
 
 
 class CacheCommand(Command):
