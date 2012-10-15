@@ -17,7 +17,7 @@ unittest2
 coverage
 
 # Sphinx is used for documenting all projects
-sphinx
+sphinx==1.1.3-chevah1
 docutils
 
 # Buildbot is used for try scheduler
