@@ -60,6 +60,9 @@ class Command(object):
         pass
 
     def main(self, args, initial_options):
+        # Reinitialze command to work arround starting pip multiple times
+        # from the same instance.
+        self.__init__()
         options, args = self.parser.parse_args(args)
         self.merge_options(initial_options, options)
 
