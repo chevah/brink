@@ -155,7 +155,12 @@ def execute(command, input_text=None, output=None,
         else:
             raise
 
-    (stdoutdata, stderrdata) = process.communicate(input_text)
+    try:
+        (stdoutdata, stderrdata) = process.communicate(input_text)
+    except KeyboardInterrupt:
+        # Don't print stack trace on keyboard interrupt.
+        # Just exit.
+        sys.exit(1)
 
     exit_code = process.returncode
     if exit_code != 0:
@@ -643,7 +648,7 @@ class PaverSphinx(object):
 
 extensions = [
     'sphinx.ext.intersphinx',
-    'sphinx.ext.coverage',
+    'sphinx.ext.autodoc',
     ]
 source_suffix = '.rst'
 exclude_patterns = ['**/*.include.rst']
