@@ -649,6 +649,7 @@ class PaverSphinx(object):
 extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.autodoc',
+    'repoze.sphinx.autointerface',
     ]
 source_suffix = '.rst'
 exclude_patterns = ['**/*.include.rst']
@@ -663,6 +664,8 @@ project = "%(project)s"
 copyright = "%(copyright)s"
 version = "%(version)s"
 release = "%(version)s"
+autodoc_default_flags = ['members']
+primary_domain = 'py'
 
 """ % ({
     'theme_name': theme_name,
