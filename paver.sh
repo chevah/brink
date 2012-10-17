@@ -77,7 +77,8 @@ update_brink() {
         pip install chevah-brink==$version \
             --index-url=http://172.20.0.1:10042/simple \
             --download-cache=${PROJECT_ROOT}/brink/cache/pypi \
-            --find-links=file://${PROJECT_ROOT}/brink/cache/pypi
+            --find-links=file://${PROJECT_ROOT}/brink/cache/pypi \
+            --upgrade
 
     exit_code=$?
     if [ $exit_code -ne 0 ]; then

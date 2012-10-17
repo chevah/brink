@@ -1,3 +1,5 @@
+# Copyright (c) 2012 Adi Roiban.
+# See LICENSE for details.
 """
 Package for chevah-brink.
 
@@ -8,7 +10,7 @@ from setuptools import setup, Command
 import os
 import shutil
 
-VERSION = '0.0.4'
+VERSION = u'0.0.5'
 
 
 class CacheCommand(Command):

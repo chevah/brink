@@ -499,6 +499,7 @@ command_code_release() {
     message="Release version $version.\n\nbrink(master): \
         $brink"
     git tag -a $version $commit -m "$(echo -e "$message")"
+    echo "Tag created for $version"
 }
 
 
