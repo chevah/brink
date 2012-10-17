@@ -1597,7 +1597,7 @@ def publish():
     pave.fs.createFolder(publish_website_folder)
     pave.fs.createFolder([_p(publish_website_folder), 'downloads'])
     pave.fs.copyFolder(
-        source=[pave.path.build, 'doc', 'html/'],
+        source=[pave.path.build, 'doc', 'html'],
         destination=[pave.path.publish, 'website', 'documentation'],
         )
     release_html_name = 'release-' + version + '.html'

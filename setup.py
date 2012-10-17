@@ -10,7 +10,7 @@ from setuptools import setup, Command
 import os
 import shutil
 
-VERSION = u'0.0.5'
+VERSION = u'0.0.6'
 
 
 class CacheCommand(Command):
@@ -49,7 +49,7 @@ setup(
     maintainer_email="adi.roiban@chevah.com",
     license='BSD (3 clause) License',
     platforms='any',
-    description='Sphinx themes used by SFTPPlus products.',
+    description='Chevah build system.',
     long_description=open('README.rst').read(),
     url='http://www.chevah.com',
     py_modules=['pavement_commons'],
