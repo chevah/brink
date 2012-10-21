@@ -23,10 +23,6 @@ A `project` is a collection of products.
 This scripts assume that you have dedicated folder for the project, and
 inside the project folder, there is one folder for each products.
 """
-#
-# This is here for backward compatibility. Use the file from
-# brink package!
-#
 from __future__ import with_statement
 from contextlib import closing
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
@@ -59,7 +55,6 @@ SETUP = {
         'version_major': '0',
         'version_minor': '0',
         'copyright_holder': 'Chevah Project',
-        'distributables': {}
     },
     'python': {
         'version': '2.5',
@@ -108,7 +103,14 @@ SETUP = {
         'include_files': ['pavement.py'],
         'include_folders': [],
     },
-    'website_package': 'chevah.website',
+    'sphinx': {
+        # Images, CSS and other HTML relates files,
+        'html_templates_package': 'chevah.htmltemplates',
+        # Sphinx themes.
+        'themes_package': 'chevah.sphinxthemes',
+        # Media files used by sphinx themes.
+        'media_package': 'chevah.website',
+    },
     'test': {
         'package': 'chevah.product.tests',
     },
@@ -635,7 +637,7 @@ class PaverSphinx(object):
             'apidoc', '--maxdepth=4', '-f', '-o', _p(destination), module]
         apidoc_main(sys.argv)
 
-    def createConfiguration(self, destination, project, version, themes_path,
+    def makeConfiguration(self, destination, project, version, themes_path,
             theme_name='standalone', intersphinx_mapping=None,
             copyright='Chevah Team',
         ):
@@ -742,17 +744,14 @@ class ChevahPaver(object):
         """
         Install the required packages for runtime environemnt.
         """
-        from brink import get_module_path
-
         if extra_packages is None:
             extra_packages = []
 
-        requirements_path = _p([
-            get_module_path(), 'static', 'requirements',
-            'requirements-runtime.txt'])
         self.pip(
             command='install',
-            arguments=['-r', requirements_path],
+            arguments=[
+                '-r', _p([pave.path.brink, 'requirements-runtime.txt']),
+                ],
             )
 
         for package in extra_packages:
@@ -765,15 +764,11 @@ class ChevahPaver(object):
         """
         Intall the required packages to build environment.
         """
-        from brink import get_module_path
-
-        requirements_path = _p([
-            get_module_path(), 'static', 'requirements',
-            'requirements-buildtime.txt'])
-
         self.pip(
             command='install',
-            arguments=['-r', requirements_path],
+            arguments=[
+                '-r', _p([pave.path.brink, 'requirements-buildtime.txt']),
+                ],
             )
 
     def uninstallBuildDependencies(self):
@@ -1118,84 +1113,6 @@ class ChevahPaver(object):
         """
         __import__(module_name)
         return sys.modules[module_name]
-
-    def createDownloadPage(self,
-            introduction, changelog, base_name, create_index=True):
-        """
-        Create a download page for product based on information from `data`.
-        """
-
-        from docutils.core import publish_parts
-        from jinja2 import Environment, Markup, PackageLoader
-
-        target_folder = pave.path.dist
-
-        pave.fs.createFolder([target_folder])
-
-        # Set download site.
-        if pave.git.branch_name == 'production':
-            download_hostname = (
-                SETUP['publish']['download_production_hostname'])
-        else:
-            download_hostname = SETUP['publish']['download_staging_hostname']
-        base_url = "http://%s/%s/%s/%s" % (
-            download_hostname,
-            SETUP['product']['name'].lower(),
-            SETUP['product']['version_major'],
-            SETUP['product']['version_minor'],
-            )
-        data = {
-            'introduction': introduction,
-            'changelog': changelog,
-            'base_url': base_url,
-            'version': SETUP['product']['version'],
-            'extensions': DIST_EXTENSION,
-            'base_name': base_name,
-            'page_title': "%s %s Download" % (
-                SETUP['product']['name'], SETUP['product']['version']),
-            'distributables': SETUP['product']['distributables'],
-        }
-
-        website_package = SETUP['website_package']
-        website_path = pave.importAsString(
-            website_package).get_module_path()
-        page_name = 'release-' + data['version'] + ".html"
-        download_page = [target_folder, page_name]
-        pave.fs.copyFile(
-            source=[website_path, 'templates', 'one_column.html'],
-            destination=download_page,
-            )
-
-        print "Creating download page..."
-        templates_loader = PackageLoader(website_package, 'jinja2')
-        jinja_environment = Environment(loader=templates_loader)
-
-        # Add rst filter.
-        def rst_filter(s):
-            return Markup(
-                publish_parts(source=s, writer_name='html')['html_body'])
-        jinja_environment.filters['rst'] = rst_filter
-
-        template = jinja_environment.get_template('download_product.j2')
-        content = template.render(data=data)
-
-        changelog_html = publish_parts(
-            source=data['changelog'],
-            writer_name='html',
-            )['html_body']
-        content = content.replace(
-            'CHANGELOG-CONTENT-PLACEHOLDER', changelog_html)
-
-        rules = [
-            ['PAGE-TITLE-PLACEHOLDER', data['page_title']],
-            ['PAGE-CONTENT-PLACEHOLDER', content],
-            ]
-        pave.fs.replaceFileContent(target=download_page, rules=rules)
-
-        if create_index:
-            index_page = [target_folder, 'index.html']
-            pave.fs.copyFile(
-                source=download_page, destination=index_page)
 
 
 pave = ChevahPaver()
@@ -1623,15 +1540,14 @@ def doc_html():
     product_name = SETUP['product']['name']
     version = SETUP['product']['version']
 
-    website_path = pave.importAsString(
-        SETUP['website_package']).get_module_path()
-
-    pave.sphinx.createConfiguration(
+    themes_path = pave.importAsString(
+        SETUP['sphinx']['themes_package']).get_module_path()
+    pave.sphinx.makeConfiguration(
         destination=[pave.path.build, 'doc_source', 'conf.py'],
         project=product_name,
         version=version,
         copyright=SETUP['product']['copyright_holder'],
-        themes_path=os.path.join(website_path, 'sphinx'),
+        themes_path=themes_path,
         theme_name='standalone'
         )
     destination = [pave.path.build, 'doc', 'html']
@@ -1641,8 +1557,10 @@ def doc_html():
         target=destination,
         )
 
+    media_path = pave.importAsString(
+        SETUP['sphinx']['media_package']).get_module_path()
     pave.fs.copyFolder(
-        source=[website_path, 'media'],
+        source=[media_path, 'media'],
         destination=[pave.path.build, 'doc', 'html', 'media'])
 
     print "Documentation files generated in %s" % _p(destination)
@@ -1686,7 +1604,7 @@ def publish():
     pave.fs.createFolder(publish_website_folder)
     pave.fs.createFolder([_p(publish_website_folder), 'downloads'])
     pave.fs.copyFolder(
-        source=[pave.path.build, 'doc', 'html'],
+        source=[pave.path.build, 'doc', 'html/'],
         destination=[pave.path.publish, 'website', 'documentation'],
         )
     release_html_name = 'release-' + version + '.html'
