@@ -4,3 +4,4 @@ cache/
 dist/
 pavement_lib*
 *.egg-info/
+*.pyc

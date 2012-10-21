@@ -10,7 +10,7 @@ from setuptools import setup, Command
 import os
 import shutil
 
-VERSION = u'0.2.0'
+VERSION = u'0.3.0'
 
 
 class CacheCommand(Command):
@@ -53,5 +53,9 @@ setup(
     long_description=open('README.rst').read(),
     url='http://www.chevah.com',
     py_modules=['pavement_commons'],
+    packages=['brink'],
+    package_data={'brink': [
+        'static/requirements/*',
+        ]},
     cmdclass={'cache': CacheCommand},
 )

@@ -1,6 +1,13 @@
 # Copyright (c) 2011 Adi Roiban.
 # See LICENSE for details.
 """
+!!!
+!!! Don't change this script
+!!!
+!!! This is here for backward compatibility.
+!!! Use the files from brink package.
+!!!
+
 Shared pavement methods used in Chevah project.
 
 This file is copied into the root of each repo as pavement_lib.py
@@ -16,6 +23,10 @@ A `project` is a collection of products.
 This scripts assume that you have dedicated folder for the project, and
 inside the project folder, there is one folder for each products.
 """
+#
+# This is here for backward compatibility. Use the file from
+# brink package!
+#
 from __future__ import with_statement
 from contextlib import closing
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
@@ -731,14 +742,17 @@ class ChevahPaver(object):
         """
         Install the required packages for runtime environemnt.
         """
+        from brink import get_module_path
+
         if extra_packages is None:
             extra_packages = []
 
+        requirements_path = _p([
+            get_module_path(), 'static', 'requirements',
+            'requirements-runtime.txt'])
         self.pip(
             command='install',
-            arguments=[
-                '-r', _p([pave.path.brink, 'requirements-runtime.txt']),
-                ],
+            arguments=['-r', requirements_path],
             )
 
         for package in extra_packages:
@@ -751,11 +765,15 @@ class ChevahPaver(object):
         """
         Intall the required packages to build environment.
         """
+        from brink import get_module_path
+
+        requirements_path = _p([
+            get_module_path(), 'static', 'requirements',
+            'requirements-buildtime.txt'])
+
         self.pip(
             command='install',
-            arguments=[
-                '-r', _p([pave.path.brink, 'requirements-buildtime.txt']),
-                ],
+            arguments=['-r', requirements_path],
             )
 
     def uninstallBuildDependencies(self):

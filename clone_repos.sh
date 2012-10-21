@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Chevah Repository Downloaded.
+# Chevah Repository Downloader.
 #
 # This script is designed to create the initial clone of all repositories
 # used by Chevah project.

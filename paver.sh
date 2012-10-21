@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
-#
-# Do not modify this file inside the branch.
-# Only modify this script in deps/chevah-paver-lib folder.
-# Inside a branch, paver.sh should be a symlink or copy (on windows).
-#
 # Copyright (c) 2011 Adi Roiban.
 # See LICENSE for details.
-# Helper script for running paver on Unix systems.
+#
+# Helper script for bootstraping the build system Unix systems.
 # It will write the default values into 'DEFAULT_VALUES' file.
 
 # Set default locale.
@@ -19,7 +15,6 @@ export LC_CTYPE='C'
 export LC_COLLATE='C'
 export LC_MESSAGES='C'
 export PATH=$PATH:'/sbin:/usr/sbin'
-
 
 # Global variable for arbitrary return value from functions.
 RESULT=''
@@ -254,10 +249,6 @@ if [ "$1" = "clean" ] ; then
     exit 0
 fi
 
-if [ "$1" = "deps" ] ; then
-    update_brink
-fi
-
 if [ "$1" = "get_default_values" ] ; then
     write_default_values
     exit 0
@@ -325,6 +316,10 @@ if [ $WAS_PYTHON_JUST_INSTALLED -eq 1 ]; then
         echo 'Failed to run the inital "paver deps" command.'
         exit 1
     fi
+fi
+
+if [ "$1" = "deps" ] ; then
+    update_brink
 fi
 
 # Now that we have Python and Paver, let's call Paver
