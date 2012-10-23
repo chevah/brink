@@ -13,9 +13,10 @@ import shutil
 VERSION = u'0.4.0'
 
 
-class CacheCommand(Command):
+class PublishCommand(Command):
     """
-    Copy the sdist files to local pypi cache.
+    Publish the source distribution to local pypi cache and remote
+    Chevah PyPi server.
     """
 
     description = "copy distributable to Chevah cache folder"
@@ -41,6 +42,11 @@ class CacheCommand(Command):
         log.info(
             "Distributables files copied to %s " % (self.destination_base))
 
+        # Upload package to Chevah PyPi server.
+        upload_command = self.distribution.get_command_obj('upload')
+        upload_command.repository = u'chevah'
+        self.run_command('upload')
+
 
 setup(
     name='chevah-brink',
@@ -57,5 +63,5 @@ setup(
     package_data={'brink': [
         'static/requirements/*',
         ]},
-    cmdclass={'cache': CacheCommand},
+    cmdclass={'publish': PublishCommand},
 )
