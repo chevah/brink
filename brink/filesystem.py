@@ -274,7 +274,7 @@ class BrinkFilesystem(object):
         """
         path = _p(destination)
         old_dir = os.getcwd()
-        os.path(path)
+        os.chdir(path)
         try:
             yield old_dir
         finally:

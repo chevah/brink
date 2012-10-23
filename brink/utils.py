@@ -19,7 +19,7 @@ from brink.execute import execute
 from brink.git import BrinkGit
 from brink.filesystem import BrinkFilesystem
 from brink.paths import ProjectPaths
-from brink.sphinx import BrinkSphinx
+from brink.sphinx_tools import BrinkSphinx
 
 
 def _p(path):
@@ -460,10 +460,6 @@ class BrinkPaver(object):
         """
         Create a download page for product based on information from `data`.
         """
-
-        from docutils.core import publish_parts
-        from jinja2 import Environment, Markup, PackageLoader
-
         from brink.pavement_commons import DIST_EXTENSION
 
         target_folder = self.path.dist
@@ -508,22 +504,13 @@ class BrinkPaver(object):
             )
 
         print "Creating download page..."
-        templates_loader = PackageLoader(website_package, 'jinja2')
-        jinja_environment = Environment(loader=templates_loader)
-
-        # Add rst filter.
-        def rst_filter(s):
-            return Markup(
-                publish_parts(source=s, writer_name='html')['html_body'])
-        jinja_environment.filters['rst'] = rst_filter
-
-        template = jinja_environment.get_template('download_product.j2')
-        content = template.render(data=data)
-
-        changelog_html = publish_parts(
-            source=data['changelog'],
-            writer_name='html',
-            )['html_body']
+        content = self.renderJinja(
+            package=website_package,
+            folder='jinja2',
+            templates='download_product.j2',
+            data=data
+            )
+        changelog_html = self.renderRST(source=data['changelog'])
         content = content.replace(
             'CHANGELOG-CONTENT-PLACEHOLDER', changelog_html)
 
@@ -537,6 +524,46 @@ class BrinkPaver(object):
             index_page = [target_folder, 'index.html']
             self.fs.copyFile(
                 source=download_page, destination=index_page)
+
+    def renderRST(self, source):
+        """
+        Return the HTML rendering for RST.
+        """
+        from docutils.core import publish_parts
+
+        content = publish_parts(
+            source=source, writer_name='html',)['html_body']
+        return content
+
+    def renderJinja(self, folder, template, data, package=None):
+        """
+        Return the string representation of Jinja2 template using data.
+        """
+        from docutils.core import publish_parts
+        from jinja2 import (
+            Environment,
+            FileSystemLoader,
+            Markup,
+            PackageLoader,
+            )
+
+        if package:
+            templates_loader = PackageLoader(package, folder)
+        else:
+            templates_loader = FileSystemLoader(folder)
+
+        jinja_environment = Environment(loader=templates_loader)
+
+        # Add rst filter.
+        def rst_filter(s):
+            return Markup(
+                publish_parts(source=s, writer_name='html')['html_body'])
+        jinja_environment.filters['rst'] = rst_filter
+
+        template = jinja_environment.get_template(template)
+
+        content = template.render(data=data)
+        return content
 
     def pocketLint(self, folder=None, files=None):
         '''
