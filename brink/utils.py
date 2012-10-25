@@ -507,7 +507,7 @@ class BrinkPaver(object):
         content = self.renderJinja(
             package=website_package,
             folder='jinja2',
-            templates='download_product.j2',
+            template='download_product.j2',
             data=data
             )
         changelog_html = self.renderRST(source=data['changelog'])
