@@ -30,6 +30,7 @@ class ProjectPaths(object):
         self.dist = _p([self.product, folders['dist']])
         self.publish = _p([self.product, folders['publish']])
         self.python_executable = self.getPythonExecutable(os_name=os_name)
+        self.brink_package = os.path.dirname(__file__)
 
     def _getProjectPath(self):
         '''Return the root of Chevah project.'''

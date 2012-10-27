@@ -100,7 +100,8 @@ class BrinkPaver(object):
         self.pip(
             command='install',
             arguments=[
-                '-r', _p([self.path.brink, 'requirements-runtime.txt']),
+                '-r', _p([self.path.brink_package, 'static', 'requirements',
+                            'requirements-runtime.txt']),
                 ],
             )
 
@@ -117,7 +118,8 @@ class BrinkPaver(object):
         self.pip(
             command='install',
             arguments=[
-                '-r', _p([self.path.brink, 'requirements-buildtime.txt']),
+                '-r', _p([self.path.brink_package, 'static', 'requirements',
+                            'requirements-buildtime.txt']),
                 ],
             )
 
@@ -128,7 +130,8 @@ class BrinkPaver(object):
         self.pip(
             command='uninstall',
             arguments=[
-                '-r', _p([self.path.brink, 'requirements-buildtime.txt']),
+                '-r', _p([self.path.brink_package, 'static', 'requirements',
+                            'requirements-buildtime.txt']),
                 '-y',
                 ],
             )

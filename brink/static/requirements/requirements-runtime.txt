@@ -10,6 +10,8 @@ pyasn1
 simplejson
 bunch
 
+lazr.delegates==1.2.0
+
 # Required by chevah.server and chevah.agent
 #python-daemon
 #lockfile
