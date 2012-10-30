@@ -1,21 +1,15 @@
 # Runtime dependencies.
 # Last version to support python 2.5
 zope.interface==3.8.0
-pysqlite
+
 twisted==12.1.0-chevah3
 # Required by twisted.conch
 pyasn1
-
 
 simplejson
 bunch
 
 lazr.delegates==1.2.0
-
-# Required by chevah.server and chevah.agent
-#python-daemon
-#lockfile
-#pam
 
 # This is here to avoid removing the chevah namespace package at dist time.
 nosevah>=0.1.2

@@ -19,9 +19,6 @@ export PATH=$PATH:'/sbin:/usr/sbin'
 # Global variable for arbitrary return value from functions.
 RESULT=''
 
-# Initialize PROJECT_ROOT and later fix it.
-PROJECT_ROOT=`pwd`
-
 WAS_PYTHON_JUST_INSTALLED=0
 
 
@@ -40,6 +37,8 @@ clean_build() {
 
 
 find_project_root() {
+    # Initialize PROJECT_ROOT and later fix it.
+    PROJECT_ROOT=`pwd`
     PROJECT_ROOT=${PROJECT_ROOT%chevah*}
     PROJECT_ROOT=${PROJECT_ROOT}chevah
 }

@@ -30,6 +30,7 @@ class ProjectPaths(object):
         self.dist = _p([self.product, folders['dist']])
         self.publish = _p([self.product, folders['publish']])
         self.python_executable = self.getPythonExecutable(os_name=os_name)
+        self.python_scripts = self.getPythonScripts()
         self.brink_package = os.path.dirname(__file__)
 
     def _getProjectPath(self):
@@ -43,9 +44,26 @@ class ProjectPaths(object):
             exit()
         return parent_folder
 
-    def getPythonExecutable(self, os_name):
-        '''Return the path to pyhon bin for target.'''
+    def getPythonExecutable(self, os_name=None):
+        """
+        Return the path to the Python executable for an OS.
+        """
+        if os_name is None:
+            os_name = os.name
+
         if os_name == 'windows':
             return _p(['lib', 'python.exe'])
         else:
             return _p(['bin', 'python'])
+
+    def getPythonScripts(self, os_name=None):
+        """
+        Return the path to the Python scripts folder for an OS.
+        """
+        if os_name is None:
+            os_name = os.name
+
+        if os_name == 'nt':
+            return _p(['lib', 'Scripts'])
+        else:
+            return _p(['bin'])

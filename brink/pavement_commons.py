@@ -232,7 +232,9 @@ def test_super(args):
 
 def run_test(python_command, switch_user, arguments):
     test_command = python_command[:]
-    test_command.extend([_p(['bin', 'nose_runner.py']), switch_user])
+    test_command.extend(
+        [_p([pave.path.python_scripts, 'nose_runner.py']),
+        switch_user])
 
     test_args = arguments[:]
 
