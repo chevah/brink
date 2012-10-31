@@ -230,6 +230,40 @@ def test_super(args):
     return exit_code
 
 
+@needs('build')
+@consume_args
+def test_all(args):
+    """
+    Execute all tests.
+    """
+
+    default_arguments = ['--with-run-reporter', '--with-timer']
+    call_arguments = []
+
+    empty_args = False
+    if not len(args):
+        empty_args = True
+        call_arguments = default_arguments[:]
+    call_arguments.append('-s')
+    call_arguments.extend(args)
+
+    environment.args = call_arguments
+    normal_result = test(call_arguments)
+
+    super_result = 0
+    if os.name == 'posix':
+        environment.args = ['elevated']
+        environment.args.extend(call_arguments)
+        super_result = test_super(call_arguments)
+
+    lint_result = 0
+    if empty_args:
+        lint_result = lint()
+
+    if not (normal_result == 0 and super_result == 0 and lint_result == 0):
+        sys.exit(1)
+
+
 def run_test(python_command, switch_user, arguments):
     test_command = python_command[:]
     test_command.extend(
@@ -343,7 +377,7 @@ def buildbot_try(args):
         ]
 
     if not ('--no-wait' in args):
-        print ('Use "--no-wait" if you only want to trigger the build'
+        print ('Use "--no-wait" if you only want to trigger the build '
                 'without waiting for result.')
         args.append('--wait')
     else:

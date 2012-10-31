@@ -11,6 +11,12 @@ nose==1.1.2-chevah1
 mock
 unidecode
 
+winpdb
+ipython==0.10.2
+ipdb
+ipdbplugin
+
+
 rbtools
 
 unittest2
