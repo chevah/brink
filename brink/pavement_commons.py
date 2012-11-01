@@ -1,4 +1,4 @@
-# Copyright (c) 2011 Adi Roiban.
+    # Copyright (c) 2011 Adi Roiban.
 # See LICENSE for details.
 """
 Shared pavement methods used in Chevah project.
@@ -201,7 +201,7 @@ def deps():
 @task
 @needs('build')
 @consume_args
-def test(args):
+def test_normal(args):
     '''Run the test suite.'''
     exit_code = run_test(
         python_command=pave.python_command_normal,
@@ -232,7 +232,7 @@ def test_super(args):
 
 @needs('build')
 @consume_args
-def test_all(args):
+def test(args):
     """
     Execute all tests.
     """
@@ -248,7 +248,7 @@ def test_all(args):
     call_arguments.extend(args)
 
     environment.args = call_arguments
-    normal_result = test(call_arguments)
+    normal_result = test_normal(call_arguments)
 
     super_result = 0
     if os.name == 'posix':
@@ -262,6 +262,28 @@ def test_all(args):
 
     if not (normal_result == 0 and super_result == 0 and lint_result == 0):
         sys.exit(1)
+
+
+@task
+@consume_args
+def test_remote(args):
+    """
+    Run the tests on the remote buildbot.
+    """
+    if not len(args):
+        print 'User "-b builder_name" to run the try on builder_name.'
+        print 'You can use multiple builders by using multiple -b args.'
+        buildbot_list()
+        sys.exit(1)
+
+    product_name = SETUP['product']['name'].lower()
+    if not args[0].startswith(product_name):
+        builder = '--builder=' + product_name + '-' + args[0]
+
+    new_args = [builder]
+    new_args.append('--properties=test=' + ' '.join(args[1:]))
+    environment.args = new_args
+    buildbot_try(new_args)
 
 
 def run_test(python_command, switch_user, arguments):
@@ -343,18 +365,6 @@ def apidoc():
 def buildbot_try(args):
     '''Launch a try job on buildmaster.'''
 
-    if not len(args):
-        print 'User "-b builder_name" to run the try on builder_name.'
-        print 'You can use multiple builders by using multiple -b args.'
-        buildbot_list()
-        sys.exit(1)
-
-    # Add -b in front of the last argument if no builder where specified
-    if not '-b' in args:
-        builder_name = args[-1]
-        args[-1] = '-b'
-        args.append(builder_name)
-
     from buildbot.scripts import runner
     from unidecode import unidecode
 
@@ -385,6 +395,7 @@ def buildbot_try(args):
 
     new_args.extend(args)
     sys.argv = new_args
+    print 'Running %s' % new_args
     try:
         runner.run()
     finally:

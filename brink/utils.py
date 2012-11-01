@@ -224,9 +224,10 @@ class BrinkPaver(object):
 
         for index, arg in enumerate(args):
             if arg == '-b':
+                builder = args[index + 1]
                 break
-
-        builder = args[index + 1]
+            if arg.startswith('--builder='):
+                builder = arg[10:]
 
         base_url = (
             self.setup['buildbot']['web_url'] +
