@@ -1,4 +1,4 @@
-    # Copyright (c) 2011 Adi Roiban.
+# Copyright (c) 2011 Adi Roiban.
 # See LICENSE for details.
 """
 Shared pavement methods used in Chevah project.
@@ -202,7 +202,9 @@ def deps():
 @needs('build')
 @consume_args
 def test_normal(args):
-    '''Run the test suite.'''
+    """
+    Run the test suite as regular user.
+    """
     exit_code = run_test(
         python_command=pave.python_command_normal,
         switch_user='-',
@@ -218,7 +220,14 @@ def test_normal(args):
 @needs('build')
 @consume_args
 def test_super(args):
-    '''Run the test suite using root. On Windows is runs as a normal user.'''
+    """
+    Run the test suite as root user.
+
+    On Windows is does nothing.
+    """
+    if os.name != 'posix':
+        return 0
+
     exit_code = run_test(
         python_command=pave.python_command_super,
         switch_user=getpass.getuser(),
@@ -250,11 +259,9 @@ def test(args):
     environment.args = call_arguments
     normal_result = test_normal(call_arguments)
 
-    super_result = 0
-    if os.name == 'posix':
-        environment.args = ['elevated']
-        environment.args.extend(call_arguments)
-        super_result = test_super(call_arguments)
+    environment.args = ['elevated']
+    environment.args.extend(call_arguments)
+    super_result = test_super(call_arguments)
 
     lint_result = 0
     if empty_args:
@@ -269,6 +276,11 @@ def test(args):
 def test_remote(args):
     """
     Run the tests on the remote buildbot.
+
+    test_remote [BUILDER_NAME [TEST_ARG1 TEST_ARG2]]
+
+    You can use short names for builders. Insteas of 'server-ubuntu-1004-x86'
+    you can use 'ubuntu-1004-x86'.
     """
     if not len(args):
         print 'User "-b builder_name" to run the try on builder_name.'
@@ -386,12 +398,12 @@ def buildbot_try(args):
         '--branch=%s' % (pave.git.branch_name),
         ]
 
-    if not ('--no-wait' in args):
+    if '--no-wait' in args:
+        args.remove('--no-wait')
+    else:
         print ('Use "--no-wait" if you only want to trigger the build '
                 'without waiting for result.')
         args.append('--wait')
-    else:
-        args.remove('--no-wait')
 
     new_args.extend(args)
     sys.argv = new_args
