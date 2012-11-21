@@ -291,12 +291,12 @@ if [ ! -s ${PYTHON_BIN} ]; then
 fi
 
 # Always update paver ... at least until we have a stable buildsystem.
-cp -RL ${BOOTSTRAP_PATH}/paver/paver ${PYTHON_LIB}
-cp -RL ${BOOTSTRAP_PATH}/pip/pip ${PYTHON_LIB}
-cp -RL ${BOOTSTRAP_PATH}/distribute/setuptools ${PYTHON_LIB}
-cp -RL ${BOOTSTRAP_PATH}/distribute/distribute.egg-info ${PYTHON_LIB}
-cp ${BOOTSTRAP_PATH}/distribute/pkg_resources.py ${PYTHON_LIB}/
-cp ${BOOTSTRAP_PATH}/distribute/easy_install.py ${PYTHON_LIB}/
+cp -RL ${BOOTSTRAP_PATH}/paver/paver ${PYTHON_LIB}/site-packages/
+cp -RL ${BOOTSTRAP_PATH}/pip/pip ${PYTHON_LIB}/site-packages/
+cp -RL ${BOOTSTRAP_PATH}/distribute/setuptools ${PYTHON_LIB}/site-packages/
+cp -RL ${BOOTSTRAP_PATH}/distribute/distribute.egg-info ${PYTHON_LIB}/site-packages/
+cp ${BOOTSTRAP_PATH}/distribute/pkg_resources.py ${PYTHON_LIB}/site-packages/
+cp ${BOOTSTRAP_PATH}/distribute/easy_install.py ${PYTHON_LIB}/site-packages/
 
 # Copy latest version of pavement_lib if we are not in the commons module.
 # This is implemented using copy functionality since Windows does not support
