@@ -217,18 +217,10 @@ class BrinkPaver(object):
         result = simplejson.load(self.openPage(url))
         return result
 
-    def buildbotShowLastStep(self, args):
-
-        if not '--wait' in args:
-            return
-
-        for index, arg in enumerate(args):
-            if arg == '-b':
-                builder = args[index + 1]
-                break
-            if arg.startswith('--builder='):
-                builder = arg[10:]
-
+    def buildbotShowLastStep(self, builder):
+        """
+        Show logs for last step from last build for builder.
+        """
         base_url = (
             self.setup['buildbot']['web_url'] +
             '/json/builders/' +
@@ -239,6 +231,45 @@ class BrinkPaver(object):
         result = self.getJSON(url=base_url + '/builds/' + last_build)
         for line in self.openPage(result['logs'][-1][1] + '/text'):
             print line,
+
+    def buildbotShowProgress(self, builder):
+        """
+        Show interactive progess of builder activity.
+        """
+        # Wait a bit for the new build to start.
+        import time
+        time.sleep(2)
+
+        # How to data to read and print from status stream.
+        CHUNK = 2 * 1024
+
+        base_url = (
+            self.setup['buildbot']['web_url'] +
+            '/json/builders/' +
+            builder)
+        builder_status = self.getJSON(url=base_url)
+        if builder_status['currentBuilds']:
+            last_build = str(builder_status['currentBuilds'][0])
+        else:
+            # This build was was... no progress to list so we get
+            # the last build status.
+            self.buildbotShowLastStep(builder)
+            return
+
+        while builder_status['state'] == 'building':
+            last_step = self.getJSON(url=base_url + '/builds/' + last_build)
+            last_step_url = last_step['logs'][-1][1] + '/text'
+
+            req = urllib2.urlopen(last_step_url)
+            while True:
+                chunk = req.read(CHUNK)
+                if not chunk:
+                    break
+                print chunk,
+
+            # Wait a bit for next step to start
+            time.sleep(0.1)
+            builder_status = self.getJSON(url=base_url)
 
     def getOption(self, options, option_name,
             default_value=None, required=False):

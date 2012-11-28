@@ -22,6 +22,7 @@ import getpass
 import os
 import sys
 import subprocess
+import threading
 
 from paver.easy import cmdopts, task, pushd, needs
 from paver.tasks import environment, help, consume_args
@@ -378,9 +379,32 @@ def buildbot_try(args):
     from buildbot.scripts import runner
     from unidecode import unidecode
 
-    # Push the latest changes to remote repo, as otherwise the diff will
-    # not be valide.
-    pave.git.push()
+    status_thread = None
+    interactive = True
+
+    for index, arg in enumerate(args):
+        if arg == '-b':
+            builder = args[index + 1]
+            break
+        if arg.startswith('--builder='):
+            builder = arg[10:]
+            break
+
+    if '--no-wait' in args:
+        interactive = False
+        args.remove('--no-wait')
+    else:
+        interactive = True
+        args.append('--wait')
+
+    # There is no point in waiting for pqm builds
+    # so they are force as non-interactive
+    if 'pqm' in builder:
+        print 'Forcing PQM build in non-interactive mode.'
+        print 'Check Buildbot page for status.'
+        print '------------------------------------------'
+        interactive = False
+        args.remove('--wait')
 
     new_args = [
         'buildbot', 'try',
@@ -395,21 +419,29 @@ def buildbot_try(args):
         '--who="%s"' % (unidecode(pave.git.account)),
         '--branch=%s' % (pave.git.branch_name),
         ]
-
-    if '--no-wait' in args:
-        args.remove('--no-wait')
-    else:
-        print ('Use "--no-wait" if you only want to trigger the build '
-                'without waiting for result.')
-        args.append('--wait')
-
     new_args.extend(args)
     sys.argv = new_args
+
+    # Push the latest changes to remote repo, as otherwise the diff will
+    # not be valide.
+    pave.git.push()
+
+    if not interactive:
+        print ('Use "--no-wait" if you only want to trigger the build '
+                'without waiting for result.')
+    else:
+        status_thread = threading.Thread(
+            target=pave.buildbotShowProgress, args=(builder,))
+
     print 'Running %s' % new_args
-    try:
+    if interactive:
+        try:
+            status_thread.start()
+            runner.run()
+        finally:
+            status_thread.join()
+    else:
         runner.run()
-    finally:
-        pave.buildbotShowLastStep(args)
 
 
 @task
