@@ -569,12 +569,19 @@ class BrinkPaver(object):
         content = template.render(data=data)
         return content
 
-    def pocketLint(self, folder=None, files=None):
-        '''
-        Run pocketlint on files from `folder`.
+    def pocketLint(self,
+            folders=None, excluded_folders=None,
+            files=None, excluded_files=None,
+            ):
+        """
+        Run pocketlint on `folders` and `files`.
 
-        Files from `excepted_folders` list will not be checked.
-        '''
+        Files from `excluded_folders` and `excluded_files` list will be
+        ignored.
+
+        `excluded_folders` and `excluded` files contains regular expression
+        which will match full folder names or file names.
+        """
         from pocketlint.formatcheck import (
             check_sources,
             JavascriptChecker,
@@ -582,6 +589,28 @@ class BrinkPaver(object):
             )
         from pocketlint.contrib import cssccc
         import pocketlint
+        import mimetypes
+
+        # These types are not recognized by Windows.
+        mimetypes.add_type('application/json', '.json')
+        mimetypes.add_type('image/x-icon', '.ico')
+
+        if files is None:
+            files = []
+
+        if folders is None:
+            folders = []
+
+        if excluded_files is None:
+            excluded_files = []
+
+        if excluded_folders is None:
+            excluded_folders = []
+
+        regex_files = [
+            re.compile(expression) for expression in excluded_files]
+        regex_folders = [
+            re.compile(expression) for expression in excluded_folders]
 
         class PocketLintOptions(object):
             """
@@ -590,35 +619,33 @@ class BrinkPaver(object):
             def __init__(self):
                 self.max_line_length = 79
 
+        def is_excepted_folder(folder_name):
+            for expresion in regex_folders:
+                if expresion.match(folder_name):
+                    return True
+            return False
+
+        def is_excepted_file(file_name):
+            for expresion in regex_files:
+                if expresion.match(file_name):
+                    return True
+            return False
+
         if self.os_name is 'ubuntu' and JS is None:
             print 'Install "seed" or "gjs" to enable JS linting on Ubuntu.'
             sys.exit(1)
 
-        def is_excepted_folder(root):
-            excludes = self.setup['pocket-lint']['exclude_folders']
-            for exception in excludes:
-                if re.match(exception, root):
-                    return True
-            return False
-
         sources = []
-        if folder:
+        for folder in folders:
             for root, member_folders, member_files in os.walk(folder):
                 if is_excepted_folder(root):
                     continue
                 for file_name in member_files:
-                    check_file = True
-                    excludes = (
-                        self.setup['pocket-lint']['exclude_files'])
-                    if file_name in excludes:
-                        check_file = False
-                    if check_file:
+                    if not is_excepted_file(file_name):
                         sources.append(os.path.join(root, file_name))
 
-        if files is None:
-            files = []
-        for file in files:
-            sources.append(file)
+        for file_name in files:
+            sources.append(file_name)
 
         count = -1
         pocketlint_path = os.path.dirname(pocketlint.__file__)

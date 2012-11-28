@@ -85,12 +85,7 @@ SETUP = {
         'index_url': 'http://172.20.0.1:10042/simple',
     },
     'pocket-lint': {
-        'exclude_files': [
-            'ftplib.py',
-            'reset.css',
-            'default.css',
-            'state.sqlite',
-            ],
+        'exclude_files': [],
         'exclude_folders': [],
         'include_files': ['pavement.py'],
         'include_folders': [],
@@ -164,17 +159,18 @@ def deps_update(options):
 @task
 def lint():
     '''Run static codse checks.'''
-    pocketlint_reports_count = pave.pocketLint(
-        folder=SETUP['folders']['source'])
 
-    # Check for additional files outside of source folder.
-    pocketlint_reports_count += pave.pocketLint(
-        files=SETUP['pocket-lint']['include_files'])
+    folders = SETUP['pocket-lint']['include_folders'][:]
+    files = SETUP['pocket-lint']['include_files'][:]
+    excluded_folders = SETUP['pocket-lint']['exclude_folders'][:]
+    excluded_files = SETUP['pocket-lint']['exclude_files'][:]
 
-    for folder in SETUP['pocket-lint']['include_folders']:
-        pocketlint_reports_count += pave.pocketLint(folder=folder)
+    result = pave.pocketLint(
+        folders=folders, excluded_folders=excluded_folders,
+        files=files, excluded_files=excluded_files,
+        )
 
-    if pocketlint_reports_count > 0:
+    if result > 0:
             raise SystemExit(True)
     return 0
 
@@ -289,7 +285,9 @@ def test_remote(args):
         sys.exit(1)
 
     product_name = SETUP['product']['name'].lower()
-    if not args[0].startswith(product_name):
+    if args[0].startswith(product_name):
+        builder = '--builder=' + args[0]
+    else:
         builder = '--builder=' + product_name + '-' + args[0]
 
     new_args = [builder]
