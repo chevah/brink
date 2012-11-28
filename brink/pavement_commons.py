@@ -250,15 +250,28 @@ def test(args):
     if not len(args):
         empty_args = True
         call_arguments = default_arguments[:]
+
+    run_elevated = False
+    for arg in args:
+        if 'elevated' in arg:
+            run_elevated = True
+            break
+
     call_arguments.append('-s')
     call_arguments.extend(args)
 
     environment.args = call_arguments
     normal_result = test_normal(call_arguments)
 
-    environment.args = ['elevated']
-    environment.args.extend(call_arguments)
-    super_result = test_super(call_arguments)
+    super_result = 0
+    if empty_args:
+        environment.args = ['elevated']
+        environment.args.extend(call_arguments)
+        super_result = test_super(call_arguments)
+    elif run_elevated:
+        super_result = test_super(call_arguments)
+    else:
+        pass
 
     lint_result = 0
     if empty_args:
