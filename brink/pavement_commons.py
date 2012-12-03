@@ -394,6 +394,7 @@ def buildbot_try(args):
 
     status_thread = None
     interactive = True
+    builder = ''
 
     for index, arg in enumerate(args):
         if arg == '-b':
@@ -402,6 +403,10 @@ def buildbot_try(args):
         if arg.startswith('--builder='):
             builder = arg[10:]
             break
+
+    if not builder:
+        print 'No builder was specified. Use "-b" to send tests to a builder.'
+        sys.exit(1)
 
     if '--no-wait' in args:
         interactive = False
@@ -419,6 +424,14 @@ def buildbot_try(args):
         interactive = False
         args.remove('--wait')
 
+    who = unidecode(pave.git.account)
+    if not who:
+        print 'Git user info not configured.'
+        print 'Use:'
+        print 'git config --global user.name Your Name'
+        print 'git config --global user.email your@email.tld'
+        sys.exit(1)
+
     new_args = [
         'buildbot', 'try',
         '--connect=pb',
@@ -429,7 +442,7 @@ def buildbot_try(args):
         '--username=%s' % (SETUP['buildbot']['username']),
         '--passwd=%s' % (SETUP['buildbot']['password']),
         '--vc=%s' % (SETUP['buildbot']['vcs']),
-        '--who="%s"' % (unidecode(pave.git.account)),
+        '--who="%s"' % (who),
         '--branch=%s' % (pave.git.branch_name),
         ]
     new_args.extend(args)
