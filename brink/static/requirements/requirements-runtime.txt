@@ -18,3 +18,6 @@ chevah-ftplib>=2.7.3-chevah3
 # Required by documentation generation and as a generic template engine.
 jinja2
 pygments
+
+# Required for testaccount on Windows.
+unidecode

@@ -9,8 +9,6 @@ pocketlint-jshint
 # due to some thread handling.
 nose==1.1.2-chevah1
 mock
-unidecode
-
 
 ipython==0.10.2
 ipdb
