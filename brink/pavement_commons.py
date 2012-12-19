@@ -417,10 +417,10 @@ def buildbot_try(args):
 
     # There is no point in waiting for pqm builds
     # so they are force as non-interactive
-    if 'pqm' in builder:
-        print 'Forcing PQM build in non-interactive mode.'
+    if 'pqm' in builder or 'all' in builder:
+        print 'Forcing PQM/ALL builds in non-interactive mode.'
         print 'Check Buildbot page for status.'
-        print '------------------------------------------'
+        print '-----------------------------------------------'
         interactive = False
         args.remove('--wait')
 
