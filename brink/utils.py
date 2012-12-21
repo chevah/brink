@@ -447,7 +447,6 @@ class BrinkPaver(object):
             sys.exit(1)
 
         source_folder = _p([python_lib,
-                    'chevah',
                     self.setup['folders']['source'],
                     self.setup['folders']['static'],
                     self.setup['folders']['configuration'],
@@ -534,7 +533,9 @@ class BrinkPaver(object):
         page_name = 'release-' + data['version'] + ".html"
         download_page = [target_folder, page_name]
         self.fs.copyFile(
-            source=[website_path, 'templates', 'one_column.html'],
+            source=[
+                website_path, 'templates',
+                'one_column_no_header_no_footer.html'],
             destination=download_page,
             )
 
