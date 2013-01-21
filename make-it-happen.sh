@@ -50,6 +50,8 @@ ALL_PYTHON_BINARY_DIST="\
     python2.5-solaris10-x86 \
     python2.5-ubuntu1004-x64 \
     python2.5-ubuntu1004-x86 \
+    python2.5-ubuntu1204-x64 \
+    python2.5-ubuntu1204-x86 \
     python2.5-windows-x86 \
     "
 
@@ -394,7 +396,8 @@ command_delete_local_branches(){
         pushd $repo > /dev/null
         echo "Cleaning local for $repo"
         git fetch
-        BRANCHES=`git branch --merged | grep -v '^\*' | grep -v 'master'`
+        BRANCHES=`git branch --merged | grep -v '^\*' \
+            | grep -v master | grep -v production`
         git branch -d $BRANCHES
         popd > /dev/null
     done
@@ -411,7 +414,8 @@ command_delete_remote_branches(){
         echo "Cleaning remote for $repo"
         git fetch origin
         git remote prune origin
-        BRANCHES=`git branch -r --merged master | grep -v master`
+        BRANCHES=`git branch -r --merged master \
+            | grep -v master | grep -v production`
         for branch in $BRANCHES; do
             remote=${branch%%/*}
             branch_name=${branch#*/}
