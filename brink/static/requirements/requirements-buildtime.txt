@@ -1,4 +1,7 @@
 # Buildtime dependencies.
+
+#########
+# Testing
 pyflakes>=0.5.0-chevah2
 cssutils
 
@@ -10,17 +13,24 @@ pocketlint-jshint
 nose==1.1.2-chevah1
 mock
 
-ipython==0.10.2
-ipdb
-nose-ipdb==1.2-chevah6
-
-winpdb
-nose-rpdb2==0.1.7
-
-rbtools
-
 unittest2
-coverage
+
+paramiko
+
+#########################
+# Other development tools
+
+#ipython==0.10.2
+#ipdb
+#nose-ipdb==1.2-chevah6
+
+#winpdb
+#nose-rpdb2==0.1.7
+
+# ReviewBoard tools.
+#rbtools
+
+#coverage
 
 # Sphinx is used for documenting all projects
 sphinx==1.1.3-chevah1
@@ -29,7 +39,3 @@ docutils>=0.9.1-chevah2
 
 # Buildbot is used for try scheduler
 buildbot
-
-# Server testing packages.
-paramiko
-#phantomjs

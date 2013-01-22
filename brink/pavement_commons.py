@@ -94,6 +94,8 @@ SETUP = {
     'website_package': 'chevah.website',
     'test': {
         'package': 'chevah.product.tests',
+        # Module inside the test-package where elevated test are located.
+        'elevated': None,
     },
 }
 
@@ -252,10 +254,11 @@ def test(args):
         call_arguments = default_arguments[:]
 
     run_elevated = False
-    for arg in args:
-        if 'elevated' in arg:
-            run_elevated = True
-            break
+    if SETUP['test']['elevated']:
+        for arg in args:
+            if SETUP['test']['elevated'] in arg:
+                run_elevated = True
+                break
 
     call_arguments.append('-s')
     call_arguments.extend(args)
@@ -264,8 +267,8 @@ def test(args):
     normal_result = test_normal(call_arguments)
 
     super_result = 0
-    if empty_args:
-        environment.args = ['elevated']
+    if empty_args and SETUP['test']['elevated']:
+        environment.args = [SETUP['test']['elevated']]
         environment.args.extend(call_arguments)
         super_result = test_super(call_arguments)
     elif run_elevated:
@@ -509,8 +512,8 @@ def buildbot_list(args):
             if SETUP['buildbot']['builders_filter']:
                 selector = (
                     SETUP['buildbot']['builders_filter'])
-            elif SETUP['folders']['source']:
-                selector = SETUP['folders']['source']
+            elif SETUP['repository']['name']:
+                selector = SETUP['repository']['name']
             else:
                 selector = ''
             for line in new_out.getvalue().split('\n'):
