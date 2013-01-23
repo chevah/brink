@@ -301,11 +301,11 @@ def test_remote(args):
         buildbot_list()
         sys.exit(1)
 
-    product_name = SETUP['product']['name'].lower()
-    if args[0].startswith(product_name):
+    repo_name = SETUP['repository']['name'].lower()
+    if args[0].startswith(repo_name):
         builder = '--builder=' + args[0]
     else:
-        builder = '--builder=' + product_name + '-' + args[0]
+        builder = '--builder=' + repo_name + '-' + args[0]
 
     new_args = [builder]
     new_args.append('--properties=test=' + ' '.join(args[1:]))
