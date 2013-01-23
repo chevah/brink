@@ -15,7 +15,7 @@ READ_ONLY_REMOTE_REPO_URI='http://172.20.0.1/git/'
 REMOTE_REPO_URI='git@git.chevah.com:'
 
 
-DEV_REPOS="brink agent commons server"
+DEV_REPOS="brink agent utils compat empirical server"
 
 BUILDSLAVE_REPOS="brink infrastructure"
 

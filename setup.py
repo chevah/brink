@@ -10,7 +10,7 @@ from setuptools import setup, Command
 import os
 import shutil
 
-VERSION = u'0.7.1'
+VERSION = u'0.7.4'
 
 
 class PublishCommand(Command):
