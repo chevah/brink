@@ -5,7 +5,7 @@
 pyflakes>=0.5.0-chevah2
 cssutils
 
-pocketlint==0.5.31-chevah5
+pocketlint==0.5.31-chevah6
 pocketlint-jshint
 
 # Never version of nose, hangs on closing some tests

@@ -6,11 +6,11 @@ Package for chevah-brink.
 These are the extensions build around paver.
 """
 from distutils import log
-from setuptools import setup, Command
+from setuptools import setup, find_packages, Command
 import os
 import shutil
 
-VERSION = u'0.7.5'
+VERSION = u'0.8.1'
 
 
 class PublishCommand(Command):
@@ -58,8 +58,7 @@ setup(
     description='Chevah build system.',
     long_description=open('README.rst').read(),
     url='http://www.chevah.com',
-    py_modules=['pavement_commons'],
-    packages=['brink'],
+    packages=find_packages('.'),
     package_data={'brink': [
         'static/requirements/*',
         ]},
