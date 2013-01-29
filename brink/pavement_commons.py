@@ -97,6 +97,9 @@ SETUP = {
         # Module inside the test-package where elevated test are located.
         'elevated': None,
     },
+    'github': {
+        'url': 'https://github.com/chevah'
+    }
 }
 
 DIST_TYPE = {
@@ -728,3 +731,33 @@ def clean():
     This is just a placeholder, since clean is handeld by the outside
     paver.sh scripts.
     '''
+
+
+@task
+@consume_args
+def github(args):
+    """
+    Helpers for interacting with GitHub website.
+    """
+    def github_help():
+        print "Usage: github COMMNAND ARGUMENTS."
+        print ""
+        print "List of commands:"
+        print "    open - Open the repository in githuh."
+        print "    new  - Open the page for creating a new pull request"
+
+    if not len(args):
+        github_help()
+        sys.exit(1)
+
+    import webbrowser
+
+    if args[0] == 'open':
+        webbrowser.open_new_tab(SETUP['github']['url'])
+        sys.exit(0)
+
+    if args[0] == 'new':
+        url = "%s/pull/new/%s" % (
+            SETUP['github']['url'], pave.git.branch_name)
+        webbrowser.open_new_tab(url)
+        sys.exit(0)
