@@ -52,6 +52,10 @@ ALL_PYTHON_BINARY_DIST="\
     python2.5-ubuntu1004-x86 \
     python2.5-ubuntu1204-x64 \
     python2.5-ubuntu1204-x86 \
+    python2.7-ubuntu1004-x64 \
+    python2.7-ubuntu1004-x86 \
+    python2.7-ubuntu1204-x64 \
+    python2.7-ubuntu1204-x86 \
     python2.5-windows-x86 \
     "
 

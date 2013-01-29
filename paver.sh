@@ -68,7 +68,7 @@ update_brink() {
     echo "Installing version: chevah-brink==$version of brink..."
 
     ${PYTHON_BIN} -m \
-        pip install chevah-brink==$version \
+        pip.__init__ install chevah-brink==$version \
             --index-url=http://172.20.0.1:10042/simple \
             --download-cache=${PROJECT_ROOT}/brink/cache/pypi \
             --find-links=file://${PROJECT_ROOT}/brink/cache/pypi \
@@ -81,6 +81,23 @@ update_brink() {
     fi
 }
 
+get_python_version() {
+    raw_version=`grep "PYTHON_VERSION =" pavement.py`
+    exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        # Python version was not found, so we go with default.
+        return
+    fi 
+
+    # Extract version and remove quotes.
+    version=${raw_version#PYTHON_VERSION = }
+    version=${version#\'}
+    version=${version%\'}
+    version=${version#\"}
+    version=${version%\"}
+    PYTHON_VERSION="python$version"
+}
+
 
 detect_os() {
     OS=`uname -s | tr '[:upper:]' '[:lower:]'`
@@ -89,8 +106,6 @@ detect_os() {
 
         OS='windows'
         ARCH='x86'
-        PYTHON_BIN="/lib/python.exe"
-        PYTHON_LIB="/lib/Lib/"
 
     elif [ "${OS}" = "sunos" ] ; then
 
@@ -165,8 +180,6 @@ detect_os() {
                 ;;
                 '12.04' | '12.10' | '13.04' | '13.10')
                     OS='ubuntu1204'
-                    PYTHON_VERSION="python2.5"
-                    PYTHON_LIB="/lib/${PYTHON_VERSION}/"
                 ;;
                 *)
                     echo 'Unsuported Ubuntu version.'
@@ -224,11 +237,18 @@ detect_os() {
 # Put default values and create them as global variables.
 OS='not-detected-yet'
 ARCH='x86'
-PYTHON_BIN="/bin/python"
 PYTHON_VERSION="python2.5"
-PYTHON_LIB="/lib/${PYTHON_VERSION}/"
 
 detect_os
+get_python_version
+
+if [ "${OS}" = "windows" ] ; then
+    PYTHON_BIN="/lib/python.exe"
+    PYTHON_LIB="/lib/Lib/"
+else
+    PYTHON_BIN="/bin/python"
+    PYTHON_LIB="/lib/${PYTHON_VERSION}/"
+fi
 
 find_project_root
 
