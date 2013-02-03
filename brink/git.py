@@ -49,6 +49,14 @@ class BrinkGit(object):
         exit_code, output = execute([self.git, 'push', remote])
         return output.strip()
 
+    def publish(self, remote='origin'):
+        """
+        Publish new branch to remote repo.
+        """
+        exit_code, output = execute([
+            self.git, 'push', '--set-upstream', remote, self.branch_name])
+        return output.strip()
+
     @property
     def revision(self):
         '''Return the revision of the current git branch.'''
