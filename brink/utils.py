@@ -16,7 +16,7 @@ import sys
 import urllib2
 
 from brink.execute import execute
-from brink.git import BrinkGit
+from brink.git_command import BrinkGit
 from brink.filesystem import BrinkFilesystem
 from brink.paths import ProjectPaths
 from brink.sphinx_tools import BrinkSphinx
@@ -132,6 +132,31 @@ class BrinkPaver(object):
             arguments=[
                 '-r', _p([self.path.brink_package, 'static', 'requirements',
                             'requirements-buildtime.txt']),
+                '-y',
+                ],
+            )
+
+    def installTestDependencies(self):
+        """
+        Intall the required packages to testing environment.
+        """
+        self.pip(
+            command='install',
+            arguments=[
+                '-r', _p([self.path.brink_package, 'static', 'requirements',
+                            'requirements-testtime.txt']),
+                ],
+            )
+
+    def uninstallTestDependencies(self):
+        """
+        Unintall the required packages to testing environment.
+        """
+        self.pip(
+            command='uninstall',
+            arguments=[
+                '-r', _p([self.path.brink_package, 'static', 'requirements',
+                            'requirements-testtime.txt']),
                 '-y',
                 ],
             )

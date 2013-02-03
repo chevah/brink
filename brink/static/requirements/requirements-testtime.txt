@@ -1,0 +1,28 @@
+# Dependencies required to test the software.
+
+pyflakes>=0.5.0-chevah2
+cssutils
+
+pocketlint==0.5.31-chevah6
+pocketlint-jshint
+
+# Never version of nose, hangs on closing some tests
+# due to some thread handling.
+nose==1.1.2-chevah1
+mock
+
+unittest2
+
+paramiko
+
+#ipython==0.10.2
+#ipdb
+#nose-ipdb==1.2-chevah6
+
+#winpdb
+#nose-rpdb2==0.1.7
+
+# ReviewBoard tools.
+#rbtools
+
+#coverage
