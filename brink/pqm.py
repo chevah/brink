@@ -30,7 +30,6 @@ APPROVAL_MARKERS = [
     ':shipit:',
     'ship it',
     ]
-APPROVAL_SHA_MARKER = 'sha@'
 
 pave = BrinkPaver(SETUP)
 
@@ -214,14 +213,14 @@ def _review_properties(token, pull_id):
                 continue
 
             for line in content.split('\n'):
-                line = line.strip()
-                first_word = line.split(' ')[0]
-                if first_word in APPROVAL_MARKERS:
-                    for word in line.split(' '):
-                        word = word.lower()
-                        if word.startswith(APPROVAL_SHA_MARKER):
-                            sha = word[len(APPROVAL_SHA_MARKER):]
-                            return sha
+                words = line.strip().split(' ')
+                # Single word on line.
+                if len(words) < 2:
+                    continue
+
+                if words[0] in APPROVAL_MARKERS:
+                    return words[1]
+
         return None
 
     branch_name = pull_request.head.ref
@@ -333,6 +332,11 @@ def merge_init(args):
 def merge_commit(args):
     """
     Commit the merge and push changes.
+
+    Exit code:
+    * 0 - ok
+    * 1 - failure
+    * 2 - warning
     """
     if len(args) < 3:
         print "Usage: TOKEN GITHUB_PULL_ID TRAC_CREDENTIALS AUTHOR"
@@ -366,21 +370,26 @@ def merge_commit(args):
         print str(error)
         sys.exit(1)
 
-    ticket_id = pave.getTicketIDFromBranchName(branch_name)
-    _closeTracTicket(id=ticket_id, credentials=trac_credentials)
+    ticket_id = pave.getTicketIDFromBranchName(pull_request.head.ref)
+    result = _closeTracTicket(
+        ticket_id=ticket_id, credentials=trac_credentials)
+    if not result:
+        print "Failed to close ticket."
+        # Only exit with a warning.
+        sys.exit(2)
 
 
-def _closeTracTicket(id, credentials):
+def _closeTracTicket(ticket_id, credentials):
     """
     Use XML-RPC with credentials to close Trac ticket with ID.
     """
     import xmlrpclib
     #credentials = "pqm:pqmisthebest"
     try:
-        ticket_id = int(id)
+        ticket_id = int(ticket_id)
     except:
         print "Wrong ticket id %s" % (str(ticket_id))
-        sys.exit(1)
+        return False
 
     url = SETUP['trac']['xmlrpc_login_url'] % {'credentials': credentials}
     server = xmlrpclib.ServerProxy(url)
@@ -406,14 +415,14 @@ def _closeTracTicket(id, credentials):
     if not result:
         print "Ticket %d can not be closed. Current state is %s." % (
             ticket_id, ticket_attributes['status'])
-        sys.exit(1)
+        return False
 
     new_attributes = {
         'action': 'resolve',
+        'action_resolve_resolve_resolution': 'fixed',
         '_ts': ticket_attributes['_ts'],
-        'status': 'closed',
-        'resolution': 'fixed',
     }
+
     comment = "All test passed. Closed by PQM."
     server.ticket.update(
         ticket_id,
@@ -421,6 +430,7 @@ def _closeTracTicket(id, credentials):
         new_attributes,  # Attributes.
         True,  # Notify.
         )
+    return True
 
 
 @task
