@@ -2,7 +2,7 @@
 
 # Sphinx is used for documenting all projects.
 sphinx==1.1.3-chevah1
-repoze.sphinx.autointerface==0.7.1-chevah1
+repoze.sphinx.autointerface==0.7.1-chevah2
 # Docutils is required for RST parsing and for Sphinx.
 docutils>=0.9.1-chevah2
 
