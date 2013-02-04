@@ -744,3 +744,9 @@ class BrinkPaver(object):
 
         segments.append('site-packages')
         return _p(segments)
+
+    def getTicketIDFromBranchName(branch_name):
+        """
+        Extract the ticket id as string from branch name.
+        """
+        return branch_name.split('-')[0]
