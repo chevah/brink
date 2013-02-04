@@ -40,6 +40,10 @@ pave = BrinkPaver(SETUP)
 def github(args):
     """
     Helpers for interacting with GitHub website.
+
+    Admin commands:
+
+    * token PASSWORD - Get a new token to be used by PQM."
     """
     def github_help():
         print "Usage: github COMMNAND ARGUMENTS."
@@ -47,7 +51,6 @@ def github(args):
         print "List of commands:"
         print "    open - Open the repository in githuh."
         print "    review  - Open the page for creating a new pull request"
-        print "    token PASSWORD - Get a new token to be used by PQM."
 
     if not len(args):
         github_help()
