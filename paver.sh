@@ -288,15 +288,16 @@ write_default_values
 # Check that python dist was installed
 if [ ! -s ${PYTHON_BIN} ]; then
     # Install python-dist since everthing else depends on it.
-    echo "Bootstraping Python environment to ${PYTHON_FOLDER}..."
+    echo "Bootstraping ${PYTHON_VERSION} environment to ${PYTHON_FOLDER}..."
     mkdir -p ${PYTHON_FOLDER}
 
     # If we don't have a cached python distributable,
     # get one.
     if [ ! -d ${PYTHON_DISTRIBUTABLE} ]; then
-        echo "Base Python environemt not found. Start downloading it..."
+        echo "No ${PYTHON_VERSION} environment. Start downloading it..."
         pushd ${BOOTSTRAP_PATH}
-        ./make-it-happen.sh get
+        git pull
+        ./make-it-happen.sh get_python ${PYTHON_VERSION} ${OS} ${ARCH}
         popd
     fi
 

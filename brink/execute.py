@@ -40,7 +40,7 @@ def execute(command, input_text=None, output=None,
     except KeyboardInterrupt:
         # Don't print stack trace on keyboard interrupt.
         # Just exit.
-        sys.exit(1)
+        os._exit(1)
 
     exit_code = process.returncode
     if exit_code != 0:

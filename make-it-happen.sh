@@ -125,6 +125,21 @@ command_get_all() {
     execute popd ${BUILD_FOLDER}
 }
 
+#
+# Download Python binary dists.
+#
+# Should be remove once we get rid of 'get_all'.
+#
+get_pythons() {
+    build_folder_list=$@
+
+    echo "Getting Python..."
+    for build_folder in $build_folder_list
+    do
+        get_binary_dist ${build_folder} $PYTHON_URI
+    done
+}
+
 
 # Compile and install all Python extra libraries.
 command_build_python_extra_libraries() {
@@ -215,15 +230,33 @@ command_test_python() {
 
 
 help_text_get_python=\
-"Download Python and Phantomjs for current os."
+"Download Python binary distribution."
+help_get_python() {
+    echo "usage: get_python [PYTHON_VERSION OS ARCH]"
+    echo ""
+    echo "When no arguments are provided, it will download default Python "
+    echo "version for current OS."
+}
 command_get_python() {
-    python_get_list=${LOCAL_PYTHON_BINARY_DIST}
+
+    if [ $# -eq 0 ]; then
+        python_get_list=${LOCAL_PYTHON_BINARY_DIST}
+
+
+    elif [ $# -ne 3 ]; then
+        help_get_python
+        exit 1
+    else
+        python_get_list="$1-$2-$3"
+    fi
 
     mkdir -p ${CACHE_FOLDER}
     pushd ${CACHE_FOLDER}
-        get_pythons $python_get_list
-        get_phantomjs
-
+        echo "Getting Python..."
+        for build_folder in $python_get_list
+        do
+            get_binary_dist ${build_folder} $PYTHON_URI
+        done
     popd
 }
 
@@ -250,26 +283,6 @@ command_get_one_agent() {
     mkdir -p ${CACHE_FOLDER}
     pushd ${CACHE_FOLDER}
         get_agents $agent_get_list
-    popd
-}
-
-
-help_text_get_one_python=\
-"Download Python  for a specific OS-ARCH."
-help_get_one_python() {
-    echo "$PROG get_one_python OS-ARCH"
-    echo "   OS-ARCH - Name of the OS and Architecture for which"
-    echo "             to download binaries."
-}
-
-
-command_get_one_python() {
-    local python_get_list="$PYTHON_VERSION-$1"
-    mkdir -p ${CACHE_FOLDER}
-    # Also create local PyPi cache folder.
-    mkdir -p ${CACHE_FOLDER}/pypi
-    pushd ${CACHE_FOLDER}
-        get_pythons $python_get_list
     popd
 }
 
@@ -317,16 +330,6 @@ get_binary_dist() {
     execute tar -xf $tar_file
     rm -f $tar_gz_file
     rm -f $tar_file
-}
-
-get_pythons() {
-    build_folder_list=$@
-
-    echo "Getting Python..."
-    for build_folder in $build_folder_list
-    do
-        get_binary_dist ${build_folder} $PYTHON_URI
-    done
 }
 
 
