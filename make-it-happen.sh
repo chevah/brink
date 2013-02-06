@@ -24,15 +24,10 @@ BRINK_FOLDER=~/chevah/brink/
 
 # URI from where to download python binary distribution.
 if [ "$BINARY_DIST_URI" = "" ]; then
-    BINARY_DIST_URI=http://172.20.0.1/binary-dist
+    BINARY_DIST_URI=http://binary.chevah.com/production
 fi
-BINARY_DIST_PUBLISH_URI="172.20.0.1:/srv/www/binary-dist"
 PYTHON_URI=${BINARY_DIST_URI}/python
 AGENT_URI=${BINARY_DIST_URI}/agent
-
-# FIXME: Remove these variables, or move them in publish_agent,
-# once the new split agent download is done.
-AGENT_1_5_BINARY_DIST_FOLDER=agent-1.5-binary-dist
 
 ALL_PYTHON_BINARY_DIST="\
     python2.5-aix-ppc64 \
@@ -242,7 +237,6 @@ command_get_python() {
     if [ $# -eq 0 ]; then
         python_get_list=${LOCAL_PYTHON_BINARY_DIST}
 
-
     elif [ $# -ne 3 ]; then
         help_get_python
         exit 1
@@ -364,23 +358,6 @@ get_phantomjs() {
     execute wget $BINARY_DIST_URI/other/phantomjs/$tar_file
     execute tar -xf $tar_file
     execute mv $phantom_file phantomjs
-}
-
-
-help_text_publish_agent=\
-"Upload agent binaries for current OS."
-command_publish_agent() {
-    execute rsync -qrlDvcz \
-        ${DIST_FOLDER}/agent/ ${BINARY_DIST_PUBLISH_URI}/agent/
-}
-
-
-help_text_publish_python=\
-"Upload Python binaries for current OS."
-command_publish_python() {
-    execute rsync -qrlDvcz \
-        ${DIST_FOLDER}/$PYTHON_VERSION/ \
-        ${BINARY_DIST_PUBLISH_URI}/$PYTHON_VERSION/
 }
 
 

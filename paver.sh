@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Copyright (c) 2011 Adi Roiban.
+# Copyright (c) 2010-2013 Adi Roiban.
 # See LICENSE for details.
 #
-# Helper script for bootstraping the build system Unix systems.
+# Helper script for bootstraping the build system on Unix/Msys.
 # It will write the default values into 'DEFAULT_VALUES' file.
 
 # Set default locale.
@@ -16,10 +16,20 @@ export LC_COLLATE='C'
 export LC_MESSAGES='C'
 export PATH=$PATH:'/sbin:/usr/sbin'
 
-# Global variable for arbitrary return value from functions.
+#
+# Global variables.
+#
+# Used to return non-scalar value from functions.
 RESULT=''
-
 WAS_PYTHON_JUST_INSTALLED=0
+DIST_FOLDER='dist'
+
+# Path global variables.
+PROJECT_ROOT=""
+BOOTSTRAP_PATH=""
+BUILD_FOLDER=""
+PYTHON_BIN=""
+PYTHON_LIB=""
 
 
 clean_build() {
@@ -36,11 +46,31 @@ clean_build() {
 }
 
 
-find_project_root() {
+#
+# Update global variables with current paths.
+#
+update_path_variables() {
+
     # Initialize PROJECT_ROOT and later fix it.
     PROJECT_ROOT=`pwd`
     PROJECT_ROOT=${PROJECT_ROOT%chevah*}
     PROJECT_ROOT=${PROJECT_ROOT}chevah
+
+    if [ "${OS}" = "windows" ] ; then
+        PYTHON_BIN="/lib/python.exe"
+        PYTHON_LIB="/lib/Lib/"
+    else
+        PYTHON_BIN="/bin/python"
+        PYTHON_LIB="/lib/${PYTHON_VERSION}/"
+    fi
+
+    BOOTSTRAP_PATH=${PROJECT_ROOT}/brink
+
+    BUILD_FOLDER="build-${OS}-${ARCH}"
+    PYTHON_BIN="${BUILD_FOLDER}${PYTHON_BIN}"
+    PYTHON_LIB="${BUILD_FOLDER}${PYTHON_LIB}"
+
+    export PYTHONPATH=${BUILD_FOLDER}
 }
 
 
@@ -49,12 +79,19 @@ write_default_values() {
 }
 
 
-update_brink() {
+#
+# Install brink package.
+#
+install_brink() {
     raw_version=`grep "BRINK_VERSION =" pavement.py`
     exit_code=$?
+
+    # This code will be deprecated in future versions since we will no longer
+    # support pavement_lib imports.
     if [ $exit_code -ne 0 ]; then
         # Brink version was not found, so we go with default.
         echo "Installing latest version of pavement_lib.py..."
+        PAVEMENT_LIB_PATH=${BOOTSTRAP_PATH}/pavement_commons.py
         cp ${PAVEMENT_LIB_PATH} pavement_lib.py
         return
     fi
@@ -98,7 +135,92 @@ get_python_version() {
     PYTHON_VERSION="python$version"
 }
 
+#
+# Copy python to build folder from binary distribution.
+#
+copy_python() {
 
+    PYTHON_DISTRIBUTABLE=${BOOTSTRAP_PATH}/cache/${PYTHON_VERSION}-${OS}-${ARCH}
+
+    # Check that python dist was installed
+    if [ ! -s ${PYTHON_BIN} ]; then
+        # Install python-dist since everthing else depends on it.
+        echo "Bootstraping ${PYTHON_VERSION} environment to ${BUILD_FOLDER}..."
+        mkdir -p ${BUILD_FOLDER}
+
+        # If we don't have a cached python distributable,
+        # get one.
+        if [ ! -d ${PYTHON_DISTRIBUTABLE} ]; then
+            echo "No ${PYTHON_VERSION} environment. Start downloading it..."
+            pushd ${BOOTSTRAP_PATH}
+            git pull
+            ./make-it-happen.sh get_python ${PYTHON_VERSION} ${OS} ${ARCH}
+            popd
+        fi
+
+        cp -R ${PYTHON_DISTRIBUTABLE}/* ${BUILD_FOLDER}
+        cp -r ${BUILD_FOLDER}/lib/config/include ${BUILD_FOLDER}/
+        # Copy pywintypes25.dll as it is required by paver on windows.
+        if [ "$OS" = "windows" ]; then
+            cp -R ${PYTHON_DISTRIBUTABLE}/lib/pywintypes25.dll .
+        fi
+
+        WAS_PYTHON_JUST_INSTALLED=1
+    fi
+}
+
+
+# Copy base python packages to Python.
+# We can not install them using pip, since we don't have pip or easy_install.
+copy_base_packages() {
+    # Always update paver ... at least until we have a stable buildsystem.
+    cp -RL ${BOOTSTRAP_PATH}/paver/paver ${PYTHON_LIB}/site-packages/
+    cp -RL ${BOOTSTRAP_PATH}/pip/pip ${PYTHON_LIB}/site-packages/
+    cp -RL ${BOOTSTRAP_PATH}/distribute/setuptools ${PYTHON_LIB}/site-packages/
+    cp -RL ${BOOTSTRAP_PATH}/distribute/distribute.egg-info ${PYTHON_LIB}/site-packages/
+    cp ${BOOTSTRAP_PATH}/distribute/pkg_resources.py ${PYTHON_LIB}/site-packages/
+    cp ${BOOTSTRAP_PATH}/distribute/easy_install.py ${PYTHON_LIB}/site-packages/
+}
+
+
+#
+# Install dependencies after python was just installed.
+#
+install_dependencies(){
+
+    if [ $WAS_PYTHON_JUST_INSTALLED -ne 1 ]; then
+        return
+    fi
+
+    install_brink
+
+    ${PYTHON_BIN} -c 'from paver.tasks import main; main()' deps
+    python_exit_code=$?
+    if [ $python_exit_code -ne 0 ]; then
+        echo 'Failed to run the inital "paver deps" command.'
+        exit 1
+    fi
+}
+
+
+#
+# Chech that we have a pavement.py in the current dir.
+# otherwise it means we are out of the source folder and paver can not be
+# used there.
+#
+check_source_folder() {
+
+    if [ ! -e pavement.py ]; then
+        echo 'No pavement.py file found in current folder.'
+        echo 'Make sure you are running paver from a source folder.'
+        exit 1
+    fi
+}
+
+
+#
+# Update OS and ARCH variables with the current values.
+#
 detect_os() {
     OS=`uname -s | tr '[:upper:]' '[:lower:]'`
 
@@ -241,27 +363,7 @@ PYTHON_VERSION="python2.5"
 
 detect_os
 get_python_version
-
-if [ "${OS}" = "windows" ] ; then
-    PYTHON_BIN="/lib/python.exe"
-    PYTHON_LIB="/lib/Lib/"
-else
-    PYTHON_BIN="/bin/python"
-    PYTHON_LIB="/lib/${PYTHON_VERSION}/"
-fi
-
-find_project_root
-
-BOOTSTRAP_PATH=${PROJECT_ROOT}/brink
-DIST_FOLDER='dist'
-BUILD_FOLDER="build-${OS}-${ARCH}"
-PYTHON_FOLDER=${BUILD_FOLDER}
-PYTHON_DIST="${PYTHON_VERSION}-${OS}-${ARCH}"
-PYTHON_BIN="${BUILD_FOLDER}${PYTHON_BIN}"
-PYTHON_LIB="${BUILD_FOLDER}${PYTHON_LIB}"
-export PYTHONPATH=${PYTHON_FOLDER}
-PYTHON_DISTRIBUTABLE=${BOOTSTRAP_PATH}/cache/${PYTHON_DIST}
-PAVEMENT_LIB_PATH=${BOOTSTRAP_PATH}/pavement_commons.py
+update_path_variables
 
 if [ "$1" = "clean" ] ; then
     clean_build
@@ -273,76 +375,18 @@ if [ "$1" = "get_default_values" ] ; then
     exit 0
 fi
 
-
-# Chech that we have a pavement.py in the current dir.
-# otherwise it means we are out of the branch.
-if [ ! -e pavement.py ]; then
-    echo 'No pavement.py file found in current folder.'
-    echo 'Make sure you are running paver from a branch.'
-    exit 1
-fi
-
+check_source_folder
 write_default_values
+copy_python
+copy_base_packages
+install_dependencies
 
-
-# Check that python dist was installed
-if [ ! -s ${PYTHON_BIN} ]; then
-    # Install python-dist since everthing else depends on it.
-    echo "Bootstraping ${PYTHON_VERSION} environment to ${PYTHON_FOLDER}..."
-    mkdir -p ${PYTHON_FOLDER}
-
-    # If we don't have a cached python distributable,
-    # get one.
-    if [ ! -d ${PYTHON_DISTRIBUTABLE} ]; then
-        echo "No ${PYTHON_VERSION} environment. Start downloading it..."
-        pushd ${BOOTSTRAP_PATH}
-        git pull
-        ./make-it-happen.sh get_python ${PYTHON_VERSION} ${OS} ${ARCH}
-        popd
-    fi
-
-    cp -R ${PYTHON_DISTRIBUTABLE}/* ${PYTHON_FOLDER}
-    cp -r ${PYTHON_FOLDER}/lib/config/include ${PYTHON_FOLDER}/
-    # Copy pywintypes25.dll as it is required by paver on windows.
-    if [ "$OS" = "windows" ]; then
-        cp -R ${PYTHON_DISTRIBUTABLE}/lib/pywintypes25.dll .
-    fi
-
-    WAS_PYTHON_JUST_INSTALLED=1
-fi
-
-# Always update paver ... at least until we have a stable buildsystem.
-cp -RL ${BOOTSTRAP_PATH}/paver/paver ${PYTHON_LIB}/site-packages/
-cp -RL ${BOOTSTRAP_PATH}/pip/pip ${PYTHON_LIB}/site-packages/
-cp -RL ${BOOTSTRAP_PATH}/distribute/setuptools ${PYTHON_LIB}/site-packages/
-cp -RL ${BOOTSTRAP_PATH}/distribute/distribute.egg-info ${PYTHON_LIB}/site-packages/
-cp ${BOOTSTRAP_PATH}/distribute/pkg_resources.py ${PYTHON_LIB}/site-packages/
-cp ${BOOTSTRAP_PATH}/distribute/easy_install.py ${PYTHON_LIB}/site-packages/
-
-# Copy latest version of pavement_lib if we are not in the commons module.
-# This is implemented using copy functionality since Windows does not support
-# (or makes symlinking a bit complicated).
-# Maybe we can add a condition and only use copy on Windows and symlinks on
-# Unix.
-current_root=`pwd`
-
-if [ $WAS_PYTHON_JUST_INSTALLED -eq 1 ]; then
-
-    update_brink
-
-    ${PYTHON_BIN} -c 'from paver.tasks import main; main()' deps
-    python_exit_code=$?
-    if [ $python_exit_code -ne 0 ]; then
-        echo 'Failed to run the inital "paver deps" command.'
-        exit 1
-    fi
-fi
-
+# Always update brink when running deps.
 if [ "$1" = "deps" ] ; then
-    update_brink
+    install_brink
 fi
 
-# Now that we have Python and Paver, let's call Paver
+# Now that we have Python and Paver, let's call Paver from Python :)
 ${PYTHON_BIN} -c 'from paver.tasks import main; main()' $@
 python_exit_code=$?
 exit $python_exit_code
