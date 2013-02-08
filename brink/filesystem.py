@@ -8,24 +8,25 @@ import re
 import shutil
 
 
-def _p(path):
-    '''
-    Shortcut for converting a list to a path using os.path.join.
-    '''
-    result = os.path.join(*path)
-    if os.name == 'posix':
-        result = result.encode('utf-8')
-    return result
-
-
 class BrinkFilesystem(object):
     """
     Filesystem handling.
     """
 
+    def join(self, paths):
+        """
+        Join paths.
+
+        It also converts all paths to backslash paths.
+        """
+        result = os.path.join(*paths)
+        if os.name == 'posix':
+            result = result.encode('utf-8')
+        return result.replace('\\', '/')
+
     def readFile(self, destination):
         content = []
-        with open(_p(destination), 'r') as opened_file:
+        with open(self.join(destination), 'r') as opened_file:
             for line in opened_file:
                 content.append(line.rstrip())
         return content
@@ -34,7 +35,7 @@ class BrinkFilesystem(object):
         """
         Retrun the string represenation of the file.
         """
-        with open(_p(target), 'r+') as opened_file:
+        with open(self.join(target), 'r+') as opened_file:
             content = opened_file.read()
         return content
 
@@ -45,7 +46,7 @@ class BrinkFilesystem(object):
         If `strip_newline` is True, the trailing newline will be not included.
         """
         content = []
-        with open(_p(target), 'r') as opened_file:
+        with open(self.join(target), 'r') as opened_file:
             for line in opened_file:
                 if strip_newline:
                     line = line.rstrip()
@@ -56,7 +57,7 @@ class BrinkFilesystem(object):
         """
         Create empty file.
         """
-        path = _p(target)
+        path = self.join(target)
         with file(path, 'w'):
             os.utime(path, None)
 
@@ -69,7 +70,7 @@ class BrinkFilesystem(object):
 
         It ignores already exists errors.
         """
-        path = _p(destination)
+        path = self.join(destination)
         try:
             if recursive:
                 os.makedirs(path)
@@ -85,7 +86,7 @@ class BrinkFilesystem(object):
         """
         Copy file from `source` to `destination`.
         """
-        shutil.copyfile(_p(source), _p(destination))
+        shutil.copyfile(self.join(source), self.join(destination))
 
     def copyFolder(self, source, destination,
             excepted_folders=None, excepted_files=None):
@@ -98,8 +99,8 @@ class BrinkFilesystem(object):
         `excepted_folders` and `excepted_files` is a list of regex with
         folders and files that will not be copied.
         """
-        source = _p(source)
-        destination = _p(destination)
+        source = self.join(source)
+        destination = self.join(destination)
 
         if excepted_folders is None:
             excepted_folders = []
@@ -154,12 +155,12 @@ class BrinkFilesystem(object):
         """
         Copy folder content. cp source/* destination/
         """
-        source = _p(source)
-        destination = _p(destination)
+        source = self.join(source)
+        destination = self.join(destination)
         names = os.listdir(source)
         for name in names:
-            file_source_path = _p([source, name])
-            file_destination_path = _p([destination, name])
+            file_source_path = self.join([source, name])
+            file_destination_path = self.join([destination, name])
             try:
                 if os.path.isfile(file_source_path) and re.search(mask, name):
                     shutil.copyfile(file_source_path, file_destination_path)
@@ -171,10 +172,10 @@ class BrinkFilesystem(object):
         """
         Concatenate sources files to destination.
         """
-        with open(_p(destination), 'wb') as destination_file:
+        with open(self.join(destination), 'wb') as destination_file:
             for source in sources:
                 shutil.copyfileobj(
-                    open(_p(source), 'rb'), destination_file)
+                    open(self.join(source), 'rb'), destination_file)
 
     def deleteFile(self, path):
         """
@@ -183,7 +184,7 @@ class BrinkFilesystem(object):
         Ignores errors if it does not exists.
         """
         try:
-            os.unlink(_p(path))
+            os.unlink(self.join(path))
         except OSError, error:
             if error.errno == 2:
                 pass
@@ -197,7 +198,7 @@ class BrinkFilesystem(object):
         Ignores errors if it does not exists.
         """
         try:
-            shutil.rmtree(_p(target))
+            shutil.rmtree(self.join(target))
         except OSError, error:
             if error.errno == 2:
                 pass
@@ -211,7 +212,7 @@ class BrinkFilesystem(object):
         createLink requires using absolute paths for source.
         """
         if os.name != 'nt':
-            os.symlink(_p(source), _p(destination))
+            os.symlink(self.join(source), self.join(destination))
         else:
             self.copyFolder(
                 source=source,
@@ -221,14 +222,14 @@ class BrinkFilesystem(object):
         """
         Appened content to file.
         """
-        with open(_p(destination), 'a') as opened_file:
+        with open(self.join(destination), 'a') as opened_file:
             opened_file.write(content)
 
     def writeContentToFile(self, destination, content):
         """
         Write content to file.
         """
-        with open(_p(destination), 'w') as opened_file:
+        with open(self.join(destination), 'w') as opened_file:
             opened_file.write(content)
 
     def replaceFileContent(self, target, rules):
@@ -238,7 +239,7 @@ class BrinkFilesystem(object):
         It takes a list for tuples [(pattern1, substitution1), (pat2, sub2)]
         and applies them in order.
         """
-        with open(_p(target), 'r') as source_file:
+        with open(self.join(target), 'r') as source_file:
             altered_lines = []
             for line in source_file:
                 new_line = line
@@ -251,7 +252,7 @@ class BrinkFilesystem(object):
                         new_line)
                 altered_lines.append(new_line)
 
-        with open(_p(target), 'w') as source_file:
+        with open(self.join(target), 'w') as source_file:
             for line in altered_lines:
                 source_file.write(line)
 
@@ -272,7 +273,7 @@ class BrinkFilesystem(object):
                 with changeFolder('new/directory') as old_dir:
                     ...do stuff...
         """
-        path = _p(destination)
+        path = self.join(destination)
         old_dir = os.getcwd()
         os.chdir(path)
         try:

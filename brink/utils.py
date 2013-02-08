@@ -22,16 +22,6 @@ from brink.paths import ProjectPaths
 from brink.sphinx_tools import BrinkSphinx
 
 
-def _p(path):
-    '''
-    Shortcut for converting a list to a path using os.path.join.
-    '''
-    result = os.path.join(*path)
-    if os.name == 'posix':
-        result = result.encode('utf-8')
-    return result
-
-
 class BrinkPaver(object):
     """
     Collection of methods to help with build system.
@@ -43,13 +33,15 @@ class BrinkPaver(object):
         self.os_name = self._default_values['os_name']
         self.cpu = self._default_values['platform']
 
+        self.fs = BrinkFilesystem()
         self.path = ProjectPaths(
             os_name=self.os_name,
             build_folder_name=self._default_values['build_folder'],
             folders=self.setup['folders'],
+            filesystem=self.fs,
             )
-        self.git = BrinkGit()
-        self.fs = BrinkFilesystem()
+        self.git = BrinkGit(filesystem=self.fs)
+
         self.sphinx = BrinkSphinx(paver=self)
 
         self.python_command_normal = [self.path.python_executable]
@@ -77,7 +69,7 @@ class BrinkPaver(object):
         for project_name in projects:
             repo_uri = uri + project_name + '.git'
 
-            project_folder = _p([self.path.project, project_name])
+            project_folder = self.fs.join([self.path.project, project_name])
             # Do the initial clone if the repo does not exists.
             if not os.path.exists(project_folder):
                 with self.fs.changeFolder([self.path.project]):
@@ -100,8 +92,9 @@ class BrinkPaver(object):
         self.pip(
             command='install',
             arguments=[
-                '-r', _p([self.path.brink_package, 'static', 'requirements',
-                            'requirements-runtime.txt']),
+                '-r', self.fs.join([
+                    self.path.brink_package, 'static', 'requirements',
+                        'requirements-runtime.txt']),
                 ],
             )
 
@@ -118,8 +111,9 @@ class BrinkPaver(object):
         self.pip(
             command='install',
             arguments=[
-                '-r', _p([self.path.brink_package, 'static', 'requirements',
-                            'requirements-buildtime.txt']),
+                '-r', self.fs.join([
+                    self.path.brink_package, 'static', 'requirements',
+                        'requirements-buildtime.txt']),
                 ],
             )
 
@@ -130,8 +124,9 @@ class BrinkPaver(object):
         self.pip(
             command='uninstall',
             arguments=[
-                '-r', _p([self.path.brink_package, 'static', 'requirements',
-                            'requirements-buildtime.txt']),
+                '-r', self.fs.join([
+                    self.path.brink_package, 'static', 'requirements',
+                        'requirements-buildtime.txt']),
                 '-y',
                 ],
             )
@@ -143,8 +138,9 @@ class BrinkPaver(object):
         self.pip(
             command='install',
             arguments=[
-                '-r', _p([self.path.brink_package, 'static', 'requirements',
-                            'requirements-testtime.txt']),
+                '-r', self.fs.join([
+                    self.path.brink_package, 'static', 'requirements',
+                        'requirements-testtime.txt']),
                 ],
             )
 
@@ -155,8 +151,9 @@ class BrinkPaver(object):
         self.pip(
             command='uninstall',
             arguments=[
-                '-r', _p([self.path.brink_package, 'static', 'requirements',
-                            'requirements-testtime.txt']),
+                '-r', self.fs.join([
+                    self.path.brink_package, 'static', 'requirements',
+                        'requirements-testtime.txt']),
                 '-y',
                 ],
             )
@@ -206,7 +203,7 @@ class BrinkPaver(object):
                 ['--download-cache=' + self.path.pypi])
 
             pip_arguments.extend(
-                ['--build=' + _p(pip_build_path)])
+                ['--build=' + self.fs.join(pip_build_path)])
 
             pip_arguments.extend(
                 ['--find-links=file://' + self.path.pypi])
@@ -352,9 +349,9 @@ class BrinkPaver(object):
         if exclude is None:
             exclude = []
 
-        source_path = _p(source)
+        source_path = self.fs.join(source)
         parent_path = os.path.dirname(source_path)
-        archivename = _p(destination)
+        archivename = self.fs.join(destination)
         with closing(ZipFile(archivename, 'w', ZIP_DEFLATED)) as z:
             for root, dirs, files in os.walk(source_path):
                 # Write all files.
@@ -383,7 +380,7 @@ class BrinkPaver(object):
         '''
         md5hash = md5.new()
 
-        with open(_p(source), 'rb') as input_file:
+        with open(self.fs.join(source), 'rb') as input_file:
             while True:
                 read_buffer = input_file.read(8096)
                 if not read_buffer:
@@ -410,9 +407,9 @@ class BrinkPaver(object):
                 folder_name,
                 ))
 
-        target = _p([self.path.dist, folder_name])
-        target_nsis_path = _p([target, 'windows-installer.nsi'])
-        template_nsis_path = _p([
+        target = self.fs.join([self.path.dist, folder_name])
+        target_nsis_path = self.fs.join([target, 'windows-installer.nsi'])
+        template_nsis_path = self.fs.join([
             self.path.product,
             self.setup['folders']['source'],
             self.setup['folders']['static'],
@@ -471,7 +468,7 @@ class BrinkPaver(object):
             print "Failed to convert any bat files."
             sys.exit(1)
 
-        source_folder = _p([python_lib,
+        source_folder = self.fs.join([python_lib,
                     self.setup['folders']['source'],
                     self.setup['folders']['static'],
                     self.setup['folders']['configuration'],
@@ -498,7 +495,7 @@ class BrinkPaver(object):
         destination_uri = '%s@%s:%s' % (username, hostname, destination)
         command = [
             'rsync', '-acz', '-e', "'ssh'",
-            _p(source),
+            self.fs.join(source),
             destination_uri,
             ]
         exit_code, result = self.execute(
@@ -706,8 +703,9 @@ class BrinkPaver(object):
 
         count = -1
         pocketlint_path = os.path.dirname(pocketlint.__file__)
-        jslint = _p([pocketlint_path, 'pocketlint', 'jshint', 'jshint.js'])
-        jsreporter = _p([
+        jslint = self.fs.join([
+            pocketlint_path, 'pocketlint', 'jshint', 'jshint.js'])
+        jsreporter = self.fs.join([
             pocketlint_path, 'pocketlint', 'jshint', 'jshintreporter.js'])
 
         initial_jslint = JavascriptChecker.FULLJSLINT
@@ -743,7 +741,7 @@ class BrinkPaver(object):
             segments = ['lib', 'python' + python_version]
 
         segments.append('site-packages')
-        return _p(segments)
+        return self.fs.join(segments)
 
     def getTicketIDFromBranchName(self, branch_name):
         """

@@ -4,31 +4,22 @@ from __future__ import with_statement
 import os
 
 
-def _p(path):
-    '''
-    Shortcut for converting a list to a path using os.path.join.
-    '''
-    result = os.path.join(*path)
-    if os.name == 'posix':
-        result = result.encode('utf-8')
-    return result
-
-
 class ProjectPaths(object):
     """
     Container for common path used by the build system.
     """
 
-    def __init__(self, os_name, build_folder_name, folders):
+    def __init__(self, os_name, build_folder_name, folders, filesystem):
+        self.fs = filesystem
         self._os_name = os_name
         self.project = self._getProjectPath()
         self.product = os.path.abspath('.')
-        self.build = _p([self.product, build_folder_name])
-        self.deps = _p([self.project, folders['deps']])
-        self.brink = _p([self.project, folders['brink']])
-        self.pypi = _p([self.brink, 'cache', 'pypi'])
-        self.dist = _p([self.product, folders['dist']])
-        self.publish = _p([self.product, folders['publish']])
+        self.build = self.fs.join([self.product, build_folder_name])
+        self.deps = self.fs.join([self.project, folders['deps']])
+        self.brink = self.fs.join([self.project, folders['brink']])
+        self.pypi = self.fs.join([self.brink, 'cache', 'pypi'])
+        self.dist = self.fs.join([self.product, folders['dist']])
+        self.publish = self.fs.join([self.product, folders['publish']])
         self.python_executable = self.getPythonExecutable(os_name=os_name)
         self.python_scripts = self.getPythonScripts()
         self.brink_package = os.path.dirname(__file__)
@@ -52,9 +43,9 @@ class ProjectPaths(object):
             os_name = os.name
 
         if os_name == 'windows':
-            return _p(['lib', 'python.exe'])
+            return self.fs.join(['lib', 'python.exe'])
         else:
-            return _p(['bin', 'python'])
+            return self.fs.join(['bin', 'python'])
 
     def getPythonScripts(self, os_name=None):
         """
@@ -64,6 +55,6 @@ class ProjectPaths(object):
             os_name = os.name
 
         if os_name == 'nt':
-            return _p(['lib', 'Scripts'])
+            return self.fs.join(['lib', 'Scripts'])
         else:
-            return _p(['bin'])
+            return self.fs.join(['bin'])

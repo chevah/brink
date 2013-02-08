@@ -11,23 +11,14 @@ import sys
 from brink.execute import execute
 
 
-def _p(path):
-    '''
-    Shortcut for converting a list to a path using os.path.join.
-    '''
-    result = os.path.join(*path)
-    if os.name == 'posix':
-        result = result.encode('utf-8')
-    return result
-
-
 class BrinkGit(object):
     '''
     Helpers for calling external git command.
     '''
 
-    def __init__(self):
+    def __init__(self, filesystem):
         self.git = self._getGitPath()
+        self.fs = filesystem
 
     def _getGitPath(self):
         if os.name == 'posix':
@@ -111,12 +102,9 @@ class BrinkGit(object):
             print 'Failed to clone "%s".' % repo_uri
             sys.exit(1)
 
-    def pull(self, repo_uri=None, branch='master'):
+    def pull(self, repo_uri='origin', branch='master'):
         '''Run git pull on the branch.'''
-        if repo_uri:
-            command = [self.git, 'pull', repo_uri, branch]
-        else:
-            command = [self.git, 'pull', 'origin', branch]
+        command = [self.git, 'pull', repo_uri, branch]
 
         exit_code, output = execute(command)
         if exit_code != 0:
@@ -124,6 +112,6 @@ class BrinkGit(object):
             sys.exit(1)
 
     def copyFile(self, source, destination, branch='master'):
-        command = ['git', 'show', '%s:%s' % (branch, _p(source))]
-        with open(_p(destination), 'w') as output_file:
+        command = ['git', 'show', '%s:%s' % (branch, self.fs.join(source))]
+        with open(self.fs.join(destination), 'w') as output_file:
             execute(command, output=output_file)
