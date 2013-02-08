@@ -546,7 +546,7 @@ def doc_html():
         project=product_name,
         version=version,
         copyright=SETUP['product']['copyright_holder'],
-        themes_path=os.path.join(website_path, 'sphinx'),
+        themes_path=pave.fs.join([website_path, 'sphinx']),
         theme_name='standalone'
         )
     destination = [pave.path.build, 'doc', 'html']

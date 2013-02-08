@@ -460,7 +460,7 @@ class BrinkPaver(object):
         files_fixed = 0
         for filename in root_files:
             if filename.endswith('.bat'):
-                file_path = os.path.join(target_path, filename)
+                file_path = self.fs.join([target_path, filename])
                 convert_to_dos_newlines(file_path)
                 files_fixed += 1
 
@@ -477,7 +477,7 @@ class BrinkPaver(object):
         files_fixed = 0
         for filename in config_files:
             if '.config' in filename:
-                file_path = os.path.join(source_folder, filename)
+                file_path = self.fs.join([source_folder, filename])
                 convert_to_dos_newlines(file_path)
                 files_fixed += 1
 
@@ -696,7 +696,7 @@ class BrinkPaver(object):
                     continue
                 for file_name in member_files:
                     if not is_excepted_file(file_name):
-                        sources.append(os.path.join(root, file_name))
+                        sources.append(self.fs.join([root, file_name]))
 
         for file_name in files:
             sources.append(file_name)
