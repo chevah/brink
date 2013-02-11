@@ -44,17 +44,6 @@ merge_init
 merge_commit
 pqm
 
-
-def _p(path):
-    '''
-    Shortcut for converting a list to a path using os.path.join.
-    '''
-    result = os.path.join(*path)
-    if os.name == 'posix':
-        result = result.encode('utf-8')
-    return result
-
-
 pave = BrinkPaver(setup=SETUP)
 
 
@@ -255,7 +244,7 @@ def test_remote(args):
 def run_test(python_command, switch_user, arguments):
     test_command = python_command[:]
     test_command.extend(
-        [_p([pave.path.python_scripts, 'nose_runner.py']),
+        [pave.fs.join([pave.path.python_scripts, 'nose_runner.py']),
         switch_user])
 
     test_args = arguments[:]
@@ -557,7 +546,7 @@ def doc_html():
         project=product_name,
         version=version,
         copyright=SETUP['product']['copyright_holder'],
-        themes_path=os.path.join(website_path, 'sphinx'),
+        themes_path=pave.fs.join([website_path, 'sphinx']),
         theme_name='standalone'
         )
     destination = [pave.path.build, 'doc', 'html']
@@ -571,7 +560,7 @@ def doc_html():
         source=[website_path, 'media'],
         destination=[pave.path.build, 'doc', 'html', 'media'])
 
-    print "Documentation files generated in %s" % _p(destination)
+    print "Documentation files generated in %s" % pave.fs.join(destination)
     return exit_code
 
 
@@ -591,17 +580,17 @@ def publish():
 
     publish_downloads_folder = [pave.path.publish, 'downloads']
     publish_website_folder = [pave.path.publish, 'website']
-    product_folder = [_p(publish_downloads_folder), product_name]
+    product_folder = [pave.fs.join(publish_downloads_folder), product_name]
     release_publish_folder = [
-        _p(publish_downloads_folder),
+        pave.fs.join(publish_downloads_folder),
         product_name, version_major, version_minor]
 
     # Create publising content for download site.
     pave.fs.deleteFolder(publish_downloads_folder)
     pave.fs.createFolder(release_publish_folder, recursive=True)
     pave.fs.writeContentToFile(
-        destination=[_p(product_folder), 'LATEST'], content=version)
-    pave.fs.createEmtpyFile([_p(product_folder), 'index.html'])
+        destination=[pave.fs.join(product_folder), 'LATEST'], content=version)
+    pave.fs.createEmtpyFile([pave.fs.join(product_folder), 'index.html'])
     pave.fs.copyFolderContent(
         source=[pave.path.dist],
         destination=release_publish_folder,
@@ -610,7 +599,7 @@ def publish():
     # Create publising content for presentation site.
     pave.fs.deleteFolder(publish_website_folder)
     pave.fs.createFolder(publish_website_folder)
-    pave.fs.createFolder([_p(publish_website_folder), 'downloads'])
+    pave.fs.createFolder([pave.fs.join(publish_website_folder), 'downloads'])
     pave.fs.copyFolder(
         source=[pave.path.build, 'doc', 'html'],
         destination=[pave.path.publish, 'website', 'documentation'],

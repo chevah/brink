@@ -1,18 +1,7 @@
 # Copyright (c) 2012 Adi Roiban.
 # See LICENSE for details.
 from __future__ import with_statement
-import os
 import sys
-
-
-def _p(path):
-    '''
-    Shortcut for converting a list to a path using os.path.join.
-    '''
-    result = os.path.join(*path)
-    if os.name == 'posix':
-        result = result.encode('utf-8')
-    return result
 
 
 class BrinkSphinx(object):
@@ -25,6 +14,7 @@ class BrinkSphinx(object):
         # For the future, we should only pass paths and each path is a
         # filesystem.
         self.paver = paver
+        self.fs = paver.fs
 
     def call(self, arguments):
         from sphinx import main as sphinx_main
@@ -51,7 +41,8 @@ class BrinkSphinx(object):
         if target is None:
             target = ['doc_build']
 
-        sphinx_command.extend(['-b', 'html', _p(source), _p(target)])
+        sphinx_command.extend([
+            '-b', 'html', self.fs.join(source), self.fs.join(target)])
 
         sys_argv = sys.argv
         try:
@@ -71,7 +62,8 @@ class BrinkSphinx(object):
         from chevah.commons.utils.apidoc import main as apidoc_main
         self.paver.fs.createFolder(destination=destination, recursive=True)
         sys.argv = [
-            'apidoc', '--maxdepth=4', '-f', '-o', _p(destination), module]
+            'apidoc', '--maxdepth=4', '-f',
+            '-o', self.fs.join(destination), module]
         apidoc_main(sys.argv)
 
     def createConfiguration(self, destination, project, version, themes_path,
@@ -120,5 +112,5 @@ primary_domain = 'py'
     'themes_path': themes_path,
     })
 
-        with open(_p(destination), 'w') as conf_file:
+        with open(self.fs.join(destination), 'w') as conf_file:
             conf_file.write(content)
