@@ -565,8 +565,19 @@ def doc_html():
 
 
 @task
-@needs('update_setup', 'dist', 'doc_html')
+@needs('publish_distributables', 'publish_documentation')
 def publish():
+    """
+    Publish download files and documentation.
+
+    publish/downloads/PRODUCT_NAME will go to download website
+    publish
+    """
+
+
+@task
+@needs('update_setup', 'dist')
+def publish_distributables():
     """
     Publish download files and documentation.
 
@@ -600,10 +611,6 @@ def publish():
     pave.fs.deleteFolder(publish_website_folder)
     pave.fs.createFolder(publish_website_folder)
     pave.fs.createFolder([pave.fs.join(publish_website_folder), 'downloads'])
-    pave.fs.copyFolder(
-        source=[pave.path.build, 'doc', 'html'],
-        destination=[pave.path.publish, 'website', 'documentation'],
-        )
     release_html_name = 'release-' + version + '.html'
     pave.fs.copyFile(
         source=[pave.path.dist, release_html_name],
@@ -631,14 +638,6 @@ def publish():
         destination=download_hostname + '/' + product_name
         )
 
-    print "Publishing documentation to %s..." % (documentation_hostname)
-    pave.rsync(
-        username='chevah_site',
-        hostname=documentation_hostname,
-        source=[pave.path.publish, 'website', 'documentation/'],
-        destination=documentation_hostname + '/documentation/' + product_name
-        )
-
     print "Publishing download pages to %s..." % (documentation_hostname)
     pave.rsync(
         username='chevah_site',
@@ -647,7 +646,45 @@ def publish():
         destination=documentation_hostname + '/downloads/' + product_name
         )
 
-    print "Publish done."
+    print "Distributables published."
+
+
+@task
+@needs('doc_html')
+def publish_documentation():
+    """
+    Publish download files and documentation.
+
+    publish/downloads/PRODUCT_NAME will go to download website
+    publish
+    """
+    product_name = SETUP['product']['name'].lower()
+
+    publish_website_folder = [pave.path.publish, 'website']
+
+    # Create publishing content for website.
+    pave.fs.deleteFolder(publish_website_folder)
+    pave.fs.createFolder(publish_website_folder)
+    pave.fs.copyFolder(
+        source=[pave.path.build, 'doc', 'html'],
+        destination=[pave.path.publish, 'website', 'documentation'],
+        )
+
+    publish_config = SETUP['publish']
+    if pave.git.branch_name == 'production':
+        documentation_hostname = publish_config['website_production_hostname']
+    else:
+        documentation_hostname = publish_config['website_staging_hostname']
+
+    print "Publishing documentation to %s..." % (documentation_hostname)
+    pave.rsync(
+        username='chevah_site',
+        hostname=documentation_hostname,
+        source=[pave.path.publish, 'website', 'documentation/'],
+        destination=documentation_hostname + '/documentation/' + product_name
+        )
+
+    print "Documentation published."
 
 
 @task

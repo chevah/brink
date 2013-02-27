@@ -8,6 +8,9 @@ import sys
 def execute(command, input_text=None, output=None,
         ignore_errors=False, verbose=False,
         extra_environment=None):
+    """
+    Returns (exit_code, stdoutdata)
+    """
     if verbose:
         print 'Calling: %s' % command
 
