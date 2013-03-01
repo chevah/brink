@@ -63,10 +63,6 @@ SETUP = {
         'base_url': 'https://github.com',
         'repo': 'chevah',
     },
-    'trac': {
-        'xmlrpc_login_url': (
-            "https://%(credentials)s@trac.chevah.com:10443/login/xmlrpc"),
-    }
 }
 
 DIST_TYPE = {

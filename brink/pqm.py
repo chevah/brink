@@ -370,68 +370,6 @@ def merge_commit(args):
         print str(error)
         sys.exit(1)
 
-    ticket_id = pave.getTicketIDFromBranchName(pull_request.head.ref)
-    result = _closeTracTicket(
-        ticket_id=ticket_id, credentials=trac_credentials)
-    if not result:
-        print "Failed to close ticket."
-        # Only exit with a warning.
-        sys.exit(2)
-
-
-def _closeTracTicket(ticket_id, credentials):
-    """
-    Use XML-RPC with credentials to close Trac ticket with ID.
-    """
-    import xmlrpclib
-    #credentials = "pqm:pqmisthebest"
-    try:
-        ticket_id = int(ticket_id)
-    except:
-        print "Wrong ticket id %s" % (str(ticket_id))
-        return False
-
-    url = SETUP['trac']['xmlrpc_login_url'] % {'credentials': credentials}
-    server = xmlrpclib.ServerProxy(url)
-    multicall = xmlrpclib.MultiCall(server)
-
-    multicall.ticket.get(ticket_id)
-    multicall.ticket.getActions(ticket_id)
-    result = list(multicall())
-    ticket = result[0]
-    ticket_attributes = ticket[3]
-
-    def hasTicketAction(actions, target):
-        """
-        Check list of a possible actions on ticket to see if it contains
-        action `target`.
-        """
-        for action in actions:
-            if action[0] == target:
-                return True
-        return False
-
-    result = hasTicketAction(actions=result[1], target='resolve')
-    if not result:
-        print "Ticket %d can not be closed. Current state is %s." % (
-            ticket_id, ticket_attributes['status'])
-        return False
-
-    new_attributes = {
-        'action': 'resolve',
-        'action_resolve_resolve_resolution': 'fixed',
-        '_ts': ticket_attributes['_ts'],
-    }
-
-    comment = "All test passed. Closed by PQM."
-    server.ticket.update(
-        ticket_id,
-        comment,
-        new_attributes,  # Attributes.
-        True,  # Notify.
-        )
-    return True
-
 
 @task
 @consume_args
