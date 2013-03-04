@@ -4,6 +4,7 @@
 PQM related targets for paver.
 """
 import os
+import re
 import sys
 
 
@@ -22,14 +23,6 @@ REVIEWERS_LIST_MARKER = [
     'reviewers:',
     ]
 REVIEWER_MARKER = '@'
-APPROVAL_MARKERS = [
-    'approved',
-    'aproved',
-    'approve',
-    'aprove',
-    ':shipit:',
-    'ship it',
-    ]
 
 pave = BrinkPaver(SETUP)
 
@@ -213,13 +206,10 @@ def _review_properties(token, pull_id):
                 continue
 
             for line in content.split('\n'):
-                words = line.strip().split(' ')
-                # Single word on line.
-                if len(words) < 2:
+                result = re.match('.*(approved) +(\w+).*', line)
+                if not result:
                     continue
-
-                if words[0] in APPROVAL_MARKERS:
-                    return words[1]
+                return result.group(2)
 
         return None
 
@@ -339,14 +329,13 @@ def merge_commit(args):
     * 2 - warning
     """
     if len(args) < 3:
-        print "Usage: TOKEN GITHUB_PULL_ID TRAC_CREDENTIALS AUTHOR"
+        print "Usage: TOKEN GITHUB_PULL_ID AUTHOR"
         sys.exit(1)
 
     token = args[0]
     pull_id = args[1]
-    trac_credentials = args[2]
     # Paver or bash has a bug so we rejoin author name.
-    author = ' '.join(args[3:])
+    author = ' '.join(args[2:])
 
     from git import GitCommandError, Repo
     repo = Repo(os.getcwd())
