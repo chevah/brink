@@ -535,6 +535,28 @@ def doc_html():
     """
     Generates the documentation.
     """
+    return _generateProjectDocumentation()
+
+
+@task
+@needs('build', 'update_setup')
+def test_documentation():
+    """
+    Generates the documentation in testing mode.
+
+    Any warning are treated as errors.
+    """
+    return _generateProjectDocumentation(
+        ['-a', '-W', '-N', '-n', '-E'])
+
+
+def _generateProjectDocumentation(arguments=None):
+    """
+    Generate project documentation and return exit code.
+    """
+    if arguments is None:
+        arguments = []
+
     product_name = SETUP['product']['name']
     version = SETUP['product']['version']
 
@@ -551,7 +573,7 @@ def doc_html():
         )
     destination = [pave.path.build, 'doc', 'html']
     exit_code = pave.sphinx.createHTML(
-        arguments=[],
+        arguments=arguments,
         source=['doc_source'],
         target=destination,
         )
@@ -561,6 +583,7 @@ def doc_html():
         destination=[pave.path.build, 'doc', 'html', 'media'])
 
     print "Documentation files generated in %s" % pave.fs.join(destination)
+    print "Exit with %d." % (exit_code)
     return exit_code
 
 
