@@ -425,6 +425,8 @@ class BrinkPaver(object):
                 nsis_file.write(line)
 
         make_nsis_command = ['makensis', 'windows-installer.nsi']
+        if os.name == 'nt':
+            make_nsis_command[0] = '"C:/Program Files (x86)/NSIS/makensis.exe"'
 
         try:
             import pdb,sys; sys.stdout=sys.__stdout__;pdb.set_trace();

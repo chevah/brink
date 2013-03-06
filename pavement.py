@@ -22,6 +22,7 @@ default
 
 # Brink version is defined here and used by paver.sh script.
 BRINK_VERSION = '0.8.0'
+PYTHON_VERSION = '2.7'
 
 EXTRA_PACKAGES = []
 
