@@ -427,6 +427,7 @@ class BrinkPaver(object):
         make_nsis_command = ['makensis', 'windows-installer.nsi']
 
         try:
+            import pdb,sys; sys.stdout=sys.__stdout__;pdb.set_trace();
             with self.fs.changeFolder([target]):
                 subprocess.call(make_nsis_command)
         except OSError, os_error:
