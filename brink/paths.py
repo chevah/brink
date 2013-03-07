@@ -68,7 +68,7 @@ def which(command, extra_paths=None):
 
     paths = which(command)
     if extra_paths:
-        paths.append(extra_paths)
+        paths.extend(extra_paths)
 
     if not paths:
         return None
