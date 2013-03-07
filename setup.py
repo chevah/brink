@@ -10,7 +10,7 @@ from setuptools import setup, find_packages, Command
 import os
 import shutil
 
-VERSION = u'0.14.3-tst4'
+VERSION = u'0.14.3'
 
 
 class PublishCommand(Command):
@@ -40,7 +40,7 @@ class PublishCommand(Command):
                 self.destination_base + os.path.basename(archive))
             shutil.copyfile(source, destination)
         log.info(
-            "Distributables files copied to %s " % (self.destination_base))
+            "Distributable(s) files copied to %s " % (self.destination_base))
 
         # Upload package to Chevah PyPi server.
         upload_command = self.distribution.get_command_obj('upload')
