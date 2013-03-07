@@ -425,7 +425,12 @@ class BrinkPaver(object):
                 nsis_file.write(line)
 
         import pdb,sys; sys.stdout=sys.__stdout__;pdb.set_trace();
-        make_nsis_path = which('makensis')
+
+        nsis_locations = [
+            "C:\Program Files (x86)\NSIS\makensis.exe",
+            "C:\Program Files\NSIS\makensis.exe",
+        ]
+        make_nsis_path = which('makensis', nsis_locations)
         if not make_nsis_path:
             print (
                 'NullSoft Installer is not installed. '
