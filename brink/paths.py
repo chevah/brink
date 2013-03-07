@@ -60,15 +60,14 @@ class ProjectPaths(object):
             return self.fs.join(['bin'])
 
 
-def which(command, extra_paths=None):
+def which(command, extra_paths=[]):
     """
     Locate the path to `command`.
     """
     from twisted.python.procutils import which
 
     paths = which(command)
-    if extra_paths:
-        paths.extend(extra_paths)
+    paths.extend(extra_paths)
 
     if not paths:
         return None

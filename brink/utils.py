@@ -424,8 +424,7 @@ class BrinkPaver(object):
             for line in open(template_nsis_path):
                 nsis_file.write(line)
 
-        import pdb,sys; sys.stdout=sys.__stdout__;pdb.set_trace();
-
+        #import pdb,sys; sys.stdout=sys.__stdout__;pdb.set_trace();
         nsis_locations = [
             "C:\Program Files (x86)\NSIS\makensis.exe",
             "C:\Program Files\NSIS\makensis.exe",
