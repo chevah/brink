@@ -18,7 +18,7 @@ import urllib2
 from brink.execute import execute
 from brink.git_command import BrinkGit
 from brink.filesystem import BrinkFilesystem
-from brink.paths import ProjectPaths
+from brink.paths import ProjectPaths, which
 from brink.sphinx_tools import BrinkSphinx
 
 
@@ -84,7 +84,7 @@ class BrinkPaver(object):
 
     def installRunDependencies(self, extra_packages=None):
         """
-        Install the required packages for runtime environemnt.
+        Install the required packages for runtime environment.
         """
         if extra_packages is None:
             extra_packages = []
@@ -424,7 +424,20 @@ class BrinkPaver(object):
             for line in open(template_nsis_path):
                 nsis_file.write(line)
 
-        make_nsis_command = ['makensis', 'windows-installer.nsi']
+        nsis_locations = [
+            "C:\Program Files (x86)\NSIS\makensis.exe",
+            "C:\Program Files\NSIS\makensis.exe",
+        ]
+        make_nsis_path = which('makensis', nsis_locations)
+        if not make_nsis_path:
+            print (
+                'NullSoft Installer is not installed. '
+                'On Ubuntu you can install it using '
+                '"sudo apt-get install nsis".'
+            )
+            sys.exit(1)
+
+        make_nsis_command = [make_nsis_path, 'windows-installer.nsi']
 
         try:
             with self.fs.changeFolder([target]):
