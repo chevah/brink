@@ -653,7 +653,7 @@ def publish_distributables():
         download_hostname = publish_config['download_staging_hostname']
         documentation_hostname = publish_config['website_staging_hostname']
 
-    print "Publishing distributables to %s ..." % (download_hostname)
+    print "Publishing distributable(s) to %s ..." % (download_hostname)
     pave.rsync(
         username='chevah_site',
         hostname=download_hostname,
@@ -669,7 +669,7 @@ def publish_distributables():
         destination=documentation_hostname + '/downloads/' + product_name
         )
 
-    print "Distributables published."
+    print "Distributable(s) published."
 
 
 @task
@@ -712,8 +712,9 @@ def publish_documentation():
 
 @task
 def clean():
-    '''Clean build and dist folders.
+    """
+    Clean build and dist folders.
 
-    This is just a placeholder, since clean is handeld by the outside
+    This is just a placeholder, since clean is handled by the outside
     paver.sh scripts.
-    '''
+    """

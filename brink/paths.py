@@ -58,3 +58,29 @@ class ProjectPaths(object):
             return self.fs.join(['lib', 'Scripts'])
         else:
             return self.fs.join(['bin'])
+
+def which(command):
+    """
+    Locate the path to `command`.
+    """
+    from twisted.python.procutils import which
+
+    paths = which(command)
+    if not paths:
+        return None
+    elif len(paths) > 1:
+        if os.name == 'nt':
+            # On Windows we only return the first file with an "executable"
+            # extension.
+            for path in paths:
+                if (path.lower().endswith('.exe') or
+                        path.lower().endswith('.cmd') or
+                        path.lower().endswith('.bat')
+                ):
+                    return path
+        else:
+            # On Unix we return the first path.
+            return paths[0]
+    else:
+        # Only one path found.
+        return paths[0]
