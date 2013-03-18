@@ -4,25 +4,13 @@
 PQM related targets for paver.
 """
 import os
-import re
 import sys
-
 
 from paver.easy import task
 from paver.tasks import environment, consume_args
 
 from brink.utils import BrinkPaver
 from brink.configuration import SETUP
-
-REVIEWERS_LIST_MARKER = [
-    'review',
-    'review:',
-    'reviewer',
-    'reviewer:',
-    'reviewers',
-    'reviewers:',
-    ]
-REVIEWER_MARKER = '@'
 
 pave = BrinkPaver(SETUP)
 
@@ -96,6 +84,8 @@ def _review_properties(token, pull_id):
         sys.exit(1)
 
     from github import Github, GithubException
+    from chevah.github_hooks_server.handler import Handler
+    handler = Handler(trac_url='mock')
     try:
         repo_name = SETUP['github']['repo']
         github = Github(token)
@@ -118,28 +108,6 @@ def _review_properties(token, pull_id):
         print str(error)
         sys.exit(1)
 
-    def getReviewers(content):
-        """
-        Parse content and return the list of reviewers.
-        """
-        reviewers = []
-        for line in content.split('\n'):
-            words = line.strip().split(' ')
-            # Check if line starts with reviewrs marker.
-            if not words[0] in REVIEWERS_LIST_MARKER:
-                continue
-            # Check if words starts with review marker.
-            for word in words:
-                if not word.startswith(REVIEWER_MARKER):
-                    continue
-                reviewers.append(word.strip(REVIEWER_MARKER))
-
-        if not len(reviewers):
-            print "This review has no reviewers."
-            sys.exit(1)
-
-        return reviewers
-
     def getReviewTitle(content, ticket_id=None):
         """
         Parse line and return merge commit message.
@@ -158,8 +126,8 @@ def _review_properties(token, pull_id):
                 # Redo the title without the first word.
                 result = ' '.join(result.split(' ')[1:])
 
-        # Make sure first letter is upper case... just for the style.
-        result = result.capitalize()
+        # Make sure first letter is upper case.
+        result = result[0].upper() + result[1:]
 
         # Make sure message end with '.' ... just for style.
         result = result.rstrip('.').strip() + '.'
@@ -185,7 +153,7 @@ def _review_properties(token, pull_id):
 
             if not sha.startswith(approved_sha):
                 pending_approval.append((
-                    reviewer, 'Approved at %s. Branch at %s.' % (
+                    reviewer, 'Approved at "%s". Branch at "%s".' % (
                         approved_sha, sha)))
 
         if pending_approval:
@@ -205,11 +173,9 @@ def _review_properties(token, pull_id):
                 # Not a comment from reviewer.
                 continue
 
-            for line in content.split('\n'):
-                result = re.match('.*(approved) +(\w+).*', line)
-                if not result:
-                    continue
-                return result.group(2)
+            sha = handler._getApprovedSHA(content)
+            if sha:
+                return sha
 
         return None
 
@@ -217,7 +183,7 @@ def _review_properties(token, pull_id):
     branch_sha = pull_request.head.sha.lower()
     ticket_id = pave.getTicketIDFromBranchName(branch_name)
 
-    reviewers = getReviewers(pull_request.body)
+    reviewers = handler._getGitHubReviewers(pull_request.body)
     checkReviewApproval(
         comments=comments, reviewers=reviewers, sha=branch_sha)
 

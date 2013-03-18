@@ -31,6 +31,24 @@ class BrinkFilesystem(object):
                 content.append(line.rstrip())
         return content
 
+    def exists(self, destination):
+        """
+        Try if destination exists as file or as folder or as symlink.
+        """
+        return os.path.exists(self.join(destination))
+
+    def isFile(self, destination):
+        """
+        Try if destination is a file.
+        """
+        return os.path.isfile(self.join(destination))
+
+    def isFolder(self, destination):
+        """
+        Try if destination is a folder.
+        """
+        return os.path.isdir(self.join(destination))
+
     def getFileContentAsString(self, target):
         """
         Retrun the string represenation of the file.
