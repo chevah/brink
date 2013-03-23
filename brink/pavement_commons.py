@@ -18,6 +18,7 @@ inside the project folder, there is one folder for each products.
 """
 from __future__ import with_statement
 
+from optparse import make_option
 import getpass
 import os
 import sys
@@ -530,12 +531,23 @@ def review(options):
 
 
 @task
+@cmdopts([
+    make_option(
+        "-c", "--check",
+        help="Check all pages.",
+        default=False,
+        action="store_true"
+        )
+])
 @needs('build', 'update_setup')
-def doc_html():
+def doc_html(options):
     """
     Generates the documentation.
     """
-    return _generateProjectDocumentation()
+    arguments = []
+    if pave.getOption(options.doc_html, 'all'):
+        arguments.extend(['-a', -'E', '-n'])
+    return _generateProjectDocumentation(arguments)
 
 
 @task
@@ -547,7 +559,7 @@ def test_documentation():
     Any warning are treated as errors.
     """
     return _generateProjectDocumentation(
-        ['-a', '-W', '-N', '-n', '-E'])
+        ['-a', '-E', '-W', '-N', '-n'])
 
 
 def _generateProjectDocumentation(arguments=None):
