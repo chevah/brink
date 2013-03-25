@@ -548,7 +548,7 @@ exec(compile(open(__file__).read().replace('\\r\\n', '\\n'), __file__, 'exec'))
         name = name.replace(os.path.sep, '/')
         return name
 
-    def install(self, install_options, global_options=()):
+    def install(self, install_options, global_options=(), install_hook=None):
         if self.editable:
             self.install_editable(install_options, global_options)
             return
@@ -601,6 +601,9 @@ exec(compile(open(__file__).read().replace('\\r\\n', '\\n'), __file__, 'exec'))
                     filename += os.path.sep
                 new_lines.append(make_path_relative(filename, egg_info_dir))
             f.close()
+
+            self._run_install_hook(install_hook, new_lines)
+
             f = open(os.path.join(egg_info_dir, 'installed-files.txt'), 'w')
             f.write('\n'.join(new_lines)+'\n')
             f.close()
@@ -608,6 +611,22 @@ exec(compile(open(__file__).read().replace('\\r\\n', '\\n'), __file__, 'exec'))
             if os.path.exists(record_filename):
                 os.remove(record_filename)
             os.rmdir(temp_location)
+
+    def _run_install_hook(self, install_hook, installed_files):
+        """
+        Execute install hook.
+        """
+        if not install_hook:
+            return
+
+        try:
+            install_hook = __import__(install_hook, fromlist=['run'])
+            new_files = install_hook.run(self)
+            installed_files.extend(new_files)
+        except:
+            logger.warn(
+                'Failed to load hook module "%s"' % self._install_hook)
+            return
 
     def remove_temporary_source(self):
         """Remove the source files from this requirement, if they are marked
@@ -1111,7 +1130,7 @@ class RequirementSet(object):
                 _write_delete_marker_message(os.path.join(location, PIP_DELETE_MARKER_FILENAME))
             return retval
 
-    def install(self, install_options, global_options=()):
+    def install(self, install_options, global_options=(), install_hook=None):
         """Install everything in this set (after having downloaded and unpacked the packages)"""
         to_install = [r for r in self.requirements.values()
                       if not r.satisfied_by]
@@ -1130,7 +1149,8 @@ class RequirementSet(object):
                     finally:
                         logger.indent -= 2
                 try:
-                    requirement.install(install_options, global_options)
+                    requirement.install(
+                        install_options, global_options, install_hook)
                 except:
                     # if install did not succeed, rollback previous uninstall
                     if requirement.conflicts_with and not requirement.install_succeeded:

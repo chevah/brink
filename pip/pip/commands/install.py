@@ -165,6 +165,13 @@ class InstallCommand(Command):
             action='store_true',
             help='Install to user-site')
 
+        self.parser.add_option(
+            '--install-hook',
+            dest='install_hook',
+            metavar='HOOK_MODULE',
+            default='',
+            help='Run hook module after package install.')
+
     def _build_package_finder(self, options, index_urls):
         """
         Create a package finder appropriate to this install command.
@@ -247,7 +254,10 @@ class InstallCommand(Command):
             requirement_set.locate_files()
 
         if not options.no_install and not self.bundle:
-            requirement_set.install(install_options, global_options)
+            requirement_set.install(
+                install_options, global_options,
+                install_hook=options.install_hook,
+                )
             installed = ' '.join([req.name for req in
                                   requirement_set.successfully_installed])
             if installed:
