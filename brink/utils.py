@@ -82,7 +82,7 @@ class BrinkPaver(object):
     def execute(self, *args, **kwargs):
         return execute(*args, **kwargs)
 
-    def installRunDependencies(self, extra_packages=None):
+    def installRunDependencies(self, extra_packages=None, install_hook=None):
         """
         Install the required packages for runtime environment.
         """
@@ -96,12 +96,14 @@ class BrinkPaver(object):
                     self.path.brink_package, 'static', 'requirements',
                         'requirements-runtime.txt']),
                 ],
+            install_hook=install_hook,
             )
 
-        for package in extra_packages:
+        if extra_packages:
             self.pip(
                 command='install',
-                arguments=[package],
+                arguments=extra_packages,
+                install_hook=install_hook,
                 )
 
     def installBuildDependencies(self):
@@ -160,7 +162,7 @@ class BrinkPaver(object):
 
     def pip(self, command='install', arguments=None,
             exit_on_errors=True, index_url=None, only_cache=False,
-            silent=False):
+            install_hook=None, silent=False):
         """
         Execute the pip command.
         """
@@ -199,6 +201,11 @@ class BrinkPaver(object):
             else:
                 pip_arguments.extend(
                     ['--index-url=' + index_url])
+
+            if install_hook:
+                pip_arguments.extend([
+                    '--install-hook=%s' % (install_hook)])
+
             pip_arguments.extend(
                 ['--download-cache=' + self.path.pypi])
 

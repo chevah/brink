@@ -10,7 +10,7 @@ docutils>=0.9.1-chevah2
 buildbot
 
 # For PQM
-chevah-github-hooks-server==0.1.5
+chevah-github-hooks-server==0.1.6
 
 # For git and github
 smmap==0.8.2

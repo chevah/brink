@@ -1,19 +1,25 @@
 # Dependencies required to test the software.
 
+# We have a custom version of pyflakes.
 pyflakes>=0.5.0-chevah2
-cssutils
 
 pocketlint==0.5.31-chevah6
 pocketlint-jshint
+cssutils
 
 # Never version of nose, hangs on closing some tests
 # due to some thread handling.
 nose==1.1.2-chevah1
 mock
 
+# Support for Python 2.5 test library.
 unittest2
 
+# Test SFTP service using a 3rd party client.
 paramiko
+
+# Required for some unicode handling.
+unidecode
 
 #ipython==0.10.2
 #ipdb
