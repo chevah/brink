@@ -10,7 +10,7 @@ from setuptools import setup, find_packages, Command
 import os
 import shutil
 
-VERSION = u'0.17.1'
+VERSION = u'0.17.2'
 
 
 class PublishCommand(Command):
@@ -53,7 +53,7 @@ setup(
     version=VERSION,
     maintainer="Adi Roiban",
     maintainer_email="adi.roiban@chevah.com",
-    license='BSD (3 clause) License',
+    license='BSD',
     platforms='any',
     description='Chevah build system.',
     long_description=open('README.rst').read(),
