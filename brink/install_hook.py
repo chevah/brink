@@ -14,6 +14,10 @@ LICENSE_FILENAMES = [
     'lgpl.txt',
     ]
 
+AUTHORS_FILENAMES = [
+    'authors',
+    ]
+
 
 def run(installed_requirement):
     """
@@ -60,6 +64,19 @@ def run(installed_requirement):
             pkg_info['license'], pkg_info['author'])
         with open(project_license_path, 'w') as project_license:
             project_license.write(default_license)
+
+    # Copy authors file as legal/project-authors
+    authors_path = os.path.join(
+        legal_folder, pkg_info['name'].lower() + '-authors')
+    authors_present = False
+    for filename in os.listdir(source_folder):
+        if authors_present:
+            break
+        for authors_file in AUTHORS_FILENAMES:
+            if filename.lower() != authors_file:
+                continue
+            authors_present = True
+            shutil.copy2(os.path.join(source_folder, filename), authors_path)
 
     # No files should be removed by uninstall.
     return []
