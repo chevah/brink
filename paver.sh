@@ -303,6 +303,10 @@ detect_os() {
                 '12.04' | '12.10' | '13.04' | '13.10')
                     OS='ubuntu1204'
                 ;;
+                # Lie for dumol's Gentoo. Separate so that it's clear
+                '2.1')
+                    OS='ubuntu1204'
+                ;;
                 *)
                     echo 'Unsuported Ubuntu version.'
                     exit 1
