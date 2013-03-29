@@ -625,7 +625,7 @@ exec(compile(open(__file__).read().replace('\\r\\n', '\\n'), __file__, 'exec'))
             installed_files.extend(new_files)
         except:
             logger.warn(
-                'Failed to load hook module "%s"' % self._install_hook)
+                'Failed to load hook module "%s"' % install_hook)
             return
 
     def remove_temporary_source(self):
