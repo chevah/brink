@@ -485,7 +485,7 @@ class BrinkPaver(object):
                 files_fixed += 1
 
         if files_fixed == 0:
-            print "Failed to convert any bat files."
+            print "Failed to convert some bat files."
             sys.exit(1)
 
         source_folder = self.fs.join([python_lib,
@@ -496,13 +496,13 @@ class BrinkPaver(object):
         config_files = os.listdir(source_folder)
         files_fixed = 0
         for filename in config_files:
-            if '.config' in filename:
+            if '.ini' in filename:
                 file_path = self.fs.join([source_folder, filename])
                 convert_to_dos_newlines(file_path)
                 files_fixed += 1
 
         if files_fixed == 0:
-            print "Failed to convert any configuration files."
+            print "Failed to convert some configuration files."
             sys.exit(1)
 
     def rsync(self, username, hostname, source, destination):
