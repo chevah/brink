@@ -665,7 +665,8 @@ class BrinkPaver(object):
         import pocketlint
         import mimetypes
 
-        # These types are not recognized by Windows.
+        # These types are not recognized by various OS.
+        mimetypes.add_type('text/plain', '.bat')
         mimetypes.add_type('application/json', '.json')
         mimetypes.add_type('image/x-icon', '.ico')
 
