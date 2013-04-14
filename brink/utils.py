@@ -689,10 +689,11 @@ class BrinkPaver(object):
 
         class PocketLintOptions(object):
             """
-            Holds the options used by pocket lint for chevah project.
+            Holds the options used by pocket lint for Chevah project.
             """
             def __init__(self):
                 self.max_line_length = 79
+                self.google_closure_ignore = [1, 10, 11, 110, 220]
 
         def is_excepted_folder(folder_name):
             for expresion in regex_folders:
