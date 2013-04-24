@@ -619,6 +619,7 @@ def publish_distributables():
     publish/downloads/PRODUCT_NAME will go to download website
     publish
     """
+    branch_name = pave.git.branch_name.lower()
     product_name = SETUP['product']['name'].lower()
     version = SETUP['product']['version']
     version_major = SETUP['product']['version_major']
@@ -631,34 +632,41 @@ def publish_distributables():
         pave.fs.join(publish_downloads_folder),
         product_name, version_major, version_minor]
 
-    # Create publising content for download site.
+    # Create publishing content for download site.
     pave.fs.deleteFolder(publish_downloads_folder)
     pave.fs.createFolder(release_publish_folder, recursive=True)
-    pave.fs.writeContentToFile(
-        destination=[pave.fs.join(product_folder), 'LATEST'], content=version)
-    pave.fs.createEmtpyFile([pave.fs.join(product_folder), 'index.html'])
+
     pave.fs.copyFolderContent(
         source=[pave.path.dist],
         destination=release_publish_folder,
         )
 
-    # Create publising content for presentation site.
+    # Create publishing content for presentation site.
     pave.fs.deleteFolder(publish_website_folder)
     pave.fs.createFolder(publish_website_folder)
     pave.fs.createFolder([pave.fs.join(publish_website_folder), 'downloads'])
-    release_html_name = 'release-' + version + '.html'
+    release_html_name = version + '.html'
     pave.fs.copyFile(
         source=[pave.path.dist, release_html_name],
         destination=[
             pave.path.publish, 'website', 'downloads', release_html_name],
         )
-    pave.fs.copyFile(
-        source=[pave.path.dist, release_html_name],
-        destination=[pave.path.publish, 'website', 'downloads', 'index.html'],
-        )
+
+    # For production, update latest download page.
+    if branch_name == 'production':
+        pave.fs.writeContentToFile(
+            destination=[pave.fs.join(product_folder), 'LATEST'],
+            content=version,
+            )
+        #pave.fs.createEmtpyFile([pave.fs.join(product_folder), 'index.html'])
+        pave.fs.copyFile(
+            source=[pave.path.dist, release_html_name],
+            destination=[
+                pave.path.publish, 'website', 'downloads', 'index.html'],
+            )
 
     publish_config = SETUP['publish']
-    if pave.git.branch_name == 'production':
+    if branch_name.startswith('series-') or branch_name == 'production':
         download_hostname = publish_config['download_production_hostname']
         documentation_hostname = publish_config['website_production_hostname']
     else:
@@ -693,30 +701,54 @@ def publish_documentation():
     publish/downloads/PRODUCT_NAME will go to download website
     publish
     """
+    branch_name = pave.git.branch_name.lower()
     product_name = SETUP['product']['name'].lower()
+    version = SETUP['product']['version']
 
     publish_website_folder = [pave.path.publish, 'website']
+    publish_documentation_folder = [
+        pave.path.publish, 'website', 'documentation']
+    publish_release_folder = [
+        pave.path.publish, 'website', 'documentation', version]
 
     # Create publishing content for website.
+    pave.fs.createFolder([pave.path.publish])
     pave.fs.deleteFolder(publish_website_folder)
     pave.fs.createFolder(publish_website_folder)
+    pave.fs.createFolder(publish_documentation_folder)
+
     pave.fs.copyFolder(
         source=[pave.path.build, 'doc', 'html'],
-        destination=[pave.path.publish, 'website', 'documentation'],
+        destination=publish_release_folder,
         )
 
     publish_config = SETUP['publish']
-    if pave.git.branch_name == 'production':
+    if branch_name.startswith('series-') or branch_name == 'latest':
         documentation_hostname = publish_config['website_production_hostname']
     else:
         documentation_hostname = publish_config['website_staging_hostname']
+
+    destination_root = (
+        documentation_hostname + '/documentation/' + product_name)
+
+    # For production, also create a latest redirect.
+    if branch_name == 'production':
+        data = {
+            'url': 'http://%s/%s' % (destination_root, version),
+            'title': 'Redirecting to latest %s documentation' % (
+                product_name),
+        }
+        template_root = pave.fs.join([pave.path.build, 'doc_source'])
+        content = pave.renderJinja(template_root, 'latest.j2', data)
+        redirect = [pave.fs.join(publish_documentation_folder), 'index.html']
+        pave.fs.writeContentToFile(redirect, content=content)
 
     print "Publishing documentation to %s..." % (documentation_hostname)
     pave.rsync(
         username='chevah_site',
         hostname=documentation_hostname,
         source=[pave.path.publish, 'website', 'documentation/'],
-        destination=documentation_hostname + '/documentation/' + product_name
+        destination=destination_root,
         )
 
     print "Documentation published."

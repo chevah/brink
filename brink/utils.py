@@ -572,7 +572,7 @@ class BrinkPaver(object):
         website_package = self.setup['website_package']
         website_path = self.importAsString(
             website_package).get_module_path()
-        page_name = 'release-' + data['version'] + ".html"
+        page_name = data['version'] + ".html"
         download_page = [target_folder, page_name]
         self.fs.copyFile(
             source=[
