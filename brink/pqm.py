@@ -63,7 +63,7 @@ def _github_token(username, password):
     """
     from github import Github
 
-    github = Github(username, password)
+    github = Github(username, password, user_agent='pygithub/chevah-pqm')
     user = github.get_user()
     authorization = user.create_authorization(
         scopes=['repo'],
@@ -88,7 +88,7 @@ def _review_properties(token, pull_id):
     handler = Handler(trac_url='mock')
     try:
         repo_name = SETUP['github']['repo']
-        github = Github(token)
+        github = Github(token, user_agent='pygithub/chevah-pqm')
         repo = github.get_repo(repo_name)
         pull_request = repo.get_pull(pull_id)
 
