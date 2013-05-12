@@ -25,16 +25,17 @@ import sys
 import subprocess
 import threading
 
-from paver.easy import cmdopts, task, pushd, needs
+from paver.easy import call_task, cmdopts, task, pushd, needs
 from paver.tasks import environment, help, consume_args
 
 from brink.configuration import SETUP, DIST_EXTENSION, DIST_TYPE
 from brink.utils import BrinkPaver
-from brink.pqm import (
+from brink.qm import (
     github,
     merge_init,
     merge_commit,
     pqm,
+    rqm,
     )
 
 # Silence lint.
@@ -44,8 +45,15 @@ github
 merge_init
 merge_commit
 pqm
+rqm
 
 pave = BrinkPaver(setup=SETUP)
+
+
+RELEASE_MANAGERS = [
+    'adi.roiban@chevah.com',
+    'laura.gheorghiu@chevah.com',
+    ]
 
 
 class MD5SumFile(object):
@@ -221,7 +229,7 @@ def test_remote(args):
     """
     Run the tests on the remote buildbot.
 
-    test_remote [BUILDER_NAME [TEST_ARG1 TEST_ARG2]]
+    test_remote [BUILDER [TEST_ARG1 TEST_ARG2] [--properties=prop1=value1]]
 
     You can use short names for builders. Insteas of 'server-ubuntu-1004-x86'
     you can use 'ubuntu-1004-x86'.
@@ -230,16 +238,36 @@ def test_remote(args):
         buildbot_list()
         sys.exit(1)
 
+    # Check if we need to extend the builder name.
     repo_name = SETUP['repository']['name'].lower()
     if args[0].startswith(repo_name):
         builder = '--builder=' + args[0]
     else:
         builder = '--builder=' + repo_name + '-' + args[0]
 
-    new_args = [builder]
-    new_args.append('--properties=test=' + ' '.join(args[1:]))
-    environment.args = new_args
-    buildbot_try(new_args)
+    arguments = [builder]
+    test_arguments = []
+
+    for argument in args[1:]:
+        if argument.startswith('--properties=') or argument == '--wait':
+            arguments.append(argument)
+        else:
+            test_arguments.append(argument)
+
+    if test_arguments:
+        # Add all test arguments in one property.
+        arguments.append(
+            '--properties=test="' + ' '.join(test_arguments) + '"')
+
+    # There is no point in waiting for pqm, all or other long builds.
+    if not '--wait' in arguments:
+        print 'Builder execute in non-interactive mode.'
+        print 'Check Buildbot page for status or wait for email.'
+        print 'Use --wait if you want to wait to test result.'
+        print '-------------------------------------------------'
+
+    environment.args = arguments
+    buildbot_try(arguments)
 
 
 def run_test(python_command, switch_user, arguments):
@@ -340,21 +368,10 @@ def buildbot_try(args):
         print 'No builder was specified. Use "-b" to send tests to a builder.'
         sys.exit(1)
 
-    if '--no-wait' in args:
-        interactive = False
-        args.remove('--no-wait')
-    else:
+    if '--wait' in args:
         interactive = True
-        args.append('--wait')
-
-    # There is no point in waiting for pqm builds
-    # so they are force as non-interactive
-    if 'pqm' in builder or 'all' in builder:
-        print 'Forcing PQM/ALL builds in non-interactive mode.'
-        print 'Check Buildbot page for status or wait for email.'
-        print '-----------------------------------------------'
+    else:
         interactive = False
-        args.remove('--wait')
 
     who = unidecode(pave.git.account)
     if not who:
@@ -385,15 +402,11 @@ def buildbot_try(args):
     # not be valide.
     pave.git.push()
 
-    if not interactive:
-        print ('Use "--no-wait" if you only want to trigger the build '
-                'without waiting for result.')
-    else:
+    print 'Running %s' % new_args
+
+    if interactive:
         status_thread = threading.Thread(
             target=pave.buildbotShowProgress, args=(builder,))
-
-    print 'Running %s' % new_args
-    if interactive:
         try:
             status_thread.start()
             runner.run()
@@ -537,7 +550,8 @@ def review(options):
         help="Check all pages.",
         default=False,
         action="store_true"
-        )
+        ),
+    ('all', None, 'Create all files.'),
 ])
 @needs('build', 'update_setup')
 def doc_html(options):
@@ -546,7 +560,7 @@ def doc_html(options):
     """
     arguments = []
     if pave.getOption(options.doc_html, 'all'):
-        arguments.extend(['-a', -'E', '-n'])
+        arguments.extend(['-a', '-E', '-n'])
     return _generateProjectDocumentation(arguments)
 
 
@@ -600,26 +614,46 @@ def _generateProjectDocumentation(arguments=None):
 
 
 @task
-@needs('publish_distributables', 'publish_documentation')
-def publish():
+@consume_args
+def release(args):
     """
     Publish download files and documentation.
 
     publish/downloads/PRODUCT_NAME will go to download website
     publish
     """
+    if args:
+        target = args[0]
+        author_email = args[-1].replace('<', '').replace('>', '')
+    else:
+        target = 'staging'
+        author_email = 'unknown'
+
+    if target == 'production' and author_email not in RELEASE_MANAGERS:
+        print 'You are not allowed to release in production.'
+        exit(1)
+
+    arguments = [target]
+    environment.options['doc_html'] = {}
+    call_task('publish_documentation', args=arguments)
+    call_task('publish_distributables', args=arguments)
 
 
 @task
 @needs('update_setup', 'dist')
-def publish_distributables():
+@consume_args
+def publish_distributables(args):
     """
     Publish download files and documentation.
 
     publish/downloads/PRODUCT_NAME will go to download website
     publish
     """
-    branch_name = pave.git.branch_name.lower()
+    if args:
+        target = args[0]
+    else:
+        target = 'staging'
+
     product_name = SETUP['product']['name'].lower()
     version = SETUP['product']['version']
     version_major = SETUP['product']['version_major']
@@ -653,20 +687,18 @@ def publish_distributables():
         )
 
     # For production, update latest download page.
-    if branch_name == 'production':
+    publish_config = SETUP['publish']
+    if target == 'production':
         pave.fs.writeContentToFile(
             destination=[pave.fs.join(product_folder), 'LATEST'],
             content=version,
             )
-        #pave.fs.createEmtpyFile([pave.fs.join(product_folder), 'index.html'])
         pave.fs.copyFile(
             source=[pave.path.dist, release_html_name],
             destination=[
                 pave.path.publish, 'website', 'downloads', 'index.html'],
             )
 
-    publish_config = SETUP['publish']
-    if branch_name.startswith('series-') or branch_name == 'production':
         download_hostname = publish_config['download_production_hostname']
         documentation_hostname = publish_config['website_production_hostname']
     else:
@@ -694,14 +726,19 @@ def publish_distributables():
 
 @task
 @needs('doc_html')
-def publish_documentation():
+@consume_args
+def publish_documentation(args):
     """
     Publish download files and documentation.
 
     publish/downloads/PRODUCT_NAME will go to download website
     publish
     """
-    branch_name = pave.git.branch_name.lower()
+    if args:
+        target = args[0]
+    else:
+        target = 'staging'
+
     product_name = SETUP['product']['name'].lower()
     version = SETUP['product']['version']
 
@@ -723,16 +760,12 @@ def publish_documentation():
         )
 
     publish_config = SETUP['publish']
-    if branch_name.startswith('series-') or branch_name == 'latest':
+    if target == 'production':
         documentation_hostname = publish_config['website_production_hostname']
-    else:
-        documentation_hostname = publish_config['website_staging_hostname']
+        destination_root = (
+            documentation_hostname + '/documentation/' + product_name)
 
-    destination_root = (
-        documentation_hostname + '/documentation/' + product_name)
-
-    # For production, also create a latest redirect.
-    if branch_name == 'production':
+        # For production, also create a latest redirect.
         data = {
             'url': 'http://%s/%s' % (destination_root, version),
             'title': 'Redirecting to latest %s documentation' % (
@@ -742,6 +775,11 @@ def publish_documentation():
         content = pave.renderJinja(template_root, 'latest.j2', data)
         redirect = [pave.fs.join(publish_documentation_folder), 'index.html']
         pave.fs.writeContentToFile(redirect, content=content)
+
+    else:
+        documentation_hostname = publish_config['website_staging_hostname']
+        destination_root = (
+            documentation_hostname + '/documentation/' + product_name)
 
     print "Publishing documentation to %s..." % (documentation_hostname)
     pave.rsync(

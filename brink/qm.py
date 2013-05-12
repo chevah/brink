@@ -7,7 +7,7 @@ import os
 import sys
 
 from paver.easy import task
-from paver.tasks import environment, consume_args
+from paver.tasks import environment, consume_args, cmdopts
 
 from brink.utils import BrinkPaver
 from brink.configuration import SETUP
@@ -330,7 +330,7 @@ def merge_commit(args):
 @consume_args
 def pqm(args):
     """
-    Submit the branch to pqm.
+    Submit the branch to PQM.
 
     test_remote PULL_ID
     """
@@ -350,11 +350,32 @@ def pqm(args):
         print "Pull id in bad format. It must be an integer."
         sys.exit(1)
 
-    repo_name = SETUP['repository']['name'].lower()
+    arguments = ['pqm', '--properties=pull_id=%s' % (pull_id)]
+    environment.args = arguments
+    from brink.pavement_commons import test_remote
+    test_remote(arguments)
 
-    builder = '--builder=%s-pqm' % (repo_name)
-    pull_id = '--properties=pull_id=%s' % (args[0])
-    new_args = [builder, pull_id]
-    environment.args = new_args
-    from brink.pavement_commons import buildbot_try
-    buildbot_try(new_args)
+
+@task
+@cmdopts([
+    ('target=', None, 'Base repository URI.'),
+    ])
+@task
+def rqm(options):
+    """
+    Submit the branch to RQM.
+    """
+    result = pave.git.status()
+    if result:
+        print 'Please commit all files before requesting the release.'
+        print 'RQM cancelled.'
+        sys.exit(1)
+
+    target = pave.getOption(options.rqm, 'target', default_value=None)
+    if target != 'production':
+        target = 'staging'
+
+    arguments = ['rqm', '--properties=target=' + target]
+    environment.args = arguments
+    from brink.pavement_commons import test_remote
+    test_remote(arguments)

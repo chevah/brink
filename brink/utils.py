@@ -242,8 +242,13 @@ class BrinkPaver(object):
         """
         Get URL as JSON and return the dict representations.
         """
-        import simplejson
-        result = simplejson.load(self.openPage(url))
+        try:
+            import simplejson as json
+            json  # Shut the linter.
+        except ImportError:
+            import json
+
+        result = json.load(self.openPage(url))
         return result
 
     def buildbotShowLastStep(self, builder):
@@ -770,3 +775,35 @@ class BrinkPaver(object):
         Extract the ticket id as string from branch name.
         """
         return branch_name.split('-')[0]
+
+    def getBinaryDistributionFolder(self, target, platform=None):
+        """
+        Return segments for binary distribution folder.
+
+        It download binary distribution if it does not exists.
+        """
+        if platform is None:
+            platform = self.os_name + '-' + self.cpu
+
+        binary_dist = [self.path.brink, 'cache', target + '-' + platform]
+
+        if os.name == 'posix':
+            command = []
+        else:
+            command = ['C:\\MinGW\\msys\\1.0\\bin\\sh.exe']
+        command.extend(['./make-it-happen.sh'])
+
+        if target == 'agent-1.5':
+            command.append('get_agent')
+        else:
+            command.append('get_python')
+            command.append(target)
+
+        command.append(platform)
+
+        if not self.fs.isFolder(binary_dist):
+            self.fs.deleteFolder(binary_dist)
+            with self.fs.changeFolder([self.path.brink]):
+                (exit_code, output) = self.execute(command, output=sys.stdout)
+
+        return binary_dist

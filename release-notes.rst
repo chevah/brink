@@ -3,6 +3,43 @@ chevah-brink relese notes
 
 Here are the release notes for past brink version.
 
+
+0.21.5 - 12/05/2013
+-------------------
+
+* Add pave.getBinaryDistributionFolder().
+
+
+0.21.4 - 12/05/2013
+-------------------
+
+* Add RQM and PQM tasks in brink.qm.
+
+
+0.21.3 - 12/05/2013
+-------------------
+
+* Publish according to target argument.
+
+
+0.21.2 - 12/05/2013
+-------------------
+
+* By default, don't wait for test_remote tasks.
+
+
+0.21.1 - 12/05/2013
+-------------------
+
+* Add support for custom properties in test_remote.
+
+
+0.21.0 - 12/05/2013
+-------------------
+
+* Add support for Python 2.7 where simplejson is not available.
+
+
 0.20.1 - 23/04/2013
 -------------------
 
