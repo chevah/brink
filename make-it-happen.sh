@@ -110,32 +110,6 @@ LOCAL_AGENT_BINARY_DIST="agent-1.5-$OS-$ARCH"
 AGENT_BUILD_FOLDER="agent-1.5-$OS-$ARCH"
 
 
-help_text_get_all=\
-"Download Python and Agent for all supported OS."
-command_get_all() {
-    mkdir -p ${CACHE_FOLDER}
-    execute pushd ${CACHE_FOLDER}
-        get_pythons ${ALL_PYTHON_BINARY_DIST}
-        get_agents ${ALL_AGENT_BINARY_DIST}
-    execute popd ${BUILD_FOLDER}
-}
-
-#
-# Download Python binary dists.
-#
-# Should be remove once we get rid of 'get_all'.
-#
-get_pythons() {
-    build_folder_list=$@
-
-    echo "Getting Python..."
-    for build_folder in $build_folder_list
-    do
-        get_binary_dist ${build_folder} $PYTHON_URI
-    done
-}
-
-
 # Compile and install all Python extra libraries.
 command_build_python_extra_libraries() {
     # Update Python config Makefile to use the python that we have just
@@ -255,42 +229,30 @@ command_get_python() {
 }
 
 
-help_text_get=\
-"Download Agent and Python binary dist for current OS."
-command_get() {
-    command_get_python
-    command_get_agent
-}
-
-
-help_text_get_one_agent=\
-"Download Agent for a specific OS-ARCH."
-help_get_one_agent() {
-    echo "$PROG get_one_agent OS-ARCH"
-    echo "   OS-ARCH - Name of the OS and Architecture for which"
-    echo "             to download binaries."
-}
-
-
-command_get_one_agent() {
-    local agent_get_list="agent-1.5-$1"
-    mkdir -p ${CACHE_FOLDER}
-    pushd ${CACHE_FOLDER}
-        get_agents $agent_get_list
-    popd
-}
-
-
 help_text_get_agent=\
-"Download Agent binaries for current OS"
+"Download Agent binaries."
 command_get_agent() {
-    agent_get_list=${LOCAL_AGENT_BINARY_DIST}
+
+    if [ $# -eq 0 ]; then
+        agent_get_list=${LOCAL_AGENT_BINARY_DIST}
+
+    elif [ $# -ne 1 ]; then
+        help_get_python
+        exit 1
+    else
+        agent_get_list="agent-1.5-$1"
+    fi
 
     mkdir -p ${CACHE_FOLDER}
     pushd ${CACHE_FOLDER}
-        get_agents $agent_get_list
+        echo "Getting agent..."
+        for build_folder in $agent_get_list
+        do
+            get_binary_dist ${build_folder} $AGENT_URI
+        done
     popd
 }
+
 
 help_text_remove_dependencies=\
 "Remove python binary dist build dependencies"
@@ -324,17 +286,6 @@ get_binary_dist() {
     execute tar -xf $tar_file
     rm -f $tar_gz_file
     rm -f $tar_file
-}
-
-
-get_agents() {
-    build_folder_list=$@
-
-    echo "Getting and extracting agent 1.5..."
-    for build_folder in $build_folder_list
-    do
-        get_binary_dist ${build_folder} $AGENT_URI
-    done
 }
 
 
