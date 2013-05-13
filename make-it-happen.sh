@@ -201,7 +201,7 @@ command_test_python() {
 help_text_get_python=\
 "Download Python binary distribution."
 help_get_python() {
-    echo "usage: get_python [PYTHON_VERSION OS ARCH]"
+    echo "usage: get_python [PYTHON_VERSION OS-ARCH]"
     echo ""
     echo "When no arguments are provided, it will download default Python "
     echo "version for current OS."
@@ -211,11 +211,11 @@ command_get_python() {
     if [ $# -eq 0 ]; then
         python_get_list=${LOCAL_PYTHON_BINARY_DIST}
 
-    elif [ $# -ne 3 ]; then
+    elif [ $# -ne 2 ]; then
         help_get_python
         exit 1
     else
-        python_get_list="$1-$2-$3"
+        python_get_list="$1-$2"
     fi
 
     mkdir -p ${CACHE_FOLDER}
