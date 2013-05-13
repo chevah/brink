@@ -94,7 +94,7 @@ def deps_update(options):
         ]
     default_uri = SETUP['repository']['base_uri']
     base_uri = pave.getOption(
-        options.deps_update, 'uri', default_value=default_uri)
+        options, 'deps_update', 'uri', default_value=default_uri)
     pave.updateRepositories(projects=projects, uri=base_uri)
 
 
@@ -481,7 +481,8 @@ def review(options):
     git_push = ['git', 'push', '--set-upstream', 'origin', branch_name]
     pave.execute(git_push)
 
-    username = pave.getOption(options.review, 'username', default_value=None)
+    username = pave.getOption(
+        options, 'review', 'username', default_value=None)
 
     if not username:
         # Get the ReviewBoard username based on git account.
@@ -492,7 +493,7 @@ def review(options):
         username = username.split('<')[0].strip().lower()
         username = username.replace(' ', '')
 
-    review_id = pave.getOption(options.review, 'review_id')
+    review_id = pave.getOption(options, 'review', 'review_id')
 
     # Try to get the bug number from branch name as 23-some_description.
     # If it is not number, set it to None.
@@ -502,11 +503,11 @@ def review(options):
     except ValueError:
         bug = None
 
-    name = pave.getOption(options.review, 'name')
+    name = pave.getOption(options, 'review', 'name')
     if name is None:
         name = branch_name
 
-    description = pave.getOption(options.review, 'description')
+    description = pave.getOption(options, 'review', 'description')
 
     module = SETUP['repository']['name']
 
@@ -559,7 +560,7 @@ def doc_html(options):
     Generates the documentation.
     """
     arguments = []
-    if pave.getOption(options.doc_html, 'all'):
+    if pave.getOption(options, 'doc_html', 'all'):
         arguments.extend(['-a', '-E', '-n'])
     return _generateProjectDocumentation(arguments)
 
@@ -634,7 +635,6 @@ def release(args):
         exit(1)
 
     arguments = [target]
-    environment.options['doc_html'] = {}
     call_task('publish_documentation', args=arguments)
     call_task('publish_distributables', args=arguments)
 

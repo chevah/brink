@@ -305,11 +305,16 @@ class BrinkPaver(object):
             time.sleep(0.1)
             builder_status = self.getJSON(url=base_url)
 
-    def getOption(self, options, option_name,
+    def getOption(self, options, task_name, option_name,
             default_value=None, required=False):
         '''Return the paver option_name passed to task_name.'''
         try:
-            value = options[option_name]
+            task_options = options[task_name]
+        except KeyError:
+            return default_value
+
+        try:
+            value = task_options[option_name]
         except KeyError:
             if required:
                 print 'It is required to provide option "%s".' % (option_name)
@@ -449,10 +454,11 @@ class BrinkPaver(object):
             )
             sys.exit(1)
 
-        make_nsis_command = [make_nsis_path, 'windows-installer.nsi']
+        make_nsis_command = [make_nsis_path, '-V2', 'windows-installer.nsi']
 
         try:
             with self.fs.changeFolder([target]):
+                print "Executing %s" % make_nsis_command
                 subprocess.call(make_nsis_command)
         except OSError, os_error:
             if os_error.errno != 2:

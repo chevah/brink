@@ -371,7 +371,7 @@ def rqm(options):
         print 'RQM cancelled.'
         sys.exit(1)
 
-    target = pave.getOption(options.rqm, 'target', default_value=None)
+    target = pave.getOption(options, 'rqm', 'target', default_value=None)
     if target != 'production':
         target = 'staging'
 

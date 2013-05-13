@@ -3,6 +3,12 @@ chevah-brink relese notes
 
 Here are the release notes for past brink version.
 
+0.21.6 - 13/05/2013
+-------------------
+
+* Allow getOption to work even when task options were not defined.
+* Reduce logging for makensis command.
+
 
 0.21.5 - 12/05/2013
 -------------------
