@@ -154,7 +154,7 @@ copy_python() {
             echo "No ${PYTHON_VERSION} environment. Start downloading it..."
             pushd ${BOOTSTRAP_PATH}
             git pull
-            ./make-it-happen.sh get_python ${PYTHON_VERSION} ${OS} ${ARCH}
+            ./make-it-happen.sh get_python ${PYTHON_VERSION} ${OS}-${ARCH}
             popd
         fi
 
