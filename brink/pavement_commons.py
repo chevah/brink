@@ -399,7 +399,7 @@ def buildbot_try(args):
     sys.argv = new_args
 
     # Push the latest changes to remote repo, as otherwise the diff will
-    # not be valide.
+    # not be valid.
     pave.git.push()
 
     print 'Running %s' % new_args
@@ -623,6 +623,17 @@ def release(args):
     publish/downloads/PRODUCT_NAME will go to download website
     publish
     """
+
+    try:
+        target = args[0]
+    except IndexError:
+        target = 'staging'
+
+    try:
+        latest = args[1]
+    except IndexError:
+        latest = None
+
     if args:
         target = args[0]
         author_email = args[-1].replace('<', '').replace('>', '')
@@ -634,7 +645,7 @@ def release(args):
         print 'You are not allowed to release in production.'
         exit(1)
 
-    arguments = [target]
+    arguments = [target, latest]
     call_task('publish_documentation', args=arguments)
     call_task('publish_distributables', args=arguments)
 
@@ -649,10 +660,15 @@ def publish_distributables(args):
     publish/downloads/PRODUCT_NAME will go to download website
     publish
     """
-    if args:
+    try:
         target = args[0]
-    else:
+    except IndexError:
         target = 'staging'
+
+    try:
+        latest = args[1]
+    except IndexError:
+        latest = None
 
     product_name = SETUP['product']['name'].lower()
     version = SETUP['product']['version']
@@ -693,17 +709,18 @@ def publish_distributables(args):
             destination=[pave.fs.join(product_folder), 'LATEST'],
             content=version,
             )
-        pave.fs.copyFile(
-            source=[pave.path.dist, release_html_name],
-            destination=[
-                pave.path.publish, 'website', 'downloads', 'index.html'],
-            )
-
         download_hostname = publish_config['download_production_hostname']
         documentation_hostname = publish_config['website_production_hostname']
     else:
         download_hostname = publish_config['download_staging_hostname']
         documentation_hostname = publish_config['website_staging_hostname']
+
+    if latest == 'yes':
+        pave.fs.copyFile(
+            source=[pave.path.dist, release_html_name],
+            destination=[
+                pave.path.publish, 'website', 'downloads', 'index.html'],
+            )
 
     print "Publishing distributable(s) to %s ..." % (download_hostname)
     pave.rsync(
@@ -734,10 +751,15 @@ def publish_documentation(args):
     publish/downloads/PRODUCT_NAME will go to download website
     publish
     """
-    if args:
+    try:
         target = args[0]
-    else:
+    except IndexError:
         target = 'staging'
+
+    try:
+        latest = args[1]
+    except IndexError:
+        latest = None
 
     product_name = SETUP['product']['name'].lower()
     version = SETUP['product']['version']
@@ -764,8 +786,13 @@ def publish_documentation(args):
         documentation_hostname = publish_config['website_production_hostname']
         destination_root = (
             documentation_hostname + '/documentation/' + product_name)
+    else:
+        documentation_hostname = publish_config['website_staging_hostname']
+        destination_root = (
+            documentation_hostname + '/documentation/' + product_name)
 
-        # For production, also create a latest redirect.
+    if latest == 'yes':
+        # Also create a latest redirect.
         data = {
             'url': 'http://%s/%s' % (destination_root, version),
             'title': 'Redirecting to latest %s documentation' % (
@@ -775,11 +802,6 @@ def publish_documentation(args):
         content = pave.renderJinja(template_root, 'latest.j2', data)
         redirect = [pave.fs.join(publish_documentation_folder), 'index.html']
         pave.fs.writeContentToFile(redirect, content=content)
-
-    else:
-        documentation_hostname = publish_config['website_staging_hostname']
-        destination_root = (
-            documentation_hostname + '/documentation/' + product_name)
 
     print "Publishing documentation to %s..." % (documentation_hostname)
     pave.rsync(

@@ -3,6 +3,13 @@ chevah-brink relese notes
 
 Here are the release notes for past brink version.
 
+0.21.7 - 17/05/2013
+-------------------
+
+* Remove copyPython as we now use getBinaryDistributionFolder.
+* add '--latest' option to `paver pqm`.
+
+
 0.21.6 - 13/05/2013
 -------------------
 

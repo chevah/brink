@@ -144,7 +144,7 @@ copy_python() {
 
     # Check that python dist was installed
     if [ ! -s ${PYTHON_BIN} ]; then
-        # Install python-dist since everthing else depends on it.
+        # Install python-dist since everything else depends on it.
         echo "Bootstraping ${PYTHON_VERSION} environment to ${BUILD_FOLDER}..."
         mkdir -p ${BUILD_FOLDER}
 

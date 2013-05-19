@@ -322,15 +322,6 @@ class BrinkPaver(object):
             value = default_value
         return value
 
-    def copyPython(self, destination, python_version, platform):
-        """
-        Create a base Python environment.
-        """
-        python_binary_dist = 'python' + python_version + '-' + platform
-        source = [self.path.brink, 'cache', python_binary_dist]
-        self.fs.deleteFolder(destination)
-        self.fs.copyFolder(source, destination)
-
     def getIPAddress(self, gateway='172.20.0.1'):
         '''Return the local public IP address.'''
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

@@ -341,7 +341,7 @@ def pqm(args):
     result = pave.git.status()
     if result:
         print 'Please commit all files and get review approval.'
-        print 'PQM canceled.'
+        print 'PQM cancelled.'
         sys.exit(1)
 
     try:
@@ -359,11 +359,12 @@ def pqm(args):
 @task
 @cmdopts([
     ('target=', None, 'Base repository URI.'),
+    ('latest=', None, '`yes` if this release is for latest version.'),
     ])
 @task
 def rqm(options):
     """
-    Submit the branch to RQM.
+    Submit the branch to release manager.
     """
     result = pave.git.status()
     if result:
@@ -375,7 +376,13 @@ def rqm(options):
     if target != 'production':
         target = 'staging'
 
-    arguments = ['rqm', '--properties=target=' + target]
+    latest = pave.getOption(options, 'rqm', 'latest', default_value='no')
+
+    arguments = [
+        'rqm',
+        '--properties=target=' + target,
+        '--properties=latest=' + latest,
+        ]
     environment.args = arguments
     from brink.pavement_commons import test_remote
     test_remote(arguments)
