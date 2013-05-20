@@ -11,14 +11,27 @@ import sys
 from brink.execute import execute
 from brink.paths import which
 
+
 class BrinkGit(object):
     '''
     Helpers for calling external git command.
     '''
 
     def __init__(self, filesystem):
-        self.git = self._getGitPath()
+        self._git = None
         self.fs = filesystem
+
+    @property
+    def git(self):
+        """
+        Return path to git.
+
+        This is here to delay the loading of GitPath, since it depends on
+        twisted.python and Twisted is available only at a later time.
+        """
+        if not self._git:
+            self._git = self._getGitPath()
+        return self._git
 
     def _getGitPath(self):
         extra_paths = []
