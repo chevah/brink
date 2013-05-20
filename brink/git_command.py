@@ -9,7 +9,7 @@ import os
 import sys
 
 from brink.execute import execute
-
+from brink.paths import which
 
 class BrinkGit(object):
     '''
@@ -21,19 +21,20 @@ class BrinkGit(object):
         self.fs = filesystem
 
     def _getGitPath(self):
-        if os.name == 'posix':
-            return 'git'
-        elif os.name == 'nt':
-            git_locations = [
+        extra_paths = []
+
+        if os.name == 'nt':
+            extra_paths = [
                 'c:\\Program Files\\Git\\bin\\git.exe',
                 'c:\\Program Files (x86)\\Git\\bin\\git.exe',
                 ]
-            for git_try in git_locations:
-                if os.path.exists(git_try):
-                    return git_try
-            raise AssertionError('Failed to find Git.')
-        else:
-            raise AssertionError('OS not supported.')
+
+        path = which('git', extra_paths)
+
+        if len(path) > 0:
+            return path
+
+        raise AssertionError('Failed to find Git.')
 
     def push(self, remote='origin'):
         '''Push current changes.'''
