@@ -34,6 +34,12 @@ class BrinkGit(object):
         return self._git
 
     def _getGitPath(self):
+        """
+        Return path to git executable.
+
+        On windows extra paths are searched not only PATH environment variable.
+        """
+
         extra_paths = []
 
         if os.name == 'nt':
