@@ -27,8 +27,9 @@ class BrinkGit(object):
         Return path to git.
         """
         if not self._git:
-            # This is here to delay the loading of GitPath, since it depends on
-            # twisted.python and Twisted is available only at a later time.
+            # This is here to delay the resolving of git path, since it
+            # depend on twisted.python and Twisted is available only at a
+            # later time.
             self._git = self._getGitPath()
         return self._git
 
@@ -36,12 +37,11 @@ class BrinkGit(object):
         """
         Return path to git executable.
         """
-
         extra_paths = []
 
         if os.name == 'nt':
-            # On windows extra paths are searched not only using PATH environment variable.
-            # Extra path contain default paths used by the git installer
+            # Some Windows systems don't have Git in PATH so we use the
+            # hard-coded paths from c:\Program Files.
             extra_paths = [
                 'c:\\Program Files\\Git\\bin\\git.exe',
                 'c:\\Program Files (x86)\\Git\\bin\\git.exe',
@@ -49,7 +49,7 @@ class BrinkGit(object):
 
         path = which('git', extra_paths)
 
-        if len(path) > 0:
+        if path:
             return path
 
         raise AssertionError('Failed to find Git.')
