@@ -9,6 +9,7 @@ import os
 import sys
 
 from brink.execute import execute
+from brink.paths import which
 
 
 class BrinkGit(object):
@@ -17,23 +18,41 @@ class BrinkGit(object):
     '''
 
     def __init__(self, filesystem):
-        self.git = self._getGitPath()
+        self._git = None
         self.fs = filesystem
 
+    @property
+    def git(self):
+        """
+        Return path to git.
+        """
+        if not self._git:
+            # This is here to delay the resolving of git path, since it
+            # depend on twisted.python and Twisted is available only at a
+            # later time.
+            self._git = self._getGitPath()
+        return self._git
+
     def _getGitPath(self):
-        if os.name == 'posix':
-            return 'git'
-        elif os.name == 'nt':
-            git_locations = [
+        """
+        Return path to git executable.
+        """
+        extra_paths = []
+
+        if os.name == 'nt':
+            # Some Windows systems don't have Git in PATH so we use the
+            # hard-coded paths from c:\Program Files.
+            extra_paths = [
                 'c:\\Program Files\\Git\\bin\\git.exe',
                 'c:\\Program Files (x86)\\Git\\bin\\git.exe',
                 ]
-            for git_try in git_locations:
-                if os.path.exists(git_try):
-                    return git_try
-            raise AssertionError('Failed to find Git.')
-        else:
-            raise AssertionError('OS not supported.')
+
+        path = which('git', extra_paths)
+
+        if path:
+            return path
+
+        raise AssertionError('Failed to find Git.')
 
     def push(self, remote='origin'):
         '''Push current changes.'''
