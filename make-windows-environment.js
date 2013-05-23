@@ -1,42 +1,72 @@
-//******************************************************************************
-// Outputs a message to the console
-//******************************************************************************
-function message(str) {
+/*
+
+Installs prerequisites needed to build the sources
+
+Usage: cscript.exe make-windows-environment.js
+
+By default, prerequisites are installed in the current user's profile
+(home) folder, under subfolder "chevah".
+
+To create the zip archive that is stored in the binary server :
+- install git using the installer
+- install msys using the installer
+- install msys-wget package under msys and copy the files to git folder
+- create a zip archive from git folder
+- upload the zip archive to the server
+- modify the archive name in this script
+
+*/
+
+var BINARIES_ROOT_URL = "http://binary.chevah.com/production/msys-git";
+
+// If CHEVAH_FOLDER_NAME is a relative path, then it will
+// be relative to user's home folder.
+// If CHEVAH_FOLDER_NAME is an absolute path, then that path is used.
+//var CHEVAH_FOLDER_NAME = "c:\\chevah";
+var CHEVAH_FOLDER_NAME = "chevah";
+
+var SOURCE_ARCHIVE_NAME_RE = /msys-git-windows-x86-.*\.zip/m;
+
+var RESULT = {
+    'OK': 0,
+    'DOWNLOAD_ERROR': 1
+};
+
+var Shell = new ActiveXObject("WScript.Shell");
+var FSO = new ActiveXObject("Scripting.FileSystemObject");
+
+function log(str) {
     WScript.Echo(str);
 }
 
-//******************************************************************************
-// Exits from the script with provided return code
-//******************************************************************************
 function exit(code) {
     WScript.Quit(code);
 }
 
-//******************************************************************************
-// Force the script to be run with cscript and not wscript
-//******************************************************************************
+/*
+Force the script to be run with cscript and not wscript
+*/
 function force_cscript() {
-    var filename = g_fso.GetFileName(WScript.FullName).toLowerCase();
+    var filename = FSO.GetFileName(WScript.FullName).toLowerCase();
 
     if (filename == "wscript.exe") {
         var path = WScript.ScriptFullName;
         var cmd = "%comspec% /k cscript \"" + path + "\"";
 
-        g_shell.Run(cmd);
+        Shell.Run(cmd);
 
         exit(0);
     }
 }
 
-//******************************************************************************
-// Downloads a file from specified URL
-//******************************************************************************
+/*
+Downloads a file from specified URL
+*/
 function download_file(url, file) {
-    message("Downloading file '" + url + "' to '" + file + "'");
+    log("Downloading file '" + url + "' to '" + file + "'");
 
     var request = new ActiveXObject("Microsoft.XMLHTTP");
 
-    // arg3 - async
     request.open("GET", url, false);
     request.send();
 
@@ -56,110 +86,102 @@ function download_file(url, file) {
             stream.Close();
         }
         catch (e) {
-            message("--> Cannot write file, error : '" + e.message + "'");
-            return g_errors.ERROR_DOWNLOAD;
+            log("--> Cannot write file, error : '" + e.log + "'");
+            return RESULT.DOWNLOAD_ERROR;
         };
     }
     else {
-        message("--> Cannot download file, error : '" + request.StatusText + "' (" + request.Status + ")");
-        return g_errors.ERROR_DOWNLOAD;
+        log("--> Cannot download file, error : '" + request.StatusText + "' (" + request.Status + ")");
+        return RESULT.DOWNLOAD_ERROR;
     }
 
-    return g_errors.E_OK;
+    return RESULT.OK;
 }
 
-//******************************************************************************
-// Unzip an archive to a specified directory
-//******************************************************************************
-function unzip(archive, dir) {
-    message("Unpacking archive '" + archive + "' to '" + dir + "'");
+/*
+Unzip an archive to a specified folder
+*/
+function unzip(archive, folder) {
+    log("Unpacking archive '" + archive + "' to '" + folder + "'");
 
     var app = new ActiveXObject("Shell.Application");
 
     var src = app.NameSpace(archive).Items();
-    var dst = app.NameSpace(dir);
+    var dst = app.NameSpace(folder);
 
     //16 - Respond with "Yes to All" for any dialog box that is displayed.
     dst.CopyHere(src, 16);
 
-    return g_errors.E_OK;
+    return RESULT.OK;
 }
 
-//******************************************************************************
-// Creates the directory if it doesn't exists
-//******************************************************************************
-function create_directory_if_not_exists(dir) {
-    if (g_fso.FolderExists(dir) == false) {
-        g_fso.CreateFolder(dir);
+function create_folder(folder) {
+    if (FSO.FolderExists(folder) == false) {
+        FSO.CreateFolder(folder);
     }
 
-    return g_errors.E_OK;
+    return RESULT.OK;
 }
 
-//******************************************************************************
-// Deletes a directory is it exists
-//******************************************************************************
-function delete_directory_if_exists(dir) {
-    if (g_fso.FolderExists(dir) == true) {
-        g_fso.DeleteFolder(dir, true);
+function delete_folder(folder) {
+    if (FSO.FolderExists(folder) == true) {
+        FSO.DeleteFolder(folder, true);
     }
 
-    return g_errors.E_OK;
+    return RESULT.OK;
 }
 
-//******************************************************************************
-// Gets profile (home) directory of current user
-//******************************************************************************
-function get_current_user_profile_dir() {
-    var path = g_shell.ExpandEnvironmentStrings("%userprofile%");
+/*
+Gets profile (home) folder of current user
+*/
+function get_current_user_profile_folder() {
+    var path = Shell.ExpandEnvironmentStrings("%userprofile%");
 
     return path;
 }
 
-//******************************************************************************
-// Gets value of a specified environment variable
-//******************************************************************************
+/*
+Gets value of a specified environment variable
+*/
 function get_env_var(variable) {
-    var value = g_shell.ExpandEnvironmentStrings("%" + variable + "%");
+    var value = Shell.ExpandEnvironmentStrings("%" + variable + "%");
 
     return value;
 }
 
-//******************************************************************************
-// Gets current user temp directory
-//******************************************************************************
-function get_current_user_temp_dir() {
-    var path = g_shell.ExpandEnvironmentStrings("%temp%");
+/*
+Gets current user temp folder
+*/
+function get_current_user_temp_folder() {
+    var path = Shell.ExpandEnvironmentStrings("%temp%");
 
     return path;
 }
 
-//******************************************************************************
-// Sets value of a specified environment variable
-//******************************************************************************
+/*
+Sets value of a specified environment variable
+*/
 function set_process_env_var(variable, value) {
-    var variables = g_shell.Environment("Process");
+    var variables = Shell.Environment("Process");
 
     variables.item(variable) = value;
 
-    return g_errors.E_OK;
+    return RESULT.OK;
 }
 
-//******************************************************************************
-// Checks if a newer version of a specified archive is available
-//******************************************************************************
+/*
+Checks if a newer version of a specified archive is available
+*/
 function archive_needs_update(archive, version_file) {
-    if (g_fso.FileExists(version_file)) {
+    if (FSO.FileExists(version_file)) {
         var ForReading = 1;
-        var stream = g_fso.OpenTextFile(version_file, ForReading);
+        var stream = FSO.OpenTextFile(version_file, ForReading);
 
         var lines = stream.ReadAll();
 
         stream.Close();
 
-        var re = /msys-git-windows-x86-.*\.zip/m;
-
-        var result = re.exec(lines);
+        var result = SOURCE_ARCHIVE_NAME_RE.exec(lines);
 
         if (result[0] == archive) {
             return false;
@@ -170,65 +192,78 @@ function archive_needs_update(archive, version_file) {
     return true;
 }
 
-//******************************************************************************
-// Writes the version information to version.txt
-//******************************************************************************
+/*
+Writes the version information to version.txt
+*/
 function write_version_to_file(archive, version_file) {
     var stream;
     var lines = "";
     var ForReading = 1;
     var ForWriting = 2;
 
-    if (g_fso.FileExists(version_file)) {
-        stream = g_fso.OpenTextFile(version_file, ForReading);
+    if (FSO.FileExists(version_file)) {
+        stream = FSO.OpenTextFile(version_file, ForReading);
 
         lines = stream.ReadAll();
 
         stream.Close();
     }
 
-    stream = g_fso.OpenTextFile(version_file, ForWriting, true);
+    stream = FSO.OpenTextFile(version_file, ForWriting, true);
 
-    var re = /msys-git-windows-x86-.*\.zip/m;
-
-    var pos = lines.search(re);
+    var pos = lines.search(SOURCE_ARCHIVE_NAME_RE);
 
     if (pos == -1) {
         lines = lines + archive + "\n";
         stream.Write(lines);
     }
     else {
-        var result = re.exec(lines);
+        var result = SOURCE_ARCHIVE_NAME_RE.exec(lines);
 
         if (result[0] != archive) {
-            lines = lines.replace(re, archive);
+            lines = lines.replace(SOURCE_ARCHIVE_NAME_RE, archive);
             stream.Write(lines);
         }
     }
 
     stream.Close();
 
-    return g_errors.E_OK;
+    return RESULT.OK;
 }
 
-//******************************************************************************
-// Main script logic
-//******************************************************************************
+function convert_path_to_mingw_format(path) {
+    path = "/" + path;
+    path = path.replace(":", "");
+    path = path.replace(/\\/g, "/");
+
+    return path;
+}
+
+/*
+Main script logic
+*/
 function run() {
     var rc = 0;
+    var chevah_root;
 
-    var binaries_root_url = "http://binary.chevah.com/production/msys-git";
+    var drive = FSO.GetDriveName(CHEVAH_FOLDER_NAME);
 
-    var chevah_root = g_fso.BuildPath(get_current_user_profile_dir(), "chevah");
-    create_directory_if_not_exists(chevah_root);
+    if (drive.length > 0) {
+        chevah_root = CHEVAH_FOLDER_NAME;
+    }
+    else {
+        chevah_root = FSO.BuildPath(get_current_user_profile_folder(), CHEVAH_FOLDER_NAME);
+    }
 
-    var mingw_root = g_fso.BuildPath(chevah_root, "mingw");
-    create_directory_if_not_exists(mingw_root);
+    create_folder(chevah_root);
 
-    var temp_dir = g_fso.BuildPath(chevah_root, "temp");
-    create_directory_if_not_exists(temp_dir);
+    var mingw_root = FSO.BuildPath(chevah_root, "mingw");
+    create_folder(mingw_root);
 
-    var version_file = g_fso.BuildPath(mingw_root, "version.txt");
+    var temp_dir = FSO.BuildPath(chevah_root, "temp");
+    create_folder(temp_dir);
+
+    var version_file = FSO.BuildPath(mingw_root, "version.txt");
 
     var archives = ['msys-git-windows-x86-21052013.zip'];
 
@@ -236,55 +271,45 @@ function run() {
         var needs_update = archive_needs_update(archives[i], version_file);
 
         if (needs_update) {
-            var url = binaries_root_url + "/" + archives[i];
-            var temp = g_fso.BuildPath(temp_dir, archives[i]);
+            var url = BINARIES_ROOT_URL + "/" + archives[i];
+            var temp = FSO.BuildPath(temp_dir, archives[i]);
 
             rc = download_file(url, temp);
-            if (rc != g_errors.E_OK) {
+            if (rc != RESULT.OK) {
                 return rc;
             }
 
             rc = unzip(temp, mingw_root);
-            if (rc != g_errors.E_OK) {
+            if (rc != RESULT.OK) {
                 return rc;
             }
 
             rc = write_version_to_file(archives[i], version_file);
-            if (rc != g_errors.E_OK) {
+            if (rc != RESULT.OK) {
                 return rc;
             }
         }
     }
 
-    g_shell.CurrentDirectory = chevah_root;
+    Shell.CurrentDirectory = chevah_root;
 
     var path = get_env_var("PATH");
     set_process_env_var("PATH", mingw_root + "\\git\\bin;" + path);
 
-    var cmd = "\"" + mingw_root + "\\git\\bin\\bash.exe\" -c \"PATH=$PATH:~/chevah/mingw/git/bin bash -i -l\"";
+    var mingw_chevah_root = convert_path_to_mingw_format(chevah_root);
 
-    rc = g_shell.Run(cmd, 1, false);
+    var cmd = "\"" + mingw_root + "\\git\\bin\\bash.exe\" -c \"PATH=$PATH:" + mingw_chevah_root + "/mingw/git/bin bash -i -l\"";
+
+    rc = Shell.Run(cmd, 1, false);
 }
 
-//******************************************************************************
-// Global stuff
-//******************************************************************************
-// error codes
-var g_errors = {
-    'E_OK'          : 0,
-    'E_DOWNLOAD'    : 1
-};
+var rc = 0;
 
-g_rc = 0;
-
-var g_shell = new ActiveXObject("WScript.Shell");
-var g_fso = new ActiveXObject("Scripting.FileSystemObject");
-
-// the script needs to be run with cscript in order to have all the output
-//redirected to the console and not the GUI, so we enforce that here
+// The script needs to be run with cscript in order to have all the output
+// redirected to the console and not the GUI, so we enforce that here.
 force_cscript();
 
-g_rc = run();
+rc = run();
 
-exit(g_rc);
+exit(rc);
 
