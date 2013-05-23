@@ -77,6 +77,7 @@ TEST_PACKAGES = [
 SETUP['github']['url'] = 'https://github.com/chevah/brink'
 SETUP['pocket-lint']['include_files'] = [
     'pavement.py',
+    'make-windows-environment.js',
     ]
 SETUP['pocket-lint']['include_folders'] = [
     'brink',
