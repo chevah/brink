@@ -13,6 +13,7 @@ from brink.pavement_commons import (
     default,
     pave,
     github,
+    harness,
     lint,
     SETUP
     )
@@ -22,6 +23,7 @@ from paver.easy import task
 help
 default
 github
+harness
 lint
 
 
