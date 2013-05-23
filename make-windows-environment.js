@@ -63,7 +63,7 @@ function force_cscript() {
 }
 
 /*
-Downloads a file from specified URL
+Downloads a file from specified 'url' and save it to 'file'
 */
 function download_file(url, file) {
     log("Downloading file '" + url + "' to '" + file + "'")
@@ -100,7 +100,8 @@ function download_file(url, file) {
 }
 
 /*
-Unzip an archive to a specified folder
+Unzip the archive located at path 'archive' and extract all
+content in an already existing folder  at 'folder' path.
 */
 function unzip(archive, folder) {
     log("Unpacking archive '" + archive + "' to '" + folder + "'")
