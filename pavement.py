@@ -58,7 +58,7 @@ BUILD_PACKAGES = [
 TEST_PACKAGES = [
     'pyflakes>=0.5.0-chevah2',
     'closure_linter==2.3.9',
-    'pocketlint==0.5.31-chevah7',
+    'pocketlint==0.5.31-chevah8',
     'pocketlint-jshint',
 
     # Never version of nose, hangs on closing some tests
