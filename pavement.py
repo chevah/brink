@@ -87,6 +87,15 @@ SETUP['pocket-lint']['include_folders'] = [
 
 
 @task
+def build():
+    """
+    Does nothing.
+
+    This is here to have a working harness target.
+    """
+
+
+@task
 def deps():
     """
     Copy external dependencies.
