@@ -1,11 +1,18 @@
 /*
 
-Installs prerequisites needed to build the sources.
+Opens a msys environment console and installs prerequisites needed
+to build the sources if necessary.
 
-Usage: cscript.exe make-windows-environment.js
+Usage: cscript.exe SCRIPT_FILE
 
 By default, prerequisites are installed in the current user's profile
 (home) folder, under subfolder 'chevah'.
+
+When the script is run for the first time, it will download the git
+archive from the binary server, unpack it to 'chevah' folder, set the
+required environment variables and opens a bash console from git.
+The following times when the script is run, it will see that git was
+already installed and only the bash console will be opened.
 
 To create the zip archive that is stored in the binary server :
 - install git using the installer
@@ -18,20 +25,16 @@ msys-ssl, msys-intl must be copied to git)
 - upload the zip archive to the server
 - modify the archive name in this script
 
-When the script is run for the first time, it will download the git
-archive from the binary server, unpack it to 'chevah' folder, set the
-required environment variables and opens a bash console from git.
-The following times when the script is run, it will see that git was
-already installed and only the bash console will be opened.
-
 */
 
 var BINARIES_ROOT_URL = 'http://binary.chevah.com/production/msys-git'
 
-// If CHEVAH_FOLDER_NAME is a relative path, then it will
-// be relative to user's home folder.
-// If CHEVAH_FOLDER_NAME is an absolute path, then that path is used.
-//var CHEVAH_FOLDER_NAME = "c:\\chevah"
+/*
+If CHEVAH_FOLDER_NAME is a relative path, then it will
+be relative to user's home folder.
+If CHEVAH_FOLDER_NAME is an absolute path, then that path is used.
+*/
+// var CHEVAH_FOLDER_NAME = "c:\\chevah"
 var CHEVAH_FOLDER_NAME = 'chevah'
 
 var SOURCE_ARCHIVE_NAME_RE = /msys-git-windows-x86-.*\.zip/m
@@ -45,7 +48,7 @@ var StreamTypeEnum = { adTypeBinary : 1 }
 var SaveOptionsEnum = { adSaveCreateOverWrite : 2 }
 
 var Shell = new ActiveXObject('WScript.Shell')
-var FSO = new ActiveXObject('Scripting.FileSystemObject')
+var Filesystem = new ActiveXObject('Scripting.FileSystemObject')
 
 function log(str) {
     WScript.Echo(str)
@@ -59,7 +62,7 @@ function exit(code) {
 Force the script to be run with cscript and not wscript
 */
 function force_cscript() {
-    var filename = FSO.GetFileName(WScript.FullName).toLowerCase()
+    var filename = Filesystem.GetFileName(WScript.FullName).toLowerCase()
 
     if (filename == 'wscript.exe') {
         var path = WScript.ScriptFullName
@@ -127,16 +130,16 @@ function unzip(archive, folder) {
 }
 
 function create_folder(folder) {
-    if (FSO.FolderExists(folder) == false) {
-        FSO.CreateFolder(folder)
+    if (Filesystem.FolderExists(folder) == false) {
+        Filesystem.CreateFolder(folder)
     }
 
     return RESULT.OK
 }
 
 function delete_folder(folder) {
-    if (FSO.FolderExists(folder) == true) {
-        FSO.DeleteFolder(folder, true)
+    if (Filesystem.FolderExists(folder) == true) {
+        Filesystem.DeleteFolder(folder, true)
     }
 
     return RESULT.OK
@@ -184,9 +187,9 @@ function set_process_env_var(variable, value) {
 Checks if a newer version of a specified archive is available
 */
 function archive_needs_update(archive, version_file) {
-    if (FSO.FileExists(version_file)) {
+    if (Filesystem.FileExists(version_file)) {
         var ForReading = 1
-        var stream = FSO.OpenTextFile(version_file, ForReading)
+        var stream = Filesystem.OpenTextFile(version_file, ForReading)
 
         var lines = stream.ReadAll()
 
@@ -212,15 +215,15 @@ function write_version_to_file(archive, version_file) {
     var ForReading = 1
     var ForWriting = 2
 
-    if (FSO.FileExists(version_file)) {
-        stream = FSO.OpenTextFile(version_file, ForReading)
+    if (Filesystem.FileExists(version_file)) {
+        stream = Filesystem.OpenTextFile(version_file, ForReading)
 
         lines = stream.ReadAll()
 
         stream.Close()
     }
 
-    stream = FSO.OpenTextFile(version_file, ForWriting, true)
+    stream = Filesystem.OpenTextFile(version_file, ForWriting, true)
 
     var pos = lines.search(SOURCE_ARCHIVE_NAME_RE)
 
@@ -257,25 +260,25 @@ function run() {
     var rc = 0
     var chevah_root
 
-    var drive = FSO.GetDriveName(CHEVAH_FOLDER_NAME)
+    var drive = Filesystem.GetDriveName(CHEVAH_FOLDER_NAME)
 
     if (drive.length > 0) {
         chevah_root = CHEVAH_FOLDER_NAME
     }
     else {
-        chevah_root = FSO.BuildPath(get_current_user_profile_folder(),
+        chevah_root = Filesystem.BuildPath(get_current_user_profile_folder(),
                                 CHEVAH_FOLDER_NAME)
     }
 
     create_folder(chevah_root)
 
-    var mingw_root = FSO.BuildPath(chevah_root, 'mingw')
+    var mingw_root = Filesystem.BuildPath(chevah_root, 'mingw')
     create_folder(mingw_root)
 
-    var temp_dir = FSO.BuildPath(chevah_root, 'temp')
+    var temp_dir = Filesystem.BuildPath(chevah_root, 'temp')
     create_folder(temp_dir)
 
-    var version_file = FSO.BuildPath(mingw_root, 'version.txt')
+    var version_file = Filesystem.BuildPath(mingw_root, 'version.txt')
 
     var archives = ['msys-git-windows-x86-21052013.zip']
 
@@ -284,7 +287,7 @@ function run() {
 
         if (needs_update) {
             var url = BINARIES_ROOT_URL + '/' + archives[i]
-            var temp = FSO.BuildPath(temp_dir, archives[i])
+            var temp = Filesystem.BuildPath(temp_dir, archives[i])
 
             rc = download_file(url, temp)
             if (rc != RESULT.OK) {
