@@ -1,19 +1,28 @@
 /*
 
-Installs prerequisites needed to build the sources
+Installs prerequisites needed to build the sources.
 
 Usage: cscript.exe make-windows-environment.js
 
 By default, prerequisites are installed in the current user's profile
-(home) folder, under subfolder "chevah".
+(home) folder, under subfolder 'chevah'.
 
 To create the zip archive that is stored in the binary server :
 - install git using the installer
 - install msys using the installer
 - install msys-wget package under msys and copy the files to git folder
+(mingw-get install msys-get, the required files are installed under msys
+folder; the msys-get.exe and required dll dependencies like msys-crypto,
+msys-ssl, msys-intl must be copied to git)
 - create a zip archive from git folder
 - upload the zip archive to the server
 - modify the archive name in this script
+
+When the script is run for the first time, it will download the git
+archive from the binary server, unpack it to 'chevah' folder, set the
+required environment variables and opens a bash console from git.
+The following times when the script is run, it will see that git was
+already installed and only the bash console will be opened.
 
 */
 
