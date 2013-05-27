@@ -309,11 +309,11 @@ function run() {
     set_process_env_var('PATH', mingw_root + '\\git\\bin' + path)
 
     var mingw_chevah_root = convert_path_to_mingw_format(chevah_root)
-    
+
     var cmd = '\"' + mingw_root + '\\git\\bin\\bash.exe\" -c \"' +
             'PATH=$PATH:' + mingw_chevah_root + '/mingw/git/bin' +
             ' bash -i -l\"'
-            
+
     rc = Shell.Run(cmd, 1, false)
 }
 
