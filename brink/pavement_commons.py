@@ -257,7 +257,7 @@ def test_remote(args):
     if test_arguments:
         # Add all test arguments in one property.
         arguments.append(
-            '--properties=test="' + ' '.join(test_arguments) + '"')
+            '--properties=test=' + ' '.join(test_arguments))
 
     # There is no point in waiting for pqm, all or other long builds.
     if not '--wait' in arguments:

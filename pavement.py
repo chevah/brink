@@ -8,25 +8,55 @@ The main script is 'make-it-happen.sh'.
 This is here just to help with review, buildbot and other tasks.
 """
 from __future__ import with_statement
+import sys
 
 from brink.pavement_commons import (
+    buildbot_list,
+    buildbot_try,
     default,
-    pave,
     github,
+    harness,
+    help,
     lint,
-    SETUP
+    merge_init,
+    merge_commit,
+    pave,
+    pqm,
+    publish_distributables,
+    publish_documentation,
+    release,
+    rqm,
+    SETUP,
+    test,
+    test_remote,
+    test_normal,
+    test_super,
     )
-from paver.easy import task
+from paver.easy import needs, no_help, pushd, task
 
 # Make pylint shut up.
-help
+buildbot_list
+buildbot_try
 default
-github
+github,
+harness
+help
 lint
+merge_init
+merge_commit
+pqm
+publish_distributables
+publish_documentation
+release
+rqm
+test
+test_remote
+test_normal
+test_super
 
 
 # Brink version is defined here and used by paver.sh script.
-BRINK_VERSION = '0.20.1'
+BRINK_VERSION = '0.22.0'
 PYTHON_VERSION = '2.7'
 
 
@@ -54,6 +84,11 @@ BUILD_PACKAGES = [
     ]
 
 TEST_PACKAGES = [
+    # Required for seesaw testing.
+    'chevah-compat==0.8.2',
+    'chevah-empirical==0.13.0',
+    'chevah-utils==0.15.0',
+
     'pyflakes>=0.5.0-chevah2',
     'closure_linter==2.3.9',
     'pocketlint==0.5.31-chevah7',
@@ -73,21 +108,27 @@ TEST_PACKAGES = [
     'bunch',
     ]
 
-
+SETUP['repository']['name'] = u'brink'
+SETUP['github']['repo'] = 'chevah/brink'
 SETUP['github']['url'] = 'https://github.com/chevah/brink'
 SETUP['pocket-lint']['include_files'] = [
     'pavement.py',
     ]
 SETUP['pocket-lint']['include_folders'] = [
     'brink',
+    'chevah',
     ]
+SETUP['folders']['source'] = u'chevah/seesaw'
+SETUP['test']['package'] = 'chevah.seesaw.tests'
+SETUP['test']['elevated'] = None
 
 
 @task
 def deps():
     """
-    Copy external dependencies.
+    Install generic dependencies.
     """
+    print('Installing dependencies to %s...' % (pave.path.build))
     pave.pip(
         command='install',
         arguments=RUN_PACKAGES,
@@ -97,7 +138,58 @@ def deps():
         arguments=TEST_PACKAGES,
         )
 
+
+@task
+@needs('deps')
+def deps_build():
+    """
+    Install dependencies for building the project.
+    """
+    print('Installing dependencies for testing to %s...' % (pave.path.build))
     pave.pip(
         command='install',
         arguments=BUILD_PACKAGES,
         )
+
+
+@task
+def build():
+    """
+    Copy new source code to build folder.
+    """
+    build_target = pave.fs.join([pave.path.build, 'setup-build'])
+    sys.argv = ['setup.py', 'build', '--build-base', build_target]
+    print "Building in " + build_target
+
+    with pushd('seesaw'):
+        import setup
+        setup.distribution.run_command('install')
+
+
+@task
+def doc_html():
+    """
+    Create documentation as html.
+    """
+    pave.fs.createFolder([pave.path.build, 'doc'])
+    pave.fs.createFolder([pave.path.build, 'doc', 'html'])
+
+
+@task
+def dist():
+    """
+    Create distributables files.
+    """
+    # Create a fake file.
+    pave.fs.createEmtpyFile([pave.path.dist, '1.2.0.html'])
+
+
+@no_help
+@task
+def update_setup():
+    """
+    Fake updating of versions for testing.
+    """
+    SETUP['product']['version'] = '1.2.0'
+    SETUP['product']['version_major'] = '1'
+    SETUP['product']['version_minor'] = '2'
