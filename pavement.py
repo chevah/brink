@@ -112,8 +112,9 @@ SETUP['repository']['name'] = u'brink'
 SETUP['github']['repo'] = 'chevah/brink'
 SETUP['github']['url'] = 'https://github.com/chevah/brink'
 SETUP['pocket-lint']['include_files'] = [
-    'pavement.py',
     'msys-console.js',
+    'pavement.py',
+    'release-notes.rst',
     ]
 SETUP['pocket-lint']['include_folders'] = [
     'brink',
