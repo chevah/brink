@@ -102,6 +102,12 @@ install_brink() {
     version=${version%\'}
     version=${version#\"}
     version=${version%\"}
+
+    if [ "$version" = "skip" ]; then
+        echo "Skipping brink installation."
+        return
+    fi
+
     echo "Installing version: chevah-brink==$version of brink..."
 
     ${PYTHON_BIN} -m \

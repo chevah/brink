@@ -55,8 +55,10 @@ test_normal
 test_super
 
 
-# Brink version is defined here and used by paver.sh script.
-BRINK_VERSION = '0.22.0'
+# We are in brink itself, so we don't have to install brink.
+# This is here since we use the same bootstrap script for all projects.
+# Once each project uses it's on bootstrap script, we can get rid of this.
+BRINK_VERSION = 'skip'
 PYTHON_VERSION = '2.7'
 
 
