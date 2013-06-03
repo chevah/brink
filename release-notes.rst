@@ -3,6 +3,11 @@ chevah-brink relese notes
 
 Here are the release notes for past brink version.
 
+0.22.0 - 03/06/2013
+-------------------
+
+* Added msys-console script.
+
 0.21.7 - 17/05/2013
 -------------------
 
