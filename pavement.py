@@ -13,6 +13,7 @@ from brink.pavement_commons import (
     default,
     pave,
     github,
+    harness,
     lint,
     SETUP
     )
@@ -22,6 +23,7 @@ from paver.easy import task
 help
 default
 github
+harness
 lint
 
 
@@ -56,7 +58,7 @@ BUILD_PACKAGES = [
 TEST_PACKAGES = [
     'pyflakes>=0.5.0-chevah2',
     'closure_linter==2.3.9',
-    'pocketlint==0.5.31-chevah7',
+    'pocketlint==0.5.31-chevah8',
     'pocketlint-jshint',
 
     # Never version of nose, hangs on closing some tests
@@ -77,10 +79,20 @@ TEST_PACKAGES = [
 SETUP['github']['url'] = 'https://github.com/chevah/brink'
 SETUP['pocket-lint']['include_files'] = [
     'pavement.py',
+    'msys-console.js',
     ]
 SETUP['pocket-lint']['include_folders'] = [
     'brink',
     ]
+
+
+@task
+def build():
+    """
+    Does nothing.
+
+    This is here to have a working harness target.
+    """
 
 
 @task
