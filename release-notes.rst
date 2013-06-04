@@ -1,12 +1,21 @@
-chevah-brink relese notes
-=========================
+chevah-brink release notes
+==========================
 
 Here are the release notes for past brink version.
+
+
+0.23.0 - 03/06/2013
+-------------------
+
+* Add fully functional build support system.
+* Fix sending test arguments in `paver test_remote`.
+
 
 0.22.0 - 03/06/2013
 -------------------
 
 * Added msys-console script.
+
 
 0.21.7 - 17/05/2013
 -------------------

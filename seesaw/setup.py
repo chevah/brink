@@ -1,16 +1,9 @@
-# Copyright (c) 2012 Adi Roiban.
-# See LICENSE for details.
-"""
-Package for chevah-brink.
-
-These are the extensions build around paver.
-"""
 from distutils import log
-from setuptools import setup, find_packages, Command
+from setuptools import Command, find_packages, setup
 import os
 import shutil
 
-VERSION = u'0.23.0'
+VERSION = '0.1.0'
 
 
 class PublishCommand(Command):
@@ -40,7 +33,7 @@ class PublishCommand(Command):
                 self.destination_base + os.path.basename(archive))
             shutil.copyfile(source, destination)
         log.info(
-            "Distributable(s) files copied to %s " % (self.destination_base))
+            "Distributables files copied to %s " % (self.destination_base))
 
         # Upload package to Chevah PyPi server.
         upload_command = self.distribution.get_command_obj('upload')
@@ -48,19 +41,29 @@ class PublishCommand(Command):
         self.run_command('upload')
 
 
-setup(
-    name='chevah-brink',
+distribution = setup(
+    name="chevah-seesaw",
     version=VERSION,
-    maintainer="Adi Roiban",
-    maintainer_email="adi.roiban@chevah.com",
-    license='BSD',
+    maintainer='Adi Roiban',
+    maintainer_email='adi.roiban@chevah.com',
+    license='Public Domain',
     platforms='any',
-    description='Chevah build system.',
+    description="Testing project Chevah project.",
     long_description=open('README.rst').read(),
     url='http://www.chevah.com',
+    namespace_packages=['chevah'],
     packages=find_packages('.'),
-    package_data={'brink': [
-        'static/requirements/*',
-        ]},
-    cmdclass={'publish': PublishCommand},
-)
+    install_requires=[
+        'chevah-compat',
+        'chevah-empirical',
+        'twisted==12.1.0-chevah3',
+        ],
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Programming Language :: Python",
+        ],
+    cmdclass={
+        'publish': PublishCommand,
+        },
+    )
