@@ -32,7 +32,7 @@ from brink.pavement_commons import (
     test_normal,
     test_super,
     )
-from paver.easy import needs, no_help, pushd, task
+from paver.easy import call_task, consume_args, needs, no_help, pushd, task
 
 # Make pylint shut up.
 buildbot_list
@@ -128,11 +128,19 @@ SETUP['test']['elevated'] = None
 
 
 @task
+@needs('deps_theist', 'deps_agnostic')
 def deps():
     """
-    Install generic dependencies.
+    Install all dependencies.
     """
-    print('Installing dependencies to %s...' % (pave.path.build))
+
+
+@task
+def deps_theist():
+    """
+    Get dependencies for agnostic tests.
+    """
+    print('Installing testing dependencies to %s...' % (pave.path.build))
     pave.pip(
         command='install',
         arguments=RUN_PACKAGES,
@@ -144,12 +152,12 @@ def deps():
 
 
 @task
-@needs('deps')
-def deps_build():
+@needs('deps_theist')
+def deps_agnostic():
     """
-    Install dependencies for building the project.
+    Get dependencies for agnostic tests.
     """
-    print('Installing dependencies for testing to %s...' % (pave.path.build))
+    print('Installing build dependencies %s...' % (pave.path.build))
     pave.pip(
         command='install',
         arguments=BUILD_PACKAGES,
@@ -200,11 +208,12 @@ def update_setup():
 
 
 @task
-@needs('test')
-def test_theist():
+@consume_args
+def test_theist(args):
     """
     Run os dependent tests.
     """
+    call_task('test')
 
 
 @task
