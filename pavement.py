@@ -197,3 +197,18 @@ def update_setup():
     SETUP['product']['version'] = '1.2.0'
     SETUP['product']['version_major'] = '1'
     SETUP['product']['version_minor'] = '2'
+
+
+@task
+@needs('test')
+def test_theist():
+    """
+    Run os dependent tests.
+    """
+
+
+@task
+def test_agnostic():
+    """
+    Run os independent tests.
+    """
