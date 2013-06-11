@@ -128,7 +128,7 @@ SETUP['test']['elevated'] = None
 
 
 @task
-@needs('deps_theist', 'deps_agnostic')
+@needs('deps_os_dependent', 'deps_os_independent')
 def deps():
     """
     Install all dependencies.
@@ -136,11 +136,11 @@ def deps():
 
 
 @task
-def deps_theist():
+def deps_os_dependent():
     """
-    Get dependencies for agnostic tests.
+    Get dependencies for os dependent tests.
     """
-    print('Installing testing dependencies to %s...' % (pave.path.build))
+    print('Installing OS dependent dependencies to %s.' % (pave.path.build))
     pave.pip(
         command='install',
         arguments=RUN_PACKAGES,
@@ -152,12 +152,12 @@ def deps_theist():
 
 
 @task
-@needs('deps_theist')
-def deps_agnostic():
+@needs('deps_os_dependent')
+def deps_os_independent():
     """
-    Get dependencies for agnostic tests.
+    Get dependencies for OS independent tests.
     """
-    print('Installing build dependencies %s...' % (pave.path.build))
+    print('Installing OS independent dependencies to %s.' % (pave.path.build))
     pave.pip(
         command='install',
         arguments=BUILD_PACKAGES,
@@ -209,7 +209,7 @@ def update_setup():
 
 @task
 @consume_args
-def test_theist(args):
+def test_os_dependent(args):
     """
     Run os dependent tests.
     """
@@ -217,7 +217,7 @@ def test_theist(args):
 
 
 @task
-def test_agnostic():
+def test_os_independent():
     """
     Run os independent tests.
     """
