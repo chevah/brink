@@ -20,7 +20,6 @@ from __future__ import with_statement
 
 from optparse import make_option
 import getpass
-import os
 import sys
 import subprocess
 import threading

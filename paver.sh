@@ -391,10 +391,12 @@ copy_python
 copy_base_packages
 install_dependencies
 
-# Always update brink when running deps.
-if [ "$1" = "deps" ] ; then
-    install_brink
-fi
+# Always update brink when running buildbot tasks.
+for paver_task in "deps" "test_os_dependent" "test_os_independent"; do
+    if [ "$1" == "$paver_task" ] ; then
+        install_brink
+    fi
+done
 
 # Now that we have Python and Paver, let's call Paver from Python :)
 ${PYTHON_BIN} -c 'from paver.tasks import main; main()' $@
