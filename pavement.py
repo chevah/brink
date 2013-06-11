@@ -128,7 +128,7 @@ SETUP['test']['elevated'] = None
 
 
 @task
-@needs('deps_os_dependent', 'deps_os_independent')
+@needs('deps_testing', 'deps_build')
 def deps():
     """
     Install all dependencies.
@@ -136,11 +136,11 @@ def deps():
 
 
 @task
-def deps_os_dependent():
+def deps_testing():
     """
-    Get dependencies for os dependent tests.
+    Get dependencies for running the tests.
     """
-    print('Installing OS dependent dependencies to %s.' % (pave.path.build))
+    print('Installing testing dependencies to %s.' % (pave.path.build))
     pave.pip(
         command='install',
         arguments=RUN_PACKAGES,
@@ -152,12 +152,12 @@ def deps_os_dependent():
 
 
 @task
-@needs('deps_os_dependent')
-def deps_os_independent():
+@needs('deps_testing')
+def deps_build():
     """
-    Get dependencies for OS independent tests.
+    Get dependencies for building the project.
     """
-    print('Installing OS independent dependencies to %s.' % (pave.path.build))
+    print('Installing build dependencies to %s.' % (pave.path.build))
     pave.pip(
         command='install',
         arguments=BUILD_PACKAGES,
@@ -209,15 +209,17 @@ def update_setup():
 
 @task
 @consume_args
+@needs('deps_testing')
 def test_os_dependent(args):
     """
-    Run os dependent tests.
+    Run os dependent tests in buildbot.
     """
     call_task('test')
 
 
 @task
+@needs('deps_build', 'lint')
 def test_os_independent():
     """
-    Run os independent tests.
+    Run os independent tests in buildbot.
     """
