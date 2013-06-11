@@ -27,7 +27,7 @@ from brink.pavement_commons import (
     release,
     rqm,
     SETUP,
-    test,
+    test_python,
     test_remote,
     test_normal,
     test_super,
@@ -49,7 +49,7 @@ publish_distributables
 publish_documentation
 release
 rqm
-test
+test_python
 test_remote
 test_normal
 test_super
@@ -124,7 +124,7 @@ SETUP['pocket-lint']['include_folders'] = [
     ]
 SETUP['folders']['source'] = u'chevah/seesaw'
 SETUP['test']['package'] = 'chevah.seesaw.tests'
-SETUP['test']['elevated'] = None
+SETUP['test']['elevated'] = 'chevah.seesaw.tests.elevated'
 
 
 @task
@@ -209,12 +209,21 @@ def update_setup():
 
 @task
 @consume_args
+@needs('test_python')
+def test(args):
+    """
+    Run Python tests.
+    """
+
+
+@task
+@consume_args
 @needs('deps_testing')
 def test_os_dependent(args):
     """
     Run os dependent tests in buildbot.
     """
-    call_task('test')
+    call_task('test_python')
 
 
 @task
