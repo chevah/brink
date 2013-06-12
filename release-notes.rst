@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.24.0 - 03/06/2013
+-------------------
+
+* Rename 'paver test' into 'paver test_python' and don't run lint tests.
+
+
 0.23.0 - 03/06/2013
 -------------------
 

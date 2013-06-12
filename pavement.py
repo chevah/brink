@@ -27,12 +27,12 @@ from brink.pavement_commons import (
     release,
     rqm,
     SETUP,
-    test,
+    test_python,
     test_remote,
     test_normal,
     test_super,
     )
-from paver.easy import needs, no_help, pushd, task
+from paver.easy import call_task, consume_args, needs, no_help, pushd, task
 
 # Make pylint shut up.
 buildbot_list
@@ -49,7 +49,7 @@ publish_distributables
 publish_documentation
 release
 rqm
-test
+test_python
 test_remote
 test_normal
 test_super
@@ -124,15 +124,23 @@ SETUP['pocket-lint']['include_folders'] = [
     ]
 SETUP['folders']['source'] = u'chevah/seesaw'
 SETUP['test']['package'] = 'chevah.seesaw.tests'
-SETUP['test']['elevated'] = None
+SETUP['test']['elevated'] = 'chevah.seesaw.tests.elevated'
 
 
 @task
+@needs('deps_testing', 'deps_build')
 def deps():
     """
-    Install generic dependencies.
+    Install all dependencies.
     """
-    print('Installing dependencies to %s...' % (pave.path.build))
+
+
+@task
+def deps_testing():
+    """
+    Get dependencies for running the tests.
+    """
+    print('Installing testing dependencies to %s.' % (pave.path.build))
     pave.pip(
         command='install',
         arguments=RUN_PACKAGES,
@@ -144,12 +152,12 @@ def deps():
 
 
 @task
-@needs('deps')
+@needs('deps_testing')
 def deps_build():
     """
-    Install dependencies for building the project.
+    Get dependencies for building the project.
     """
-    print('Installing dependencies for testing to %s...' % (pave.path.build))
+    print('Installing build dependencies to %s.' % (pave.path.build))
     pave.pip(
         command='install',
         arguments=BUILD_PACKAGES,
@@ -197,3 +205,30 @@ def update_setup():
     SETUP['product']['version'] = '1.2.0'
     SETUP['product']['version_major'] = '1'
     SETUP['product']['version_minor'] = '2'
+
+
+@task
+@consume_args
+@needs('test_python')
+def test(args):
+    """
+    Run Python tests.
+    """
+
+
+@task
+@consume_args
+@needs('deps_testing')
+def test_os_dependent(args):
+    """
+    Run os dependent tests in buildbot.
+    """
+    call_task('test_python')
+
+
+@task
+@needs('deps_build', 'lint')
+def test_os_independent():
+    """
+    Run os independent tests in buildbot.
+    """

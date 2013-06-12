@@ -20,7 +20,6 @@ from __future__ import with_statement
 
 from optparse import make_option
 import getpass
-import os
 import sys
 import subprocess
 import threading
@@ -160,12 +159,7 @@ def test_normal(args):
 def test_super(args):
     """
     Run the test suite as root user.
-
-    On Windows is does nothing.
     """
-    if os.name != 'posix':
-        return 0
-
     exit_code = run_test(
         python_command=pave.python_command_super,
         switch_user=getpass.getuser(),
@@ -179,10 +173,11 @@ def test_super(args):
 
 @needs('build')
 @consume_args
-def test(args):
+def test_python(args):
     """
-    Execute all tests.
+    Execute Python tests.
     """
+    super_result = 0
 
     default_arguments = ['--with-run-reporter', '--with-timer']
     call_arguments = []
@@ -192,34 +187,32 @@ def test(args):
         empty_args = True
         call_arguments = default_arguments[:]
 
-    run_elevated = False
-    if SETUP['test']['elevated']:
-        for arg in args:
-            if SETUP['test']['elevated'] in arg:
-                run_elevated = True
-                break
-
     call_arguments.append('-s')
     call_arguments.extend(args)
 
-    environment.args = call_arguments
-    normal_result = test_normal(call_arguments)
-
-    super_result = 0
-    if empty_args and SETUP['test']['elevated']:
-        environment.args = [SETUP['test']['elevated']]
-        environment.args.extend(call_arguments)
-        super_result = test_super(call_arguments)
-    elif run_elevated:
-        super_result = test_super(call_arguments)
-    else:
-        pass
-
-    lint_result = 0
     if empty_args:
-        lint_result = lint()
+        call_arguments.append('--exclude=elevated')
+        environment.args = call_arguments
+        normal_result = test_normal(call_arguments)
+        call_arguments.pop()
 
-    if not (normal_result == 0 and super_result == 0 and lint_result == 0):
+        if SETUP['test']['elevated']:
+            environment.args = [SETUP['test']['elevated']]
+            environment.args.extend(call_arguments)
+            super_result = test_super(call_arguments)
+    else:
+        normal_result = test_normal(call_arguments)
+
+        run_elevated = False
+        if SETUP['test']['elevated']:
+            for arg in args:
+                if SETUP['test']['elevated'] in arg:
+                    run_elevated = True
+                    break
+        if run_elevated:
+            super_result = test_super(call_arguments)
+
+    if not (normal_result == 0 and super_result == 0):
         sys.exit(1)
 
 
@@ -282,12 +275,12 @@ def run_test(python_command, switch_user, arguments):
         test_args.append('--pdb-failures')
 
     have_explicit_tests = False
-    source_folder = SETUP['folders']['source']
-    test_module = u'chevah.' + source_folder + '.tests'
-
     test_module = SETUP['test']['package']
     for index, item in enumerate(test_args):
-        # Look for appending package name to test module name.
+        # Check for explicit full test name arguments.
+        if item.startswith(test_module):
+            have_explicit_tests = True
+        # Check for explicit short name arguments.
         # Add explicit test package to shorthand tests.
         if (not item.startswith(test_module) and not item.startswith(u'-')):
             have_explicit_tests = True
