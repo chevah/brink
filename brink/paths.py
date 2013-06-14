@@ -60,27 +60,30 @@ class ProjectPaths(object):
             return self.fs.join(['bin'])
 
 
-def which(command, extra_paths=[]):
+def which(command, extra_paths=None):
     """
     Locate the path to `command`.
     """
     from twisted.python.procutils import which
 
     paths = which(command)
-    paths.extend(extra_paths)
+    if extra_paths:
+        paths.extend(extra_paths)
 
     if not paths:
         return None
     elif len(paths) > 1:
         if os.name == 'nt':
-            # On Windows we only return the first file with an "executable"
-            # extension.
+            # On Windows we return the first file with an "executable"
+            # extension if it exists.
             for path in paths:
                 if (path.lower().endswith('.exe') or
                         path.lower().endswith('.cmd') or
                         path.lower().endswith('.bat')
                 ):
-                    return path
+                    if os.path.exists(path):
+                        return path
+            return None
         else:
             # On Unix we return the first path.
             return paths[0]
