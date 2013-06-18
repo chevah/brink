@@ -124,7 +124,7 @@ SETUP['pocket-lint']['include_folders'] = [
     ]
 SETUP['folders']['source'] = u'brink'
 SETUP['test']['package'] = 'brink.tests'
-SETUP['test']['elevated'] = 'elevated'
+SETUP['test']['elevated'] = 'brink.tests.elevated'
 
 
 @task
@@ -173,9 +173,8 @@ def build():
     sys.argv = ['setup.py', 'build', '--build-base', build_target]
     print "Building in " + build_target
 
-    with pushd('seesaw'):
-        import setup
-        setup.distribution.run_command('install')
+    import setup
+    setup.distribution.run_command('install')
 
 
 @task

@@ -48,7 +48,7 @@ class PublishCommand(Command):
         self.run_command('upload')
 
 
-setup(
+distribution = setup(
     name='chevah-brink',
     version=VERSION,
     maintainer="Adi Roiban",
