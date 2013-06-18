@@ -122,9 +122,9 @@ SETUP['pocket-lint']['include_folders'] = [
     'brink',
     'chevah',
     ]
-SETUP['folders']['source'] = u'chevah/seesaw'
-SETUP['test']['package'] = 'chevah.seesaw.tests'
-SETUP['test']['elevated'] = 'chevah.seesaw.tests.elevated'
+SETUP['folders']['source'] = u'brink'
+SETUP['test']['package'] = 'brink.tests'
+SETUP['test']['elevated'] = 'elevated'
 
 
 @task

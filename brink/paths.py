@@ -81,7 +81,7 @@ def which(command, extra_paths=None):
                         path.lower().endswith('.cmd') or
                         path.lower().endswith('.bat')
                 ):
-                    if os.path.exists(path):
+                    if path_exists(path):
                         return path
             return None
         else:
@@ -90,3 +90,10 @@ def which(command, extra_paths=None):
     else:
         # Only one path found.
         return paths[0]
+
+
+def path_exists(path):
+    """
+    Return True if `path` exists.
+    """
+    return os.path.exists(path)
