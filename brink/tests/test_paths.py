@@ -28,42 +28,12 @@ class TestWhich(UtilsTestCase):
 
         super(TestWhich, self).tearDown()
 
-    def test_which_expanded_paths_file_not_exists(self):
+    def test_expanded_paths_file_exists(self):
         """
+        Returns the full path to the specified command if found and the
+        executable file exists.
         """
-        def path_exists(path):
-            return False
-
-        paths.path_exists = path_exists
-
-        extra_paths = []
-        extra_paths.append(u'bogus/path/')
-        extra_paths.append(self.command_exe_path)
-        extra_paths.append(self.command_bat_path)
-
-        result = paths.which(self.command, extra_paths=extra_paths)
-
-        self.assertIsNone(result)
-
-    def test_which_expanded_paths_not_found(self):
-        """
-        """
-        extra_paths = []
-        extra_paths.append(u'bogus/path/')
-        extra_paths.append(u'bogus')
-        extra_paths.append(mk.string())
-
-        result = paths.which(self.command, extra_paths=extra_paths)
-
-        self.assertIsNone(result)
-
-    def test_which_expanded_paths_exits(self):
-        """
-        """
-        def path_exists(path):
-            return path == self.command_bat_path
-
-        paths.path_exists = path_exists
+        paths.path_exists = lambda x: x == self.command_bat_path
 
         extra_paths = []
         extra_paths.append(u'bogus/path/')
@@ -73,3 +43,36 @@ class TestWhich(UtilsTestCase):
         result = paths.which(self.command, extra_paths=extra_paths)
 
         self.assertEqual(self.command_bat_path, result)
+
+    def test_expanded_paths_file_not_exists(self):
+        """
+        Returns `None` if the specified command is found but the file does
+        not exist.
+        """
+        paths.path_exists = lambda x: False
+
+        extra_paths = []
+        extra_paths.append(u'bogus/path/')
+        extra_paths.append(self.command_exe_path)
+        extra_paths.append(self.command_bat_path)
+
+        result = paths.which(self.command, extra_paths=extra_paths)
+
+        self.assertIsNone(result)
+
+    def test_expanded_paths_invalid(self):
+        """
+        Returns `None` if the specified command is not found in the
+        `expanded_paths` list.
+        """
+        paths.path_exists = lambda x: True
+
+        command = mk.string()
+        extra_paths = []
+        extra_paths.append(u'bogus/path/')
+        extra_paths.append(u'bogus')
+        extra_paths.append(mk.string())
+
+        result = paths.which(command, extra_paths=extra_paths)
+
+        self.assertIsNone(result)
