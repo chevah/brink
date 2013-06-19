@@ -32,7 +32,7 @@ from brink.pavement_commons import (
     test_normal,
     test_super,
     )
-from paver.easy import call_task, consume_args, needs, no_help, pushd, task
+from paver.easy import call_task, consume_args, needs, no_help, task
 
 # Make pylint shut up.
 buildbot_list

@@ -3,6 +3,8 @@
 """
 Test for paths classes and helpers.
 """
+import os
+
 from brink import paths
 
 from chevah.utils.testing import UtilsTestCase
@@ -14,16 +16,20 @@ class TestWhich(UtilsTestCase):
     System tests for `which` brink command.
     """
 
+    @classmethod
+    def setUpClass(cls):
+        if os.name != 'nt':
+            raise cls.skipTest('Only Windows systems supported.')
+
     def setUp(self):
         super(TestWhich, self).setUp()
 
-        content = '@echo off'
         self.command = mk.string()
         self.fs = mk.makeLocalTestFilesystem()
         self.segments = self.fs.createFileInTemp(
-            content=content, suffix='.bat'
+            content='@echo off', suffix='.bat'
             )
-        path = self.fs.getPath(self.segments)
+        path = self.fs.getRealPathFromSegments(self.segments)
 
         self.path_bat_file = path
         self.path_exe_file = path.replace('.bat', '.exe')
@@ -31,13 +37,6 @@ class TestWhich(UtilsTestCase):
         self.extra_paths = []
         self.extra_paths.append(mk.string())
         self.extra_paths.append(self.path_exe_file)
-
-        def path_exists(path):
-            segments = self.fs.getSegmentsFromRealPath(path)
-            return self.fs.isFile(segments)
-
-        # patch path_exists method to work in testing environment
-        paths.path_exists = path_exists
 
     def tearDown(self):
         self.fs.deleteFile(self.segments)
@@ -51,7 +50,6 @@ class TestWhich(UtilsTestCase):
         """
         self.extra_paths.append(self.path_bat_file)
 
-        import pdb,sys; sys.stdout=sys.__stdout__;pdb.set_trace();
         result = paths.which(self.command, extra_paths=self.extra_paths)
 
         self.assertEqual(self.path_bat_file, result)

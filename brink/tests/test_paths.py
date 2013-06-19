@@ -3,6 +3,8 @@
 """
 Test for paths classes and helpers.
 """
+import os
+
 from brink import paths
 
 from chevah.utils.testing import UtilsTestCase
@@ -13,6 +15,11 @@ class TestWhich(UtilsTestCase):
     """
     Unit tests for `which` brink command.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        if os.name != 'nt':
+            raise cls.skipTest('Only Windows systems supported.')
 
     def setUp(self):
         self.command = mk.string()
