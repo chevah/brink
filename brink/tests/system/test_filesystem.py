@@ -8,6 +8,7 @@ from chevah.utils.testing import UtilsTestCase
 from brink.filesystem import BrinkFilesystem
 from chevah.utils.testing.mockup import manufacture as mk
 
+
 class TestBrinkFilesystem(UtilsTestCase):
     """
     System tests for `BrinkFileSystem`.
