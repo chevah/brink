@@ -433,8 +433,8 @@ class BrinkPaver(object):
                 nsis_file.write(line)
 
         nsis_locations = [
-            "C:\Program Files (x86)\NSIS\makensis.exe",
-            "C:\Program Files\NSIS\makensis.exe",
+            "C:\Program Files (x86)\NSIS",
+            "C:\Program Files\NSIS",
         ]
         make_nsis_path = self.fs.which('makensis', nsis_locations)
         if not make_nsis_path:
