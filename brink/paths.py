@@ -96,4 +96,5 @@ def path_exists(path):
     """
     Return True if `path` exists.
     """
-    return os.path.exists(path)
+    from brink.pavement_commons import pave
+    return pave.fs.exists(path)
