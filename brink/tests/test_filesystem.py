@@ -5,13 +5,12 @@ Unit tests for brink filesystem.
 """
 import os
 
-from chevah.utils.testing import UtilsTestCase
-from chevah.utils.testing.mockup import manufacture as mk
+from chevah.brink.testing import BrinkTestCase, mk
 
 from brink.filesystem import BrinkFilesystem
 
 
-class TestBrinkFilesystem(UtilsTestCase):
+class TestBrinkFilesystem(BrinkTestCase):
     """
     Unit tests for `BrinkFilesystem`.
     """
@@ -64,9 +63,7 @@ class TestBrinkFilesystem(UtilsTestCase):
         if os.name != 'nt':
             raise self.skipTest("Functionality implemented only on Windows.")
 
-        self.fs._pathExists = mk.makeMock()
-        self.fs._pathExists.return_value = False
-
+        self.fs._pathExists = self.Mock(return_value=False)
         command = mk.string()
         path_exe_file = '%s.exe' % command
 
