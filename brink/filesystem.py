@@ -299,41 +299,67 @@ class BrinkFilesystem(object):
         finally:
             os.chdir(old_dir)
 
-    def _pathExists(self, path):
-        """
-        Returns `True` if the path exists, `False` otherwise.
-
-        Method is a helper for testing.
-        """
-        return os.path.exists(path)
-
     def which(self, command, extra_paths=None):
         """
-        Locate and return the path to `command`.
+        Find and return the full path to `command`.
         """
-        from twisted.python.procutils import which
+        paths = self._getSearchPaths(extra_paths)
 
-        paths = which(command)
-        if extra_paths:
-            paths.extend(extra_paths)
+        for path in paths:
+            result = self._findCommand(command, path)
+            # Return the first result.
+            if result:
+                return result
 
-        if not paths:
-            return None
-        elif len(paths) > 1:
-            if os.name == 'nt':
-                # On Windows we return the first file with an "executable"
-                # extension if it exists.
-                for path in paths:
-                    if (path.lower().endswith('.exe') or
-                            path.lower().endswith('.cmd') or
-                            path.lower().endswith('.bat')
-                    ):
-                        if self._pathExists(path):
-                            return path
-                return None
-            else:
-                # On Unix we return the first path.
-                return paths[0]
+    def _getSearchPaths(self, extra_paths=None):
+        """
+        Return the list of all paths as defined in the environment.
+        """
+        if extra_paths is None:
+            extra_paths = []
+        environment_paths = os.environ['PATH']
+        result = []
+        if os.name == 'posix':
+            result = self._parseUnixPaths(environment_paths)
         else:
-            # Only one path found.
-            return paths[0]
+            result = self._paserWindowsPaths(environment_paths)
+
+        result.extend(extra_paths)
+        return result
+
+    def _parseUnixPaths(self, paths):
+        """
+        Parse paths stored in Unix environment format.
+        """
+        return paths.split(':')
+
+    def _parseWindowsPaths(self, paths):
+        """
+        Parse paths stored in Windows environment format.
+        """
+        return paths.split(';')
+
+    def _findCommand(self, command, path):
+        """
+        Search path for command executable.
+
+        Return the first path found.
+
+        On windows, it will found executables event if extension is not
+        provided.
+        """
+        if not os.path.isdir(path):
+            return
+
+        candidates = [command]
+        if os.name == 'nt':
+            candidates.extend([
+                '%s.exe' % (command),
+                '%s.bat' % (command),
+                '%s.cmd' % (command),
+                ])
+
+        for member in os.listdir(path):
+            for candidate in candidates:
+                if candidate == member:
+                    return os.path.join(path, member)

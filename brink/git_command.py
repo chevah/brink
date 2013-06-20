@@ -17,20 +17,8 @@ class BrinkGit(object):
     '''
 
     def __init__(self, filesystem):
-        self._git = None
+        self._git = self._getGitPath()
         self.fs = filesystem
-
-    @property
-    def git(self):
-        """
-        Return path to git.
-        """
-        if not self._git:
-            # This is here to delay the resolving of git path, since it
-            # depend on twisted.python and Twisted is available only at a
-            # later time.
-            self._git = self._getGitPath()
-        return self._git
 
     def _getGitPath(self):
         """
@@ -42,8 +30,8 @@ class BrinkGit(object):
             # Some Windows systems don't have Git in PATH so we use the
             # hard-coded paths from c:\Program Files.
             extra_paths = [
-                'c:\\Program Files\\Git\\bin\\git.exe',
-                'c:\\Program Files (x86)\\Git\\bin\\git.exe',
+                'c:\\Program Files\\Git\\bin\\',
+                'c:\\Program Files (x86)\\Git\\bin\\',
                 ]
 
         path = self.fs.which('git', extra_paths)
