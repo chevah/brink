@@ -9,7 +9,6 @@ import os
 import sys
 
 from brink.execute import execute
-from brink.paths import which
 
 
 class BrinkGit(object):
@@ -47,7 +46,7 @@ class BrinkGit(object):
                 'c:\\Program Files (x86)\\Git\\bin\\git.exe',
                 ]
 
-        path = which('git', extra_paths)
+        path = self.fs.which('git', extra_paths)
 
         if path:
             return path

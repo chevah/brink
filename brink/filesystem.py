@@ -51,7 +51,7 @@ class BrinkFilesystem(object):
 
     def getFileContentAsString(self, target):
         """
-        Retrun the string represenation of the file.
+        Return the string representation of the file.
         """
         with open(self.join(target), 'r+') as opened_file:
             content = opened_file.read()
@@ -59,7 +59,7 @@ class BrinkFilesystem(object):
 
     def getFileContentAsList(self, target, strip_newline=True):
         """
-        Retrun the string represenation of the file.
+        Return the string representation of the file.
 
         If `strip_newline` is True, the trailing newline will be not included.
         """
@@ -71,7 +71,7 @@ class BrinkFilesystem(object):
                 content.append(line)
         return content
 
-    def createEmtpyFile(self, target):
+    def createEmptyFile(self, target):
         """
         Create empty file.
         """
@@ -112,7 +112,7 @@ class BrinkFilesystem(object):
         Copy `source` folder to `destination`.
 
         The copy is done recursive.
-        If folder already exitst the content will be merged.
+        If folder already exists the content will be merged.
 
         `excepted_folders` and `excepted_files` is a list of regex with
         folders and files that will not be copied.
@@ -238,7 +238,7 @@ class BrinkFilesystem(object):
 
     def appendContentToFile(self, destination, content):
         """
-        Appened content to file.
+        Append content to file.
         """
         with open(self.join(destination), 'a') as opened_file:
             opened_file.write(content)
@@ -298,3 +298,42 @@ class BrinkFilesystem(object):
             yield old_dir
         finally:
             os.chdir(old_dir)
+
+    def _pathExists(self, path):
+        """
+        Returns `True` if the path exists.
+
+        Method is a helper for testing.
+        """
+        return os.path.exists(path)
+
+    def which(self, command, extra_paths=None):
+        """
+        Locate and return the path to `command`.
+        """
+        from twisted.python.procutils import which
+
+        paths = which(command)
+        if extra_paths:
+            paths.extend(extra_paths)
+
+        if not paths:
+            return None
+        elif len(paths) > 1:
+            if os.name == 'nt':
+                # On Windows we return the first file with an "executable"
+                # extension if it exists.
+                for path in paths:
+                    if (path.lower().endswith('.exe') or
+                            path.lower().endswith('.cmd') or
+                            path.lower().endswith('.bat')
+                    ):
+                        if self._pathExists(path):
+                            return path
+                return None
+            else:
+                # On Unix we return the first path.
+                return paths[0]
+        else:
+            # Only one path found.
+            return paths[0]

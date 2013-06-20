@@ -192,7 +192,7 @@ def dist():
     Create distributables files.
     """
     # Create a fake file.
-    pave.fs.createEmtpyFile([pave.path.dist, '1.2.0.html'])
+    pave.fs.createEmptyFile([pave.path.dist, '1.2.0.html'])
 
 
 @no_help

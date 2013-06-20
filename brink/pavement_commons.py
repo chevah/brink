@@ -65,7 +65,7 @@ class MD5SumFile(object):
         Initialize by creating an empty file.
         """
         self._segments = segments
-        pave.fs.createEmtpyFile(target=self._segments)
+        pave.fs.createEmptyFile(target=self._segments)
 
     def addFile(self, file_path):
         """
