@@ -31,6 +31,7 @@ class TestBrinkFilesystem(UtilsTestCase):
         executable file exists.
         """
         command = self.file_name.replace('.bat', '')
+        command = command.encode('utf-8')
         path_bat_file = self.path
         path_exe_file = self.path.replace('.bat', '.exe')
         extra_paths = [mk.string(), path_exe_file, path_bat_file]
@@ -45,6 +46,7 @@ class TestBrinkFilesystem(UtilsTestCase):
         but the actual, executable, file does not exist.
         """
         unknown_command = mk.string()
+        unknown_command = unknown_command.encode('utf-8')
         extra_paths = [mk.string(), mk.string(), mk.string()]
 
         result = self.brink_fs.which(unknown_command, extra_paths=extra_paths)
