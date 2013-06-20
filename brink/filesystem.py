@@ -301,7 +301,7 @@ class BrinkFilesystem(object):
 
     def _pathExists(self, path):
         """
-        Returns `True` if the path exists.
+        Returns `True` if the path exists, `False` otherwise.
 
         Method is a helper for testing.
         """
