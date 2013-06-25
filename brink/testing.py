@@ -4,7 +4,7 @@
 Helpers for testing the project.
 """
 
-from chevah.utils.testing import UtilsTestCase, mk
+from chevah.utils.testing import UtilsTestCase, manufacture as mk
 
 # Shut up the linter.
 mk

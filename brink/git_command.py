@@ -12,13 +12,13 @@ from brink.execute import execute
 
 
 class BrinkGit(object):
-    '''
+    """
     Helpers for calling external git command.
-    '''
+    """
 
     def __init__(self, filesystem):
-        self._git = self._getGitPath()
         self.fs = filesystem
+        self.git = self._getGitPath()
 
     def _getGitPath(self):
         """

@@ -318,11 +318,11 @@ class BrinkFilesystem(object):
         if extra_paths is None:
             extra_paths = []
         environment_paths = os.environ['PATH']
-        result = []
+
         if os.name == 'posix':
             result = self._parseUnixPaths(environment_paths)
         else:
-            result = self._paserWindowsPaths(environment_paths)
+            result = self._parseWindowsPaths(environment_paths)
 
         result.extend(extra_paths)
         return result
@@ -339,27 +339,45 @@ class BrinkFilesystem(object):
         """
         return paths.split(';')
 
+    def _getFolderListing(self, path):
+        """
+        Returns the contents of the specified `path` as a list.
+
+        Method is a helper for testing.
+        """
+        result = os.listdir(path)
+        return result
+
+    def _isValidSystemPath(self, path):
+        """
+        Only folders are valid system path items.
+
+        Method is a helper for testing.
+        """
+        return os.path.isdir(path)
+
     def _findCommand(self, command, path):
         """
         Search path for command executable.
 
         Return the first path found.
 
-        On windows, it will found executables event if extension is not
+        On Windows, it will find executable even if extension is not
         provided.
         """
-        if not os.path.isdir(path):
-            return
+        if not self._isValidSystemPath(path):
+            return None
 
-        candidates = [command]
+        targets = [command]
         if os.name == 'nt':
-            candidates.extend([
+            targets.extend([
                 '%s.exe' % (command),
                 '%s.bat' % (command),
                 '%s.cmd' % (command),
                 ])
 
-        for member in os.listdir(path):
-            for candidate in candidates:
-                if candidate == member:
-                    return os.path.join(path, member)
+        for candidate in self._getFolderListing(path):
+            for target in targets:
+                if candidate == target:
+                    result = os.path.join(path, candidate)
+                    return result
