@@ -19,6 +19,10 @@ class TestBrinkFilesystem(BrinkTestCase):
         super(TestBrinkFilesystem, self).setUp()
 
         self.brink_fs = BrinkFilesystem()
+        self.test_segments = mk.fs.createFileInTemp(suffix='.bat')
+        self.file_name = self.test_segments[-1:][0]
+        folder_segments = self.test_segments[:-1]
+        self.folder = mk.fs.getRealPathFromSegments(folder_segments)
 
     def test_which_file_exists_posix(self):
         """
@@ -28,13 +32,9 @@ class TestBrinkFilesystem(BrinkTestCase):
         if os.name == 'nt':
             raise self.skipTest("Unix specific test.")
 
-        self.test_segments = mk.fs.createFileInTemp()
-        file_name = self.test_segments[-1:][0]
-        folder_segments = self.test_segments[:-1]
-        folder = mk.fs.getRealPathFromSegments(folder_segments)
-        folder = folder.encode('utf-8')
+        command = self.file_name.encode('utf-8')
+        folder = self.folder.encode('utf-8')
         extra_paths = [mk.ascii(), folder]
-        command = file_name.encode('utf-8')
         full_path = mk.fs.getRealPathFromSegments(self.test_segments)
         full_path = full_path.encode('utf-8')
 
@@ -50,12 +50,8 @@ class TestBrinkFilesystem(BrinkTestCase):
         if os.name != 'nt':
             raise self.skipTest("Windows specific test.")
 
-        self.test_segments = mk.fs.createFileInTemp(suffix='.bat')
-        file_name = self.test_segments[-1:][0]
-        folder_segments = self.test_segments[:-1]
-        folder = mk.fs.getRealPathFromSegments(folder_segments)
-        extra_paths = [mk.string(), folder]
-        command = file_name.replace('.bat', '')
+        extra_paths = [mk.string(), self.folder]
+        command = self.file_name.replace('.bat', '')
         full_path = mk.fs.getRealPathFromSegments(self.test_segments)
 
         result = self.brink_fs.which(command, extra_paths=extra_paths)

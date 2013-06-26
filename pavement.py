@@ -8,6 +8,7 @@ The main script is 'make-it-happen.sh'.
 This is here just to help with review, buildbot and other tasks.
 """
 from __future__ import with_statement
+import os
 import sys
 
 from brink.pavement_commons import (
@@ -125,6 +126,11 @@ SETUP['pocket-lint']['include_folders'] = [
 SETUP['folders']['source'] = u'brink'
 SETUP['test']['package'] = 'brink.tests'
 SETUP['test']['elevated'] = 'brink.tests.elevated'
+
+if os.name == 'nt':
+    # Fix temp folder
+    import tempfile
+    tempfile.tempdir = "c:\\temp"
 
 
 @task
