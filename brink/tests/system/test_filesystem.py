@@ -3,6 +3,8 @@
 """
 System tests for `BrinkFilesystem`.
 """
+import os
+
 from brink.testing import BrinkTestCase, mk
 
 from brink.filesystem import BrinkFilesystem
@@ -18,24 +20,47 @@ class TestBrinkFilesystem(BrinkTestCase):
 
         self.brink_fs = BrinkFilesystem()
 
-        self.test_segments = mk.fs.createFileInTemp(
-            content='something', suffix='.bat')
-        self.path = mk.fs.getRealPathFromSegments(self.test_segments)
-        self.file_name = self.test_segments[-1:][0]
-        self.folder_segments = self.test_segments[:-1]
+    def test_which_file_exists_posix(self):
+        """
+        Returns the full path to the specified command if the file is
+        found.
+        """
+        if os.name == 'nt':
+            raise self.skipTest("Unix specific test.")
 
-    def test_which_file_exists(self):
-        """
-        Returns the full path to the specified command if found and the
-        executable file exists.
-        """
-        command = self.file_name.replace('.bat', '')
-        folder = mk.fs.getRealPathFromSegments(self.folder_segments)
-        extra_paths = [mk.string(), folder]
+        self.test_segments = mk.fs.createFileInTemp()
+        file_name = self.test_segments[-1:][0]
+        folder_segments = self.test_segments[:-1]
+        folder = mk.fs.getRealPathFromSegments(folder_segments)
+        folder = folder.encode('utf-8')
+        extra_paths = [mk.ascii(), folder]
+        command = file_name.encode('utf-8')
+        full_path = mk.fs.getRealPathFromSegments(self.test_segments)
+        full_path = full_path.encode('utf-8')
 
         result = self.brink_fs.which(command, extra_paths=extra_paths)
 
-        self.assertEqual(self.path, result)
+        self.assertEqual(full_path, result)
+
+    def test_which_file_exists_nt(self):
+        """
+        Returns the full path to the specified command if a valid executable
+        file is found.
+        """
+        if os.name != 'nt':
+            raise self.skipTest("Windows specific test.")
+
+        self.test_segments = mk.fs.createFileInTemp(suffix='.bat')
+        file_name = self.test_segments[-1:][0]
+        folder_segments = self.test_segments[:-1]
+        folder = mk.fs.getRealPathFromSegments(folder_segments)
+        extra_paths = [mk.string(), folder]
+        command = file_name.replace('.bat', '')
+        full_path = mk.fs.getRealPathFromSegments(self.test_segments)
+
+        result = self.brink_fs.which(command, extra_paths=extra_paths)
+
+        self.assertEqual(full_path, result)
 
     def test_which_not_exist(self):
         """
