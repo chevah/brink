@@ -24,31 +24,33 @@ class TestBrinkFilesystem(BrinkTestCase):
         folder_segments = self.test_segments[:-1]
         self.folder = mk.fs.getRealPathFromSegments(folder_segments)
 
-    def test_which_file_exists_posix(self):
+    def test_which_file_exists(self):
         """
         Returns the full path to the specified command if the file is
         found.
         """
-        if os.name == 'nt':
-            raise self.skipTest("Unix specific test.")
-
-        command = self.file_name.encode('utf-8')
-        folder = self.folder.encode('utf-8')
-        extra_paths = [mk.ascii(), folder]
         full_path = mk.fs.getRealPathFromSegments(self.test_segments)
-        full_path = full_path.encode('utf-8')
+
+        if os.name == 'posix':
+            command = self.file_name.encode('utf-8')
+            folder = self.folder.encode('utf-8')
+            full_path = full_path.encode('utf-8')
+        else:
+            command = self.file_name
+            folder = self.folder
+        extra_paths = [mk.ascii(), folder]
 
         result = self.brink_fs.which(command, extra_paths=extra_paths)
 
         self.assertEqual(full_path, result)
 
-    def test_which_file_exists_nt(self):
+    def test_which_file_exists_no_extension(self):
         """
-        Returns the full path to the specified command if a valid executable
-        file is found.
+        On Windows, it returns the full path to the specified command even
+        when the executable extension was not provided.
         """
         if os.name != 'nt':
-            raise self.skipTest("Windows specific test.")
+            raise self.skipTest()
 
         extra_paths = [mk.string(), self.folder]
         command = self.file_name.replace('.bat', '')
