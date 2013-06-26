@@ -8,6 +8,7 @@ The main script is 'make-it-happen.sh'.
 This is here just to help with review, buildbot and other tasks.
 """
 from __future__ import with_statement
+import os
 import sys
 
 from brink.pavement_commons import (
@@ -32,7 +33,7 @@ from brink.pavement_commons import (
     test_normal,
     test_super,
     )
-from paver.easy import call_task, consume_args, needs, no_help, pushd, task
+from paver.easy import call_task, consume_args, needs, no_help, task
 
 # Make pylint shut up.
 buildbot_list
@@ -87,9 +88,9 @@ BUILD_PACKAGES = [
 
 TEST_PACKAGES = [
     # Required for seesaw testing.
-    'chevah-compat==0.8.2',
-    'chevah-empirical==0.13.0',
-    'chevah-utils==0.15.0',
+    'chevah-compat==0.8.4',
+    'chevah-empirical==0.14.0',
+    'chevah-utils==0.18.0',
 
     'pyflakes>=0.5.0-chevah2',
     'closure_linter==2.3.9',
@@ -122,9 +123,14 @@ SETUP['pocket-lint']['include_folders'] = [
     'brink',
     'chevah',
     ]
-SETUP['folders']['source'] = u'chevah/seesaw'
-SETUP['test']['package'] = 'chevah.seesaw.tests'
-SETUP['test']['elevated'] = 'chevah.seesaw.tests.elevated'
+SETUP['folders']['source'] = u'brink'
+SETUP['test']['package'] = 'brink.tests'
+SETUP['test']['elevated'] = 'brink.tests.elevated'
+
+if os.name == 'nt':
+    # Fix temp folder
+    import tempfile
+    tempfile.tempdir = "c:\\temp"
 
 
 @task
@@ -173,9 +179,8 @@ def build():
     sys.argv = ['setup.py', 'build', '--build-base', build_target]
     print "Building in " + build_target
 
-    with pushd('seesaw'):
-        import setup
-        setup.distribution.run_command('install')
+    import setup
+    setup.distribution.run_command('install')
 
 
 @task
@@ -193,7 +198,7 @@ def dist():
     Create distributables files.
     """
     # Create a fake file.
-    pave.fs.createEmtpyFile([pave.path.dist, '1.2.0.html'])
+    pave.fs.createEmptyFile([pave.path.dist, '1.2.0.html'])
 
 
 @no_help

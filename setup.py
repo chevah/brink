@@ -10,7 +10,7 @@ from setuptools import setup, find_packages, Command
 import os
 import shutil
 
-VERSION = u'0.24.0'
+VERSION = u'0.25.0'
 
 
 class PublishCommand(Command):
@@ -48,7 +48,7 @@ class PublishCommand(Command):
         self.run_command('upload')
 
 
-setup(
+distribution = setup(
     name='chevah-brink',
     version=VERSION,
     maintainer="Adi Roiban",

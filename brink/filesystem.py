@@ -51,7 +51,7 @@ class BrinkFilesystem(object):
 
     def getFileContentAsString(self, target):
         """
-        Retrun the string represenation of the file.
+        Return the string representation of the file.
         """
         with open(self.join(target), 'r+') as opened_file:
             content = opened_file.read()
@@ -59,7 +59,7 @@ class BrinkFilesystem(object):
 
     def getFileContentAsList(self, target, strip_newline=True):
         """
-        Retrun the string represenation of the file.
+        Return the string representation of the file.
 
         If `strip_newline` is True, the trailing newline will be not included.
         """
@@ -71,7 +71,7 @@ class BrinkFilesystem(object):
                 content.append(line)
         return content
 
-    def createEmtpyFile(self, target):
+    def createEmptyFile(self, target):
         """
         Create empty file.
         """
@@ -112,7 +112,7 @@ class BrinkFilesystem(object):
         Copy `source` folder to `destination`.
 
         The copy is done recursive.
-        If folder already exitst the content will be merged.
+        If folder already exists the content will be merged.
 
         `excepted_folders` and `excepted_files` is a list of regex with
         folders and files that will not be copied.
@@ -238,7 +238,7 @@ class BrinkFilesystem(object):
 
     def appendContentToFile(self, destination, content):
         """
-        Appened content to file.
+        Append content to file.
         """
         with open(self.join(destination), 'a') as opened_file:
             opened_file.write(content)
@@ -298,3 +298,86 @@ class BrinkFilesystem(object):
             yield old_dir
         finally:
             os.chdir(old_dir)
+
+    def which(self, command, extra_paths=None):
+        """
+        Find and return the full path to `command`.
+        """
+        paths = self._getSearchPaths(extra_paths)
+
+        for path in paths:
+            result = self._findCommand(command, path)
+            # Return the first result.
+            if result:
+                return result
+
+    def _getSearchPaths(self, extra_paths=None):
+        """
+        Return the list of all paths as defined in the environment.
+        """
+        if extra_paths is None:
+            extra_paths = []
+        environment_paths = os.environ['PATH']
+
+        if os.name == 'posix':
+            result = self._parseUnixPaths(environment_paths)
+        else:
+            result = self._parseWindowsPaths(environment_paths)
+
+        result.extend(extra_paths)
+        return result
+
+    def _parseUnixPaths(self, paths):
+        """
+        Parse paths stored in Unix environment format.
+        """
+        return paths.split(':')
+
+    def _parseWindowsPaths(self, paths):
+        """
+        Parse paths stored in Windows environment format.
+        """
+        return paths.split(';')
+
+    def _getFolderListing(self, path):
+        """
+        Returns the contents of the specified `path` as a list.
+
+        Method is a helper for testing.
+        """
+        result = os.listdir(path)
+        return result
+
+    def _isValidSystemPath(self, path):
+        """
+        Only folders are valid system path items.
+
+        Method is a helper for testing.
+        """
+        return os.path.isdir(path)
+
+    def _findCommand(self, command, path):
+        """
+        Search path for command executable.
+
+        Return the first path found.
+
+        On Windows, it will find executable even if extension is not
+        provided.
+        """
+        if not self._isValidSystemPath(path):
+            return None
+
+        targets = [command]
+        if os.name == 'nt':
+            targets.extend([
+                '%s.exe' % (command),
+                '%s.bat' % (command),
+                '%s.cmd' % (command),
+                ])
+
+        for candidate in self._getFolderListing(path):
+            for target in targets:
+                if candidate == target:
+                    result = os.path.join(path, candidate)
+                    return result

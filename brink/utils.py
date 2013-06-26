@@ -18,7 +18,7 @@ import urllib2
 from brink.execute import execute
 from brink.git_command import BrinkGit
 from brink.filesystem import BrinkFilesystem
-from brink.paths import ProjectPaths, which
+from brink.paths import ProjectPaths
 from brink.sphinx_tools import BrinkSphinx
 
 
@@ -433,10 +433,10 @@ class BrinkPaver(object):
                 nsis_file.write(line)
 
         nsis_locations = [
-            "C:\Program Files (x86)\NSIS\makensis.exe",
-            "C:\Program Files\NSIS\makensis.exe",
+            "C:\Program Files (x86)\NSIS",
+            "C:\Program Files\NSIS",
         ]
-        make_nsis_path = which('makensis', nsis_locations)
+        make_nsis_path = self.fs.which('makensis', nsis_locations)
         if not make_nsis_path:
             print (
                 'NullSoft Installer is not installed. '
