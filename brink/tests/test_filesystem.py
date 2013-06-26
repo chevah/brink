@@ -113,7 +113,6 @@ class TestBrinkFilesystem(BrinkTestCase):
         bat_command = '%s.exe' % command
         cmd_command = '%s.exe' % command
         files = [exe_command, bat_command, cmd_command]
-        self.brink_fs._isValidSystemPath = self.Mock(return_value=True)
         self.brink_fs._getFolderListing = self.Mock(return_value=files)
 
         result = self.brink_fs._findCommand(command, path)
@@ -141,7 +140,6 @@ class TestBrinkFilesystem(BrinkTestCase):
         cmd_command = '%s.exe' % command
         full_path = '%s\%s' % (path, exe_command)
         files = [exe_command, bat_command, cmd_command]
-        self.brink_fs._isValidSystemPath = self.Mock(return_value=True)
         self.brink_fs._getFolderListing = self.Mock(return_value=files)
 
         result = self.brink_fs._findCommand(command, path)
@@ -168,7 +166,6 @@ class TestBrinkFilesystem(BrinkTestCase):
         command = mk.string()
         path = mk.string()
         files = [mk.string(), mk.string()]
-        self.brink_fs._isValidSystemPath = self.Mock(return_value=True)
         self.brink_fs._getFolderListing = self.Mock(return_value=files)
 
         result = self.brink_fs._findCommand(command, path)
