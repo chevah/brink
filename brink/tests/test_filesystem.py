@@ -26,17 +26,9 @@ class TestBrinkFilesystem(BrinkTestCase):
         Returns `None` if the command could not be found in system path or
         in the `extra_paths` argument.
         """
-        folder = mk.string()
         command = mk.string()
         extra_paths = [mk.string()]
-
-        def _folderListing(path):
-            result = []
-            if folder == path:
-                result.append(command)
-            return result
-
-        self.brink_fs._getFolderListing = _folderListing
+        self.brink_fs._getFolderListing = self.Mock(return_value=[])
 
         result = self.brink_fs.which(command, extra_paths=extra_paths)
 
