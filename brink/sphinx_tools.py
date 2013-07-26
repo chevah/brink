@@ -68,7 +68,7 @@ class BrinkSphinx(object):
 
     def createConfiguration(self, destination, project, version, themes_path,
             theme_name='standalone', intersphinx_mapping=None,
-            copyright='Chevah Team',
+            copyright='Chevah Team', experimental=True,
         ):
         """
         Generates the configuration files for creating Sphinx based
@@ -83,9 +83,9 @@ class BrinkSphinx(object):
         content = """
 
 extensions = [
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.autodoc',
     'repoze.sphinx.autointerface',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
     ]
 source_suffix = '.rst'
 exclude_patterns = ['**/*.include.rst']
@@ -102,6 +102,80 @@ version = "%(version)s"
 release = "%(version)s"
 autodoc_default_flags = ['members']
 primary_domain = 'py'
+experimental = %(experimental)s
+
+from docutils.parsers.rst import Directive
+from sphinx import addnodes
+from sphinx.util.nodes import set_source_info
+
+class Only(Directive):
+    has_content = True
+    required_arguments = 1
+    optional_arguments = 0
+    final_argument_whitespace = True
+    option_spec = {}
+
+    def run(self):
+
+        if not tags.has(self.arguments[0]):
+            return []
+
+        node = addnodes.only()
+        node.document = self.state.document
+        set_source_info(self, node)
+        node['expr'] = self.arguments[0]
+
+        # Same as util.nested_parse_with_titles but try to handle nested
+        # sections which should be raised higher up the doctree.
+        surrounding_title_styles = self.state.memo.title_styles
+        surrounding_section_level = self.state.memo.section_level
+        self.state.memo.title_styles = []
+        self.state.memo.section_level = 0
+        try:
+            result = self.state.nested_parse(self.content, self.content_offset,
+                                             node, match_titles=1)
+            title_styles = self.state.memo.title_styles
+            if (not surrounding_title_styles
+                or not title_styles
+                or title_styles[0] not in surrounding_title_styles
+                or not self.state.parent):
+                # No nested sections so no special handling needed.
+                return [node]
+            # Calculate the depths of the current and nested sections.
+            current_depth = 0
+            parent = self.state.parent
+            while parent:
+                current_depth += 1
+                parent = parent.parent
+            current_depth -= 2
+            title_style = title_styles[0]
+            nested_depth = len(surrounding_title_styles)
+            if title_style in surrounding_title_styles:
+                nested_depth = surrounding_title_styles.index(title_style)
+            # Use these depths to determine where the nested sections should
+            # be placed in the doctree.
+            n_sects_to_raise = current_depth - nested_depth + 1
+            parent = self.state.parent
+            for i in xrange(n_sects_to_raise):
+                if parent.parent:
+                    parent = parent.parent
+
+            # Insert child of only.
+            new_node = node.children[0]
+            new_node.parent = parent
+            parent.append(new_node)
+
+            return []
+        finally:
+            self.state.memo.title_styles = surrounding_title_styles
+            self.state.memo.section_level = surrounding_section_level
+
+def setup(app):
+    if experimental:
+        tags.add('experimental')
+    else:
+        tags.add('production')
+    app.add_directive('conditional', Only)
 
 """ % ({
     'theme_name': theme_name,
@@ -110,6 +184,7 @@ primary_domain = 'py'
     'intersphinx_mapping': intersphinx_mapping,
     'copyright': copyright,
     'themes_path': themes_path,
+    'experimental': experimental,
     })
 
         with open(self.fs.join(destination), 'w') as conf_file:
