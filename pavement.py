@@ -111,6 +111,7 @@ TEST_PACKAGES = [
     'bunch',
     ]
 
+SETUP['python']['version'] = PYTHON_VERSION
 SETUP['repository']['name'] = u'brink'
 SETUP['github']['repo'] = 'chevah/brink'
 SETUP['github']['url'] = 'https://github.com/chevah/brink'
@@ -176,6 +177,13 @@ def build():
     Copy new source code to build folder.
     """
     build_target = pave.fs.join([pave.path.build, 'setup-build'])
+
+    # Delete 1-st stage of build use by Python packaging.
+    pave.fs.deleteFolder([build_target])
+    # Delete brink package from site-packages.
+    pave.fs.deleteFolder([
+        pave.path.build, pave.getPythonLibPath(), 'brink'])
+
     sys.argv = ['setup.py', 'build', '--build-base', build_target]
     print "Building in " + build_target
 
