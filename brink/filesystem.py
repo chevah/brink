@@ -319,12 +319,14 @@ class BrinkFilesystem(object):
             extra_paths = []
         environment_paths = os.environ['PATH']
 
-        if os.name == 'posix':
-            result = self._parseUnixPaths(environment_paths)
-        else:
-            result = self._parseWindowsPaths(environment_paths)
+        result = extra_paths[:]
 
-        result.extend(extra_paths)
+        if os.name == 'posix':
+            os_paths = self._parseUnixPaths(environment_paths)
+        else:
+            os_paths = self._parseWindowsPaths(environment_paths)
+
+        result.extend(os_paths)
         return result
 
     def _parseUnixPaths(self, paths):
