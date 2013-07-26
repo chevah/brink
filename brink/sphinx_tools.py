@@ -132,8 +132,12 @@ class Only(Directive):
         self.state.memo.title_styles = []
         self.state.memo.section_level = 0
         try:
-            result = self.state.nested_parse(self.content, self.content_offset,
-                                             node, match_titles=1)
+            result = self.state.nested_parse(
+                self.content,
+                self.content_offset,
+                node,
+                match_titles=1,
+                )
             title_styles = self.state.memo.title_styles
             if (not surrounding_title_styles
                 or not title_styles
