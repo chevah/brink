@@ -546,6 +546,7 @@ def review(options):
         action="store_true"
         ),
     ('all', None, 'Create all files.'),
+    ('production', None, 'Build with only production sections.'),
 ])
 @needs('build', 'update_setup')
 def doc_html(options):
@@ -555,7 +556,11 @@ def doc_html(options):
     arguments = []
     if pave.getOption(options, 'doc_html', 'all'):
         arguments.extend(['-a', '-E', '-n'])
-    return _generateProjectDocumentation(arguments)
+    if pave.getOption(options, 'doc_html', 'production'):
+        experimental = False
+    else:
+        experimental = True
+    return _generateProjectDocumentation(arguments, experimental=experimental)
 
 
 @task
@@ -570,7 +575,7 @@ def test_documentation():
         ['-a', '-E', '-W', '-N', '-n'])
 
 
-def _generateProjectDocumentation(arguments=None):
+def _generateProjectDocumentation(arguments=None, experimental=False):
     """
     Generate project documentation and return exit code.
     """
@@ -589,7 +594,8 @@ def _generateProjectDocumentation(arguments=None):
         version=version,
         copyright=SETUP['product']['copyright_holder'],
         themes_path=pave.fs.join([website_path, 'sphinx']),
-        theme_name='standalone'
+        theme_name='standalone',
+        experimental=experimental,
         )
     destination = [pave.path.build, 'doc', 'html']
     exit_code = pave.sphinx.createHTML(
@@ -735,7 +741,7 @@ def publish_distributables(args):
 
 
 @task
-@needs('doc_html')
+@needs('update_setup')
 @consume_args
 def publish_documentation(args):
     """
@@ -762,16 +768,29 @@ def publish_documentation(args):
         pave.path.publish, 'website', 'documentation']
     publish_release_folder = [
         pave.path.publish, 'website', 'documentation', version]
+    publish_experimental_folder = [
+        pave.path.publish, 'website', 'documentation', 'experimental']
+    publish_experimental_release_folder = [
+        pave.path.publish, 'website', 'documentation', 'experimental',
+        version]
 
     # Create publishing content for website.
     pave.fs.createFolder([pave.path.publish])
     pave.fs.deleteFolder(publish_website_folder)
     pave.fs.createFolder(publish_website_folder)
     pave.fs.createFolder(publish_documentation_folder)
+    pave.fs.createFolder(publish_experimental_folder)
 
+    call_task('doc_html', options={'production': True})
     pave.fs.copyFolder(
         source=[pave.path.build, 'doc', 'html'],
         destination=publish_release_folder,
+        )
+
+    call_task('doc_html', options={'production': False})
+    pave.fs.copyFolder(
+        source=[pave.path.build, 'doc', 'html'],
+        destination=publish_experimental_release_folder,
         )
 
     publish_config = SETUP['publish']
