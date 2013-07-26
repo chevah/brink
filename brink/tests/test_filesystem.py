@@ -171,3 +171,36 @@ class TestBrinkFilesystem(BrinkTestCase):
         result = self.brink_fs._findCommand(command, path)
 
         self.assertIsNone(result)
+
+    def test_getSearchPaths_default(self):
+        """
+        It returns a list of paths from operating system environment
+        variable.
+        """
+        if os.name == 'posix':
+            paths = self.brink_fs._parseUnixPaths(os.environ['PATH'])
+        else:
+            paths = self.brink_fs._parseWindowsPaths(os.environ['PATH'])
+
+        result = self.brink_fs._getSearchPaths()
+
+        self.assertEqual(paths, result)
+
+    def test_getSearchPaths_with_extra(self):
+        """
+        If a list of extra paths if provided, it return a list with paths
+        defined in the operating system, but with the list of extra paths
+        prepended to the result.
+        """
+        path1 = mk.string
+        path2 = mk.string
+        if os.name == 'posix':
+            path3 = self.brink_fs._parseUnixPaths(os.environ['PATH'])[0]
+        else:
+            path3 = self.brink_fs._parseWindowsPaths(os.environ['PATH'])[0]
+
+        result = self.brink_fs._getSearchPaths(extra_paths=[path1, path2])
+
+        self.assertEqual(path1, result[0])
+        self.assertEqual(path2, result[1])
+        self.assertEqual(path3, result[2])
