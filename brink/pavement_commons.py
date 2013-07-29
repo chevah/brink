@@ -781,13 +781,25 @@ def publish_documentation(args):
     pave.fs.createFolder(publish_documentation_folder)
     pave.fs.createFolder(publish_experimental_folder)
 
-    call_task('doc_html', options={'production': True})
+    call_task(
+        'doc_html',
+        options={
+            'production': True,
+            'all': True,
+            },
+        )
     pave.fs.copyFolder(
         source=[pave.path.build, 'doc', 'html'],
         destination=publish_release_folder,
         )
 
-    call_task('doc_html', options={'production': False})
+    call_task(
+        'doc_html',
+        options={
+            'production': False,
+            'all': True,
+            },
+        )
     pave.fs.copyFolder(
         source=[pave.path.build, 'doc', 'html'],
         destination=publish_experimental_release_folder,
