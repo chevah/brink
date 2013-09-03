@@ -110,9 +110,13 @@ class TestBrinkFilesystem(BrinkTestCase):
         path = mk.string()
         full_path = '%s/%s' % (path, command)
         exe_command = '%s.exe' % command
-        bat_command = '%s.exe' % command
-        cmd_command = '%s.exe' % command
-        files = [exe_command, bat_command, cmd_command]
+        bat_command = '%s.bat' % command
+        cmd_command = '%s.cmd' % command
+        files = [
+            exe_command,
+            bat_command,
+            cmd_command,
+            ]
         self.brink_fs._getFolderListing = self.Mock(return_value=files)
 
         result = self.brink_fs._findCommand(command, path)
@@ -127,8 +131,8 @@ class TestBrinkFilesystem(BrinkTestCase):
 
     def test_findCommand_ok_windows(self):
         """
-        On Windows systems it validates files with .exe/.bat/.cmd extensions
-        as valid commands.
+        On Windows systems it validates files with .exe extension before
+        checking files without extension.
         """
         if os.name != 'nt':
             raise self.skipTest("Windows specific test.")
@@ -136,13 +140,36 @@ class TestBrinkFilesystem(BrinkTestCase):
         command = mk.string()
         path = mk.string()
         exe_command = '%s.exe' % command
-        bat_command = '%s.exe' % command
-        cmd_command = '%s.exe' % command
         full_path = '%s\%s' % (path, exe_command)
-        files = [exe_command, bat_command, cmd_command]
+        files = [
+            command,
+            exe_command,
+            ]
         self.brink_fs._getFolderListing = self.Mock(return_value=files)
 
         result = self.brink_fs._findCommand(command, path)
+
+        self.assertEqual(full_path, result)
+
+    def test_findCommand_ok_windows_with_extension(self):
+        """
+        On Windows systems it validates files with .exe extension, even
+        when the command is specified with explicit .exe extension.
+        """
+        if os.name != 'nt':
+            raise self.skipTest("Windows specific test.")
+
+        command = mk.string()
+        path = mk.string()
+        exe_command = '%s.exe' % command
+        full_path = '%s\%s' % (path, exe_command)
+        files = [
+            command,
+            exe_command,
+            ]
+        self.brink_fs._getFolderListing = self.Mock(return_value=files)
+
+        result = self.brink_fs._findCommand(exe_command, path)
 
         self.assertEqual(full_path, result)
 

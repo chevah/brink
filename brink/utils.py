@@ -804,3 +804,69 @@ class BrinkPaver(object):
                 (exit_code, output) = self.execute(command, output=sys.stdout)
 
         return binary_dist
+
+    def node(self, command, arguments):
+        """
+        Execute a command in node-js environment.
+        """
+        prefix_segments = [self.path.build, 'npm-packages']
+        prefix_path = self.fs.join(prefix_segments)
+
+        command_path = self.fs.which(command, extra_paths=[
+            prefix_path, self.fs.join([prefix_path, 'bin'])])
+        if not command_path:
+            print "Could not find node command %s" % (command)
+            return 1
+
+        node_command = [command_path]
+        node_command.extend(arguments)
+
+        node_modules_path = os.pathsep.join([
+            self.fs.join([prefix_path, 'node_modules']),  # Windows
+            self.fs.join([prefix_path, 'lib', 'node_modules']),  # Unix
+            ])
+
+        extra_environment = {
+            'NODE_PATH': node_modules_path,
+            }
+
+        (exit_code, output) = self.execute(
+            node_command,
+            output=sys.stdout,
+            extra_environment=extra_environment,
+            )
+        return exit_code
+
+    def npm(self, command="install", arguments=None):
+        """
+        Run the npm command.
+
+        Node modules are installed in build/npm-packages.
+        """
+        prefix_segments = [self.path.build, 'npm-packages']
+        cache_segments = [self.path.build, 'npm-cache']
+        self.fs.createFolder(prefix_segments)
+        self.fs.createFolder(cache_segments)
+
+        if arguments is None:
+            arguments = ['--help']
+
+        npm_path = self.fs.which('npm')
+        if not npm_path:
+            print "npm not found. Are nodejs and npm installed."
+            sys.exit(1)
+
+        npm_command = [npm_path]
+
+        if command == 'install':
+            npm_command.extend(['install', '-g'])
+
+        npm_command.extend(arguments)
+        npm_command.extend([
+            '--cache-min', '999999',
+            '--cache-max', '999999',
+            '--prefix', self.fs.join(prefix_segments),
+            '--cache', self.fs.join(cache_segments),
+            ])
+
+        self.execute(npm_command, output=sys.stdout)

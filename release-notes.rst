@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.26.0 - 03/09/2013
+-------------------
+
+* On Windows, make a priority finding paths with extensions.
+* Add node-js and npm commands.
+
+
 0.24.0 - 03/06/2013
 -------------------
 
