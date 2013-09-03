@@ -8,6 +8,7 @@ Here are the release notes for past brink version.
 -------------------
 
 * On Windows, make a priority finding paths with extensions.
+* Add node-js and npm commands.
 
 
 0.24.0 - 03/06/2013

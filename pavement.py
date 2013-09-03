@@ -111,6 +111,12 @@ TEST_PACKAGES = [
     'bunch',
     ]
 
+NODE_PACKAGES = [
+    'karma@0.10.2',
+    'karma-firefox-launcher',
+    'karma-jasmine'
+    ]
+
 SETUP['python']['version'] = PYTHON_VERSION
 SETUP['repository']['name'] = u'brink'
 SETUP['github']['repo'] = 'chevah/brink'
@@ -169,6 +175,16 @@ def deps_build():
         command='install',
         arguments=BUILD_PACKAGES,
         )
+
+
+@task
+@needs('deps_build')
+def deps_web():
+    """
+    Install all dependencies required to run web tests.
+    """
+    for package in NODE_PACKAGES:
+        pave.npm(command="install", arguments=[package])
 
 
 @task
@@ -244,4 +260,14 @@ def test_os_dependent(args):
 def test_os_independent():
     """
     Run os independent tests in buildbot.
+    """
+
+
+@task
+@consume_args
+def test_web(args):
+    """
+    Run JavaScript tests.
+
+    Right now it does nothing.
     """
