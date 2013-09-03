@@ -372,14 +372,17 @@ class BrinkFilesystem(object):
 
         targets = [command]
         if os.name == 'nt':
-            targets.extend([
+            windows_targets = [
                 '%s.exe' % (command),
                 '%s.bat' % (command),
                 '%s.cmd' % (command),
-                ])
+                ]
+            windows_targets.extend(targets)
+            targets = windows_targets
 
-        for candidate in self._getFolderListing(path):
-            for target in targets:
+        files = self._getFolderListing(path)
+        for target in targets:
+            for candidate in files:
                 if candidate == target:
                     result = os.path.join(path, candidate)
                     return result
