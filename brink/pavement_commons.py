@@ -191,7 +191,7 @@ def test_python(args):
     call_arguments.extend(args)
 
     if empty_args:
-        call_arguments.append('--exclude=elevated')
+        call_arguments.append('--exclude=(elevated|selenium)')
         environment.args = call_arguments
         normal_result = test_normal(call_arguments)
         call_arguments.pop()

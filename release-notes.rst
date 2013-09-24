@@ -3,6 +3,11 @@ chevah-brink release notes
 
 Here are the release notes for past brink version.
 
+0.28.0 - 24/09/2013
+-------------------
+
+* Exclude selenium tests from default python tests.
+
 
 0.26.0 - 03/09/2013
 -------------------
