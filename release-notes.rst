@@ -3,6 +3,7 @@ chevah-brink release notes
 
 Here are the release notes for past brink version.
 
+
 0.28.0 - 24/09/2013
 -------------------
 
