@@ -271,3 +271,13 @@ def test_web(args):
 
     Right now it does nothing.
     """
+
+
+@task
+@consume_args
+def test_web_functional(args):
+    """
+    Run functional web tests.
+
+    Right now it does nothing.
+    """

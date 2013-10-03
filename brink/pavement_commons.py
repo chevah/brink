@@ -674,6 +674,14 @@ def publish_distributables(args):
     version_major = SETUP['product']['version_major']
     version_minor = SETUP['product']['version_minor']
 
+    # Set download site.
+    if target == 'production':
+        server = SETUP['publish']['download_production_hostname']
+    else:
+        server = SETUP['publish']['download_staging_hostname']
+
+    call_task('create_download_page', args=[server])
+
     publish_downloads_folder = [pave.path.publish, 'downloads']
     publish_website_folder = [pave.path.publish, 'website']
     product_folder = [pave.fs.join(publish_downloads_folder), product_name]
@@ -726,7 +734,8 @@ def publish_distributables(args):
         username='chevah_site',
         hostname=download_hostname,
         source=[pave.path.publish, 'downloads', product_name + '/'],
-        destination=download_hostname + '/' + product_name
+        destination=download_hostname + '/' + product_name,
+        verbose=True,
         )
 
     print "Publishing download pages to %s..." % (documentation_hostname)
@@ -734,7 +743,8 @@ def publish_distributables(args):
         username='chevah_site',
         hostname=documentation_hostname,
         source=[pave.path.publish, 'website', 'downloads/'],
-        destination=documentation_hostname + '/downloads/' + product_name
+        destination=documentation_hostname + '/downloads/' + product_name,
+        verbose=True,
         )
 
     print "Distributable(s) published."
@@ -833,6 +843,7 @@ def publish_documentation(args):
         hostname=documentation_hostname,
         source=[pave.path.publish, 'website', 'documentation/'],
         destination=destination_root,
+        verbose=True,
         )
 
     print "Documentation published."

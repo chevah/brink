@@ -4,6 +4,14 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.29.0 - 03/10/2013
+-------------------
+
+* Add verbose mode for rsync.
+* Use verbose rsync for publishing documentation and distributables.
+* Fix creation of download page for production.
+
+
 0.28.0 - 24/09/2013
 -------------------
 
