@@ -507,7 +507,7 @@ class BrinkPaver(object):
             print "Failed to convert some configuration files."
             sys.exit(1)
 
-    def rsync(self, username, hostname, source, destination):
+    def rsync(self, username, hostname, source, destination, verbose=False):
         """
         Executes the external rsync command using SSH.
 
@@ -515,11 +515,11 @@ class BrinkPaver(object):
         `destination` is path as string.
         """
         destination_uri = '%s@%s:%s' % (username, hostname, destination)
-        command = [
-            'rsync', '-acz', '-e', "'ssh'",
-            self.fs.join(source),
-            destination_uri,
-            ]
+        command = ['rsync', '-acz', '-e', "'ssh'"]
+        if verbose:
+            command.append('-v')
+        command.append(self.fs.join(source))
+        command.append(destination_uri)
         exit_code, result = self.execute(
             command=command, output=sys.stdout)
         if exit_code:
@@ -534,7 +534,7 @@ class BrinkPaver(object):
         return sys.modules[module_name]
 
     def createDownloadPage(self,
-            introduction, changelog, base_name, create_index=True):
+            introduction, changelog, base_name, hostname, create_index=True):
         """
         Create a download page for product based on information from `data`.
         """
@@ -544,15 +544,8 @@ class BrinkPaver(object):
 
         self.fs.createFolder([target_folder])
 
-        # Set download site.
-        if self.git.branch_name == 'production':
-            download_hostname = (
-                self.setup['publish']['download_production_hostname'])
-        else:
-            download_hostname = (
-                self.setup['publish']['download_staging_hostname'])
         base_url = "http://%s/%s/%s/%s" % (
-            download_hostname,
+            hostname,
             self.setup['product']['name'].lower(),
             self.setup['product']['version_major'],
             self.setup['product']['version_minor'],
