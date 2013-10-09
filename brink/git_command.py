@@ -121,3 +121,22 @@ class BrinkGit(object):
         command = ['git', 'show', '%s:%s' % (branch, self.fs.join(source))]
         with open(self.fs.join(destination), 'w') as output_file:
             execute(command, output=output_file)
+
+    def diffFileNames(self, ref='master'):
+        """
+        Return a list of (action, filename) that have changed in
+        comparison with `ref`.
+        """
+        result = []
+        command = ['git', 'diff', '--name-status', '%s' % (ref)]
+        exit_code, output = execute(command)
+        if exit_code != 0:
+            print 'Failed to diff files.'
+            sys.exit(1)
+
+        for line in output.splitlines():
+            action, name = line.split('\t')
+            action = action.lower()
+            result.append((action, name))
+
+        return result
