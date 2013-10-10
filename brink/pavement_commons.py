@@ -98,13 +98,43 @@ def deps_update(options):
 
 
 @task
-def lint():
-    '''Run static codse checks.'''
+@cmdopts([
+     ('quick', 'q', 'Run quick linter for recently changed files.'),
+     ('dry', 'd', 'Don\'t run the linter and only show linted files.'),
+])
+def lint(options):
+    """
+    Run static code checks.
+    """
+    quick = pave.getOption(options, 'lint', 'quick', default_value=False)
+    dry = pave.getOption(options, 'lint', 'dry', default_value=False)
 
-    folders = SETUP['pocket-lint']['include_folders'][:]
-    files = SETUP['pocket-lint']['include_files'][:]
+    if not quick:
+        folders = SETUP['pocket-lint']['include_folders'][:]
+        files = SETUP['pocket-lint']['include_files'][:]
+    else:
+        folders = []
+        changes = pave.git.diffFileNames()
+        # Filter deleted changes since we can not lint then.
+        files = [change[1] for change in changes if change[0] != 'd']
+
     excluded_folders = SETUP['pocket-lint']['exclude_folders'][:]
     excluded_files = SETUP['pocket-lint']['exclude_files'][:]
+
+    if dry:
+        print "\n---\nFiles\n---"
+        for name in files:
+            print name
+        print "\n---\nFolders\n---"
+        for name in folders:
+            print name
+        print "\n---\nExcluded files\n---"
+        for name in excluded_files:
+            print name
+        print "\n---\nExcluded folders\n---"
+        for name in excluded_folders:
+            print name
+        return 0
 
     result = pave.pocketLint(
         folders=folders, excluded_folders=excluded_folders,

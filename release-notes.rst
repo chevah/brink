@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.30.0 - 09/10/2013
+-------------------
+
+* Add `lint --quick` option to check only changed files since master.
+* Add `lint --dry` option to show what files and folders are linted.
+
+
 0.29.0 - 03/10/2013
 -------------------
 
