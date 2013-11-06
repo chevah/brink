@@ -205,6 +205,8 @@ def build():
 
     import setup
     setup.distribution.run_command('install')
+    pave.fs.copyFile(
+        ['DEFAULT_VALUES'], [pave.path.build, 'DEFAULT_VALUES'])
 
 
 @task

@@ -72,6 +72,82 @@ def _github_token(username, password):
     return authorization.token
 
 
+def _get_repo(token, repo):
+    """
+    Return GitHub repository.
+    """
+    from github import Github
+    github = Github(token, user_agent='pygithub/chevah-pqm')
+    return github.get_repo(repo)
+
+
+def _get_pull(repo, pull_id):
+    """
+    Return the pull request details.
+    """
+
+    try:
+        pull_id = int(pull_id)
+    except:
+        print "Failed to get pull_id from %s" % str(pull_id)
+        sys.exit(1)
+
+    from github import GithubException
+    try:
+        return repo.get_pull(pull_id)
+
+    except GithubException, error:
+        print "Failed to get GitHub details"
+        print str(error)
+        sys.exit(1)
+
+
+def _open_pull(repo, pull_id):
+    """
+    Open pull request.
+    """
+    pull_request = _get_pull(repo, pull_id)
+
+    from github import GithubException
+    try:
+        if pull_request.state == u'open':
+            # Already opened.
+            return
+
+        pull_request.edit(state=u'open')
+    except GithubException, error:
+        print "Failed to open GitHub pull request"
+        print str(error)
+        sys.exit(1)
+
+    return pull_request
+
+
+def _close_pull(repo, pull_id, message=None):
+    """
+    Close pull request.
+    """
+    pull_request = _get_pull(repo, pull_id)
+
+    from github import GithubException
+    try:
+        if pull_request.state == u'closed':
+            # Already closed.
+            return
+
+        if message:
+            pull_request.create_issue_comment(message)
+
+        pull_request.edit(state=u'closed')
+
+    except GithubException, error:
+        print "Failed to close GitHub pull request"
+        print str(error)
+        sys.exit(1)
+
+    return pull_request
+
+
 def _review_properties(token, pull_id):
     """
     Helper for calling this task from multiple places, without messing
@@ -83,18 +159,16 @@ def _review_properties(token, pull_id):
         print "Failed to get pull_id from %s" % str(pull_id)
         sys.exit(1)
 
-    from github import Github, GithubException
+    from github import GithubException
     from chevah.github_hooks_server.handler import Handler
     handler = Handler(trac_url='mock')
     try:
-        repo_name = SETUP['github']['repo']
-        github = Github(token, user_agent='pygithub/chevah-pqm')
-        repo = github.get_repo(repo_name)
-        pull_request = repo.get_pull(pull_id)
+        repo = _get_repo(token=token, repo=SETUP['github']['repo'])
+        pull_request = _get_pull(repo, pull_id=pull_id)
 
         # Fail early if branch can not be merged.
         if not pull_request.mergeable:
-            print "GitHub sais that branch can not be merged."
+            print "GitHub said that branch can not be merged."
             print "Please merge latest code from master and pull all changes."
             sys.exit(1)
 
@@ -255,18 +329,20 @@ def merge_init(args):
     try:
         # Switch to master
         try:
-            repo.heads['master'].checkout()
+            print "Switch to master branch"
+            print repo.heads['master'].checkout()
         except IndexError:
-            # It looks we don't have a master branch.
-            # Let's get it.
-            repo.remotes['origin'].fetch()
+            print "We don't have a master branch."
+            print "Let's get it."
+            print repo.remotes['origin'].fetch()
             print git.checkout('origin/master', b='master')
 
-        # Merge original branch
-        print git.merge(branch_name, no_commit=True, no_ff=True)
+        print "Merge original branch with squash and no commit."
+        print git.merge(branch_name, no_commit=True, squash=True)
 
-        # Check for merge conflicts.
+        print "Check for merge conflicts."
         result = git.ls_files(unmerged=True).split('\n')
+
         result = [line.strip() for line in result if line.strip()]
         if result:
             print "The following files have conflicts:"
@@ -277,10 +353,9 @@ def merge_init(args):
         print "Failed to run git command."
         print str(error)
         sys.exit(1)
-
-    # Check linter before running other tests.
-    from brink.pavement_commons import lint
-    lint()
+    finally:
+        print "Go back to initial branch."
+        print repo.heads[branch_name].checkout()
 
 
 @task
@@ -309,17 +384,21 @@ def merge_commit(args):
 
     branch_name = repo.head.ref.name
 
-    if branch_name not in ['master', 'production']:
-        print "You can not commit the merge outside of main branches."
-        sys.exit(1)
-
     (pull_request, message) = _review_properties(
         token=token, pull_id=pull_id)
 
     try:
-        git.commit(author=author, message=message)
-        origin = repo.remotes.origin
-        origin.push()
+        # Merge branch into master.
+        print "Go to master"
+        repo.heads['master'].checkout()
+        print "Merge branch"
+        print git.merge(branch_name, squash=True, no_commit=True)
+        print "Commit message"
+        print git.commit(author=author, message=message)
+        # Push merged changes.
+        print repo.remotes.origin.push()
+        # Delete original branch.
+        print repo.remotes.origin.push(branch_name, delete=True)
     except GitCommandError, error:
         print "Failed to run git commit."
         print str(error)

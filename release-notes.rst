@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.31.0 - 06/11/2013
+-------------------
+
+* PQM merges the branch with squash and manually closes the GitHub pull
+  request.
+
+
 0.30.0 - 09/10/2013
 -------------------
 
