@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.31.1 - 19/11/2013
+-------------------
+
+* Exit with non-zero result when documentation test failed.
+
+
 0.31.0 - 06/11/2013
 -------------------
 

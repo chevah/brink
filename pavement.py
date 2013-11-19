@@ -28,6 +28,7 @@ from brink.pavement_commons import (
     release,
     rqm,
     SETUP,
+    test_documentation,
     test_python,
     test_remote,
     test_normal,
@@ -50,6 +51,7 @@ publish_distributables
 publish_documentation
 release
 rqm
+test_documentation
 test_python
 test_remote
 test_normal
@@ -133,6 +135,7 @@ SETUP['pocket-lint']['include_folders'] = [
 SETUP['folders']['source'] = u'brink'
 SETUP['test']['package'] = 'brink.tests'
 SETUP['test']['elevated'] = 'brink.tests.elevated'
+SETUP['website_package'] = 'brink.website'
 
 if os.name == 'nt':
     # Fix temp folder
@@ -203,6 +206,13 @@ def build():
     sys.argv = ['setup.py', 'build', '--build-base', build_target]
     print "Building in " + build_target
 
+    pave.fs.deleteFolder(
+        [pave.path.build, 'doc_source'])
+    pave.fs.copyFolder(
+        source=['documentation'],
+        destination=[pave.path.build, 'doc_source'])
+    pave.fs.createFolder([pave.path.build, 'doc_source', '_static'])
+
     import setup
     setup.distribution.run_command('install')
     pave.fs.copyFile(
@@ -258,7 +268,7 @@ def test_os_dependent(args):
 
 
 @task
-@needs('deps_build', 'lint')
+@needs('deps_build', 'lint', 'test_documentation')
 def test_os_independent():
     """
     Run os independent tests in buildbot.

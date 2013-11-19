@@ -25,7 +25,7 @@ import subprocess
 import threading
 
 from paver.easy import call_task, cmdopts, task, pushd, needs
-from paver.tasks import environment, help, consume_args
+from paver.tasks import BuildFailure, environment, help, consume_args
 
 from brink.configuration import SETUP, DIST_EXTENSION, DIST_TYPE
 from brink.utils import BrinkPaver
@@ -142,7 +142,7 @@ def lint(options):
         )
 
     if result > 0:
-            raise SystemExit(True)
+            raise BuildFailure('Lint failed.')
     return 0
 
 
@@ -601,8 +601,10 @@ def test_documentation():
 
     Any warning are treated as errors.
     """
-    return _generateProjectDocumentation(
+    exit_code = _generateProjectDocumentation(
         ['-a', '-E', '-W', '-N', '-n'])
+    if exit_code:
+        raise BuildFailure('Documentation test failed.')
 
 
 def _generateProjectDocumentation(arguments=None, experimental=False):
