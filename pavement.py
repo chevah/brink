@@ -91,8 +91,7 @@ BUILD_PACKAGES = [
 TEST_PACKAGES = [
     # Required for seesaw testing.
     'chevah-compat==0.8.4',
-    'chevah-empirical==0.14.0',
-    'chevah-utils==0.18.0',
+    'chevah-empirical==0.17.3',
 
     'pyflakes>=0.5.0-chevah2',
     'closure_linter==2.3.9',

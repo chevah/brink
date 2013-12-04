@@ -4,13 +4,13 @@
 Helpers for testing the project.
 """
 
-from chevah.utils.testing import UtilsTestCase, manufacture as mk
+from chevah.empirical import EmpiricalTestCase, mk
 
 # Shut up the linter.
 mk
 
 
-class BrinkTestCase(UtilsTestCase):
+class BrinkTestCase(EmpiricalTestCase):
     """
     TestCase dedicated to brink project.
     """

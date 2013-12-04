@@ -12,28 +12,14 @@ class ProjectPaths(object):
     def __init__(self, os_name, build_folder_name, folders, filesystem):
         self.fs = filesystem
         self._os_name = os_name
-        self.project = self._getProjectPath()
         self.product = os.path.abspath('.')
         self.build = self.fs.join([self.product, build_folder_name])
-        self.deps = self.fs.join([self.project, folders['deps']])
-        self.brink = self.fs.join([self.project, folders['brink']])
-        self.pypi = self.fs.join([self.brink, 'cache', 'pypi'])
+        self.cache = self.fs.join([self.product, 'cache'])
         self.dist = self.fs.join([self.product, folders['dist']])
         self.publish = self.fs.join([self.product, folders['publish']])
         self.python_executable = self.getPythonExecutable(os_name=os_name)
         self.python_scripts = self.getPythonScripts()
         self.brink_package = os.path.dirname(__file__)
-
-    def _getProjectPath(self):
-        '''Return the root of Chevah project.'''
-        cwd = os.getcwd()
-        parent_folder, curent_folder = os.path.split(cwd)
-        while (parent_folder and not parent_folder.endswith('chevah')):
-            parent_folder, curent_folder = os.path.split(parent_folder)
-        if not parent_folder:
-            print 'Failed to get project root.'
-            exit()
-        return parent_folder
 
     def getPythonExecutable(self, os_name=None):
         """

@@ -63,102 +63,14 @@ class BrinkPaver(object):
         }
         return default_values
 
-    def updateRepositories(self, projects, uri):
-        print('Updating dependencies from "%s".' % uri)
-
-        for project_name in projects:
-            repo_uri = uri + project_name + '.git'
-
-            project_folder = self.fs.join([self.path.project, project_name])
-            # Do the initial clone if the repo does not exists.
-            if not os.path.exists(project_folder):
-                with self.fs.changeFolder([self.path.project]):
-                    self.git.clone(
-                        repo_uri=repo_uri, project_name=project_name)
-            else:
-                with self.fs.changeFolder([project_folder]):
-                    self.git.pull(repo_uri=repo_uri)
-
     def execute(self, *args, **kwargs):
+        """
+        Shortcut to execute function.
+
+        This is here to avoid importing the execute function and also help
+        with testing.
+        """
         return execute(*args, **kwargs)
-
-    def installRunDependencies(self, extra_packages=None, install_hook=None):
-        """
-        Install the required packages for runtime environment.
-        """
-        if extra_packages is None:
-            extra_packages = []
-
-        self.pip(
-            command='install',
-            arguments=[
-                '-r', self.fs.join([
-                    self.path.brink_package, 'static', 'requirements',
-                        'requirements-runtime.txt']),
-                ],
-            install_hook=install_hook,
-            )
-
-        if extra_packages:
-            self.pip(
-                command='install',
-                arguments=extra_packages,
-                install_hook=install_hook,
-                )
-
-    def installBuildDependencies(self):
-        """
-        Intall the required packages to build environment.
-        """
-        self.pip(
-            command='install',
-            arguments=[
-                '-r', self.fs.join([
-                    self.path.brink_package, 'static', 'requirements',
-                        'requirements-buildtime.txt']),
-                ],
-            )
-
-    def uninstallBuildDependencies(self):
-        """
-        Unintall the required packages to build environment.
-        """
-        self.pip(
-            command='uninstall',
-            arguments=[
-                '-r', self.fs.join([
-                    self.path.brink_package, 'static', 'requirements',
-                        'requirements-buildtime.txt']),
-                '-y',
-                ],
-            )
-
-    def installTestDependencies(self):
-        """
-        Intall the required packages to testing environment.
-        """
-        self.pip(
-            command='install',
-            arguments=[
-                '-r', self.fs.join([
-                    self.path.brink_package, 'static', 'requirements',
-                        'requirements-testtime.txt']),
-                ],
-            )
-
-    def uninstallTestDependencies(self):
-        """
-        Unintall the required packages to testing environment.
-        """
-        self.pip(
-            command='uninstall',
-            arguments=[
-                '-r', self.fs.join([
-                    self.path.brink_package, 'static', 'requirements',
-                        'requirements-testtime.txt']),
-                '-y',
-                ],
-            )
 
     def pip(self, command='install', arguments=None,
             exit_on_errors=True, index_url=None, only_cache=False,
@@ -207,13 +119,13 @@ class BrinkPaver(object):
                     '--install-hook=%s' % (install_hook)])
 
             pip_arguments.extend(
-                ['--download-cache=' + self.path.pypi])
+                ['--download-cache=' + self.path.cache])
 
             pip_arguments.extend(
                 ['--build=' + self.fs.join(pip_build_path)])
 
             pip_arguments.extend(
-                ['--find-links=file://' + self.path.pypi])
+                ['--find-links=file://' + self.path.cache])
 
         if silent:
             pip_arguments.extend(['-q'])
@@ -773,9 +685,13 @@ class BrinkPaver(object):
         It download binary distribution if it does not exists.
         """
         if platform is None:
-            platform = self.os_name + '-' + self.cpu
+            platform = "%s-%s" % (self.os_name, self.cpu)
 
-        binary_dist = [self.path.brink, 'cache', target + '-' + platform]
+        distribution = "%s-%s" (target, platform)
+        distribution_segments = [self.path.build, 'cache', distribution]
+
+        if self.fs.isFolder(distribution_segments):
+            return distribution_segments
 
         if os.name == 'posix':
             command = []
@@ -787,16 +703,12 @@ class BrinkPaver(object):
             command.append('get_agent')
         else:
             command.append('get_python')
-            command.append(target)
 
-        command.append(platform)
+        command.append(distribution)
 
-        if not self.fs.isFolder(binary_dist):
-            self.fs.deleteFolder(binary_dist)
-            with self.fs.changeFolder([self.path.brink]):
-                (exit_code, output) = self.execute(command, output=sys.stdout)
+        (exit_code, output) = self.execute(command, output=sys.stdout)
 
-        return binary_dist
+        return distribution_segments
 
     def node(self, command, arguments):
         """

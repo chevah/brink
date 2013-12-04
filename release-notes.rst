@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.32.0 - 30/11/2013
+-------------------
+
+* Use self contained repository by removing all dependencies to local
+  brink repository and keeping cached data in repository build folder.
+
+
 0.31.1 - 19/11/2013
 -------------------
 
