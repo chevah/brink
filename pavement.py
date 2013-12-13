@@ -7,7 +7,6 @@ The main script is 'make-it-happen.sh'.
 
 This is here just to help with review, buildbot and other tasks.
 """
-from __future__ import with_statement
 import os
 import sys
 
@@ -56,14 +55,6 @@ test_python
 test_remote
 test_normal
 test_super
-
-
-# We are in brink itself, so we don't have to install brink.
-# This is here since we use the same bootstrap script for all projects.
-# Once each project uses it's on bootstrap script, we can get rid of this.
-BRINK_VERSION = 'skip'
-PYTHON_VERSION = '2.7'
-
 
 RUN_PACKAGES = [
     'zope.interface==3.8.0',
@@ -118,7 +109,6 @@ NODE_PACKAGES = [
     'karma-jasmine'
     ]
 
-SETUP['python']['version'] = PYTHON_VERSION
 SETUP['repository']['name'] = u'brink'
 SETUP['github']['repo'] = 'chevah/brink'
 SETUP['github']['url'] = 'https://github.com/chevah/brink'

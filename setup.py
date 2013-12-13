@@ -8,7 +8,7 @@ These are the extensions build around paver.
 from setuptools import setup, find_packages, Command
 import os
 
-VERSION = u'0.32.0'
+VERSION = u'0.33.0'
 
 
 class PublishCommand(Command):

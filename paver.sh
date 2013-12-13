@@ -22,10 +22,8 @@ set -o pipefail
 COMMAND=${1-''}
 DEBUG=${DEBUG-0}
 
-BINARY_DIST_URI="http://binary.chevah.com/production/python"
-PAVER_VERSION='1.2.1'
-PIP_VERSION="1.4.1"
-SETUPTOOLS_VERSION="1.4.1"
+# Load repo specific configuration.
+source paver.conf
 
 # Set default locale.
 # We use C (alias for POSIX) for having a basic default value and
@@ -52,6 +50,10 @@ CACHE_FOLDER="cache"
 PYTHON_BIN=""
 PYTHON_LIB=""
 LOCAL_PYTHON_BINARY_DIST=""
+
+# Put default values and create them as global variables.
+OS='not-detected-yet'
+ARCH='x86'
 
 
 clean_build() {
@@ -119,23 +121,14 @@ write_default_values() {
 # Install brink package.
 #
 install_brink() {
-    raw_version=`grep "BRINK_VERSION =" pavement.py`
-
-    # Extract version and remove quotes.
-    version=${raw_version#BRINK_VERSION = }
-    version=${version#\'}
-    version=${version%\'}
-    version=${version#\"}
-    version=${version%\"}
-
-    if [ "$version" = "skip" ]; then
+    if [ "$BRINK_VERSION" = "skip" ]; then
         echo "Skipping brink installation."
         return
     fi
 
-    echo "Installing version: chevah-brink==$version of brink..."
+    echo "Installing version: chevah-brink==$BRINK_VERSION of brink..."
 
-    pip install "chevah-brink==$version"
+    pip install "chevah-brink==$BRINK_VERSION"
 }
 
 
@@ -149,8 +142,8 @@ pip() {
     ${PYTHON_BIN} -m \
         pip.__init__ $1 $2 \
             --index-url=http://172.20.0.1:10042/simple \
-            --download-cache=${CACHE_FOLDER}/pypi \
-            --find-links=file://${CACHE_FOLDER}/cache/pypi \
+            --download-cache=${CACHE_FOLDER} \
+            --find-links=file://${CACHE_FOLDER} \
             --upgrade
 
     exit_code=$?
@@ -167,6 +160,8 @@ pip() {
 #
 get_binary_dist() {
     dist_name=$1
+
+    echo "Getting $dist_name ..."
 
     tar_gz_file=${dist_name}.tar.gz
     tar_file=${dist_name}.tar
@@ -186,47 +181,6 @@ get_binary_dist() {
         rm -f $tar_file
 
     popd
-}
-
-#
-# Return a version defined in pavement.py file.
-#
-get_version_from_pavement() {
-    local name
-    local raw_version
-    local version=''
-
-    name=$1
-
-    set +e
-    raw_version=`grep "$name =" pavement.py`
-    exit_code=$?
-    set -e
-    if [ $exit_code -ne 0 ]; then
-        # Version was not found, so we go with default.
-        return version
-    fi
-
-    # Extract version and remove quotes.
-    version=${raw_version#$name = }
-    version=${version#\'}
-    version=${version%\'}
-    version=${version#\"}
-    version=${version%\"}
-
-    echo $version
-}
-
-
-#
-# Return the version of python used in the current repository.
-#
-get_python_version() {
-    local version
-
-    version=$(get_version_from_pavement PYTHON_VERSION)
-
-    echo "python$version"
 }
 
 
@@ -250,13 +204,20 @@ copy_python() {
         if [ ! -d ${python_distributable} ]; then
             echo "No ${PYTHON_VERSION} environment. Start downloading it..."
             get_binary_dist ${PYTHON_VERSION}-${OS}-${ARCH}
-            get_binary_dist "$pip_package"
-            get_binary_dist "$setuptools_package"
         fi
-
+        echo "Copying bootstraping files... "
         cp -R ${python_distributable}/* ${BUILD_FOLDER}
 
+        if [ ! -d ${CACHE_FOLDER}/$pip_package ]; then
+            echo "No ${pip_package}. Start downloading it..."
+            get_binary_dist "$pip_package"
+        fi
         cp -RL "${CACHE_FOLDER}/$pip_package/pip" ${PYTHON_LIB}/site-packages/
+
+        if [ ! -d ${CACHE_FOLDER}/$setuptools_package ]; then
+            echo "No ${setuptools_package}. Start downloading it..."
+            get_binary_dist "$setuptools_package"
+        fi
         cp -RL "${CACHE_FOLDER}/$setuptools_package/setuptools" ${PYTHON_LIB}/site-packages/
         cp -RL "${CACHE_FOLDER}/$setuptools_package//setuptools.egg-info" ${PYTHON_LIB}/site-packages/
         cp "${CACHE_FOLDER}/$setuptools_package/pkg_resources.py" ${PYTHON_LIB}/site-packages/
@@ -449,11 +410,6 @@ detect_os() {
         ARCH='x64'
     fi
 }
-
-# Put default values and create them as global variables.
-OS='not-detected-yet'
-ARCH='x86'
-PYTHON_VERSION=$(get_python_version)
 
 detect_os
 update_path_variables

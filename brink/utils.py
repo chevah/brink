@@ -32,6 +32,7 @@ class BrinkPaver(object):
         self._default_values = self._getDefaultValues()
         self.os_name = self._default_values['os_name']
         self.cpu = self._default_values['platform']
+        self.python_version = self._default_values['python_version']
 
         self.fs = BrinkFilesystem()
         self.path = ProjectPaths(
@@ -662,12 +663,12 @@ class BrinkPaver(object):
             os_name = platform.split('-')[0]
 
         if python_version is None:
-            python_version = self.setup['python']['version']
+            python_version = self.python_version
 
         if os_name == 'windows':
             segments = ['lib', 'Lib']
         else:
-            segments = ['lib', 'python' + python_version]
+            segments = ['lib', python_version]
 
         segments.append('site-packages')
         return self.fs.join(segments)
@@ -687,8 +688,8 @@ class BrinkPaver(object):
         if platform is None:
             platform = "%s-%s" % (self.os_name, self.cpu)
 
-        distribution = "%s-%s" (target, platform)
-        distribution_segments = [self.path.build, 'cache', distribution]
+        distribution = "%s-%s" % (target, platform)
+        distribution_segments = ['cache', distribution]
 
         if self.fs.isFolder(distribution_segments):
             return distribution_segments
@@ -697,7 +698,7 @@ class BrinkPaver(object):
             command = []
         else:
             command = ['C:\\MinGW\\msys\\1.0\\bin\\sh.exe']
-        command.extend(['./make-it-happen.sh'])
+        command.extend(['./paver.sh'])
 
         if target == 'agent-1.5':
             command.append('get_agent')

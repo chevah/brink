@@ -4,6 +4,14 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.33.0 - 12/12/2013
+-------------------
+
+* Remove paver.sh specific scripts from pavement.py and move script
+  configuration variables in a dedicated file.
+* Fix downloading binary distribution into local cache.
+
+
 0.32.0 - 30/11/2013
 -------------------
 
