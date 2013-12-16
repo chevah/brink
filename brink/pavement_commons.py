@@ -614,7 +614,7 @@ def _generateProjectDocumentation(arguments=None, experimental=False):
     destination = [pave.path.build, 'doc', 'html']
     exit_code = pave.sphinx.createHTML(
         arguments=arguments,
-        source=['doc_source'],
+        source=[pave.path.build, 'doc_source'],
         target=destination,
         )
 

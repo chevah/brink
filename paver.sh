@@ -59,14 +59,33 @@ ARCH='x86'
 clean_build() {
     # Shortcut for clear since otherwise it will depend on python
     echo "Removing ${BUILD_FOLDER}..."
-    rm -rf ${BUILD_FOLDER}
+    delete_folder ${BUILD_FOLDER}
     echo "Removing dist..."
-    rm -rf ${DIST_FOLDER}
+    delete_folder ${DIST_FOLDER}
     echo "Removing publish..."
-    rm -rf 'publish'
+    delete_folder 'publish'
     echo "Cleaning project temporary files..."
     rm -f DEFAULT_VALUES
-    rm -f pavement_lib.py*
+    echo "Cleaning pyc files ..."
+    # We use NULL delimiter for result to support files with spaces.
+    # Piping is faster than -exec since rm is called once.
+    find . -name '*.pyc' -print0 | xargs -0 -r rm
+}
+
+
+#
+# Delete the folder as quickly as possible.
+#
+delete_folder() {
+    local target="$1"
+    # On Windows, we use internal command prompt for maximum speed.
+    # See: http://stackoverflow.com/a/6208144/539264
+    if [ $OS = "windows" -a -d $target ]; then
+        cmd //c "del /f/s/q $target > nul"
+        cmd //c "rmdir /s/q $target"
+    else
+        rm -rf $target
+    fi
 }
 
 
@@ -141,7 +160,7 @@ pip() {
     set +e
     ${PYTHON_BIN} -m \
         pip.__init__ $1 $2 \
-            --index-url=http://172.20.0.1:10042/simple \
+            --index-url=$PIP_INDEX/simple \
             --download-cache=${CACHE_FOLDER} \
             --find-links=file://${CACHE_FOLDER} \
             --upgrade
@@ -159,9 +178,16 @@ pip() {
 # Download and extract a binary distribution.
 #
 get_binary_dist() {
-    dist_name=$1
+    local dist_name=$1
+    local remote_url
 
-    echo "Getting $dist_name ..."
+    if [ $# -eq 1 ]; then
+        remote_url=$BINARY_DIST_URI
+    else
+        remote_url="$2/packages"
+    fi
+
+    echo "Getting $dist_name from $remote_url..."
 
     tar_gz_file=${dist_name}.tar.gz
     tar_file=${dist_name}.tar
@@ -173,8 +199,8 @@ get_binary_dist() {
         rm -rf $dist_name
         rm -f $tar_gz_file
         rm -f $tar_file
-        # Use 1M dot to reduce console polution.
-        execute wget --progress=dot -e dotbytes=1M $BINARY_DIST_URI/${tar_gz_file}
+        # Use 1M dot to reduce console pollution.
+        execute wget --progress=dot -e dotbytes=1M $remote_url/${tar_gz_file}
         execute gunzip $tar_gz_file
         execute tar -xf $tar_file
         rm -f $tar_gz_file
@@ -208,15 +234,28 @@ copy_python() {
         echo "Copying bootstraping files... "
         cp -R ${python_distributable}/* ${BUILD_FOLDER}
 
+        # Backwards compatibility with python 2.5 build.
+        if [[ "$PYTHON_VERSION" = "python2.5" ]]; then
+            # Copy include files.
+            if [ -d ${BUILD_FOLDER}/lib/config/include ]; then
+                cp -r ${BUILD_FOLDER}/lib/config/include ${BUILD_FOLDER}
+            fi
+
+            # Copy pywintypes25.dll as it is required by paver on windows.
+            if [ "$OS" = "windows" ]; then
+                cp -R ${BUILD_FOLDER}/lib/pywintypes25.dll . || true
+            fi
+        fi
+
         if [ ! -d ${CACHE_FOLDER}/$pip_package ]; then
             echo "No ${pip_package}. Start downloading it..."
-            get_binary_dist "$pip_package"
+            get_binary_dist "$pip_package" $PIP_INDEX
         fi
         cp -RL "${CACHE_FOLDER}/$pip_package/pip" ${PYTHON_LIB}/site-packages/
 
         if [ ! -d ${CACHE_FOLDER}/$setuptools_package ]; then
             echo "No ${setuptools_package}. Start downloading it..."
-            get_binary_dist "$setuptools_package"
+            get_binary_dist "$setuptools_package"  $PIP_INDEX
         fi
         cp -RL "${CACHE_FOLDER}/$setuptools_package/setuptools" ${PYTHON_LIB}/site-packages/
         cp -RL "${CACHE_FOLDER}/$setuptools_package//setuptools.egg-info" ${PYTHON_LIB}/site-packages/

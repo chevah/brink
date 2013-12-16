@@ -36,10 +36,10 @@ class BrinkSphinx(object):
             sphinx_command.extend(arguments)
 
         if source is None:
-            source = ['doc']
+            source = [self.paver.path.build, 'doc']
 
         if target is None:
-            target = ['doc_build']
+            target = [self.paver.path.build, 'doc_build']
 
         sphinx_command.extend([
             '-b', 'html', self.fs.join(source), self.fs.join(target)])
@@ -47,8 +47,7 @@ class BrinkSphinx(object):
         sys_argv = sys.argv
         try:
             sys.argv = sphinx_command
-            with self.paver.fs.changeFolder([self.paver.path.build]):
-                return sphinx_main(sys.argv)
+            return sphinx_main(sys.argv)
         finally:
             sys.argv = sys_argv
 

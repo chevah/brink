@@ -13,6 +13,17 @@ class BrinkFilesystem(object):
     Filesystem handling.
     """
 
+    @staticmethod
+    def getEncodedPath(path):
+        """
+        Return the encoded representation of the path, use in the lower
+        lever API for accessing the filesystem.
+        """
+        if os.name == 'nt':
+            return path
+        else:
+            return path.encode(u'utf-8')
+
     def join(self, paths):
         """
         Join paths.

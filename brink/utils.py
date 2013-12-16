@@ -378,25 +378,12 @@ class BrinkPaver(object):
     def fixDosEndlines(self, target_path, python_lib):
         '''Convert all bat and config files to dos newlines.'''
 
-        def convert_to_dos_newlines(file_path):
-            '''Convert the file to dos newlines.'''
-            tmp_file_path = file_path + '.tmp'
-            write_file = open(tmp_file_path, 'wb')
-            read_file = open(file_path, 'rU')
-            for line in read_file:
-                line = line.strip()
-                write_file.write(line + '\r\n')
-            write_file.close()
-            read_file.close()
-            os.remove(file_path)
-            os.rename(tmp_file_path, file_path)
-
         root_files = os.listdir(target_path)
         files_fixed = 0
         for filename in root_files:
             if filename.endswith('.bat'):
                 file_path = self.fs.join([target_path, filename])
-                convert_to_dos_newlines(file_path)
+                self._convertToDOSNewlines(file_path)
                 files_fixed += 1
 
         if files_fixed == 0:
@@ -411,14 +398,31 @@ class BrinkPaver(object):
         config_files = os.listdir(source_folder)
         files_fixed = 0
         for filename in config_files:
-            if '.ini' in filename:
+            if '.ini' in filename or '.config' in filename:
                 file_path = self.fs.join([source_folder, filename])
-                convert_to_dos_newlines(file_path)
+                self._convertToDOSNewlines(file_path)
                 files_fixed += 1
 
         if files_fixed == 0:
             print "Failed to convert some configuration files."
             sys.exit(1)
+
+    def _convertToDOSNewlines(self, file_path):
+        """
+        Convert the file to DOS newlines.
+        """
+        file_path = self.fs.getEncodedPath(file_path)
+        tmp_file_path = file_path + '.tmp'
+        write_file = open(tmp_file_path, 'wb')
+        read_file = open(file_path, 'rU')
+        for line in read_file:
+            # Only discard newline from the end.
+            line = line.rstrip('\n')
+            write_file.write(line + '\r\n')
+        write_file.close()
+        read_file.close()
+        os.remove(file_path)
+        os.rename(tmp_file_path, file_path)
 
     def rsync(self, username, hostname, source, destination, verbose=False):
         """

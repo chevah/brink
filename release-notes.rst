@@ -4,6 +4,35 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.33.4 - 15/12/2013
+-------------------
+
+* Fix conversion to Windows new lines.
+
+
+0.33.3 - 12/12/2013
+-------------------
+
+* Fix rendering of RST files so that it is always called from project root.
+  docutils has an ugly template loading behaviour. Templates path is resolved
+  at module load time and is relative to current working directory.
+* Update paver.sh to bootstrap python packages from a PyPi index.
+
+
+0.33.2 - 12/12/2013
+-------------------
+
+* Fix fixDosEndlines to support old `.config` files.
+
+
+0.33.1 - 12/12/2013
+-------------------
+
+* Clean pyc files in `clean` command.
+* Use native windows command for removing folders. This gives a big
+  performance boots.
+
+
 0.33.0 - 12/12/2013
 -------------------
 
