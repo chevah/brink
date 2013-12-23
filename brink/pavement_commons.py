@@ -281,6 +281,11 @@ def run_test(python_command, switch_user, arguments):
         [pave.fs.join([pave.path.python_scripts, 'nose_runner.py']),
         switch_user])
 
+    # Maybe we are in buildslave and all arguments are sent in a single
+    # argument.
+    if len(arguments) == 1:
+        arguments = arguments[0].split(' ')
+
     test_args = arguments[:]
 
     if '--pdb' in test_args:

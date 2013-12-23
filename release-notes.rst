@@ -4,6 +4,18 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.33.6 - 23/12/2013
+-------------------
+
+* Revert 'elevated' exclusion from default test.
+
+
+0.33.5 - 19/12/2013
+-------------------
+
+* Fix test arguments for buildslave.
+
+
 0.33.4 - 15/12/2013
 -------------------
 
