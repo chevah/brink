@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.33.7 - 24/12/2013
+-------------------
+
+* Update release managers parsing to latest buildbot.
+
+
 0.33.6 - 23/12/2013
 -------------------
 

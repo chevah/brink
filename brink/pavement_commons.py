@@ -50,8 +50,8 @@ pave = BrinkPaver(setup=SETUP)
 
 
 RELEASE_MANAGERS = [
-    'adi.roiban@chevah.com',
-    'laura.gheorghiu@chevah.com',
+    'Adi Roiban <adi.roiban@chevah.com>',
+    'Laura Gheorghiu <laura.gheorghiu@chevah.com>',
     ]
 
 
@@ -654,13 +654,13 @@ def release(args):
 
     if args:
         target = args[0]
-        author_email = args[-1].replace('<', '').replace('>', '')
+        author_email = args[-1].strip()
     else:
         target = 'staging'
         author_email = 'unknown'
 
     if target == 'production' and author_email not in RELEASE_MANAGERS:
-        print 'You are not allowed to release in production.'
+        print '%s is not allowed to release in production.' % (author_email)
         exit(1)
 
     arguments = [target, latest]
