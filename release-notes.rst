@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.34.0 - 13/01/2014
+-------------------
+
+* Add support for legacy client 1.5.
+
+
 0.33.7 - 24/12/2013
 -------------------
 
