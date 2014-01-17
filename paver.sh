@@ -67,9 +67,9 @@ clean_build() {
     echo "Cleaning project temporary files..."
     rm -f DEFAULT_VALUES
     echo "Cleaning pyc files ..."
-    # We use NULL delimiter for result to support files with spaces.
-    # Piping is faster than -exec since rm is called once.
-    find . -name '*.pyc' -print0 | xargs -0 -r rm
+    # Faster than '-exec \;' and supported in most OS'es,
+    # details at http://www.in-ulm.de/~mascheck/various/find/#xargs
+    find ./ -name '*.pyc' -exec rm {} +
 }
 
 
