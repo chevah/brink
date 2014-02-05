@@ -65,10 +65,11 @@ class BrinkSphinx(object):
             '-o', self.fs.join(destination), module]
         apidoc_main(sys.argv)
 
-    def createConfiguration(self, destination, project, version, themes_path,
+    def createConfiguration(
+            self, destination, project, version, themes_path,
             theme_name='standalone', intersphinx_mapping=None,
             copyright='Chevah Team', experimental=True,
-        ):
+            ):
         """
         Generates the configuration files for creating Sphinx based
         documentation.
@@ -180,15 +181,17 @@ def setup(app):
         tags.add('production')
     app.add_directive('conditional', Only)
 
-""" % ({
-    'theme_name': theme_name,
-    'project': project,
-    'version': version,
-    'intersphinx_mapping': intersphinx_mapping,
-    'copyright': copyright,
-    'themes_path': themes_path,
-    'experimental': experimental,
-    })
+""" % (  # Indentation here is strange, since we use multi-line string.
+            {
+                'theme_name': theme_name,
+                'project': project,
+                'version': version,
+                'intersphinx_mapping': intersphinx_mapping,
+                'copyright': copyright,
+                'themes_path': themes_path,
+                'experimental': experimental,
+                }
+            )
 
         with open(self.fs.join(destination), 'w') as conf_file:
             conf_file.write(content)

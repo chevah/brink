@@ -78,46 +78,25 @@ class MD5SumFile(object):
 
 @task
 @cmdopts([
-     ('quick', 'q', 'Run quick linter for recently changed files.'),
-     ('dry', 'd', 'Don\'t run the linter and only show linted files.'),
-])
+    ('all', 'a', 'Run linter for all changed files.'),
+    ('dry', 'd', 'Don\'t run the linter and only show linted files.'),
+    ])
 def lint(options):
     """
-    Run static code checks.
+    Run static code checks for files that were changed.
     """
-    quick = pave.getOption(options, 'lint', 'quick', default_value=False)
+    all = pave.getOption(options, 'lint', 'all', default_value=False)
     dry = pave.getOption(options, 'lint', 'dry', default_value=False)
-
-    if not quick:
-        folders = SETUP['pocket-lint']['include_folders'][:]
-        files = SETUP['pocket-lint']['include_files'][:]
-    else:
-        folders = []
-        changes = pave.git.diffFileNames()
-        # Filter deleted changes since we can not lint then.
-        files = [change[1] for change in changes if change[0] != 'd']
-
+    folders = SETUP['pocket-lint']['include_folders'][:]
+    files = SETUP['pocket-lint']['include_files'][:]
     excluded_folders = SETUP['pocket-lint']['exclude_folders'][:]
     excluded_files = SETUP['pocket-lint']['exclude_files'][:]
-
-    if dry:
-        print "\n---\nFiles\n---"
-        for name in files:
-            print name
-        print "\n---\nFolders\n---"
-        for name in folders:
-            print name
-        print "\n---\nExcluded files\n---"
-        for name in excluded_files:
-            print name
-        print "\n---\nExcluded folders\n---"
-        for name in excluded_folders:
-            print name
-        return 0
 
     result = pave.pocketLint(
         folders=folders, excluded_folders=excluded_folders,
         files=files, excluded_files=excluded_files,
+        quick=not all,
+        dry=dry,
         )
 
     if result > 0:
@@ -277,9 +256,10 @@ def test_remote(args):
 
 def run_test(python_command, switch_user, arguments):
     test_command = python_command[:]
-    test_command.extend(
-        [pave.fs.join([pave.path.python_scripts, 'nose_runner.py']),
-        switch_user])
+    test_command.extend([
+        pave.fs.join([pave.path.python_scripts, 'nose_runner.py']),
+        switch_user,
+        ])
 
     # Maybe we are in buildslave and all arguments are sent in a single
     # argument.
@@ -480,7 +460,7 @@ def buildbot_list(args):
     ('review_id=', 'r', 'Review ID to update.'),
     ('name=', 'n', 'The name of this review.'),
     ('description=', 'd', 'Description of changes.'),
-])
+    ])
 def review(options):
     '''Creates and updates reviews hosted on ReviewBoard.'''
     from rbtools.postreview import main as postreview_main
@@ -564,7 +544,7 @@ def review(options):
         ),
     ('all', None, 'Create all files.'),
     ('production', None, 'Build with only production sections.'),
-])
+    ])
 @needs('build', 'update_setup')
 def doc_html(options):
     """
@@ -850,7 +830,7 @@ def publish_documentation(args):
             'url': 'http://%s/%s' % (destination_root, version),
             'title': 'Redirecting to latest %s documentation' % (
                 product_name),
-        }
+            }
         template_root = pave.fs.join([pave.path.build, 'doc_source'])
         content = pave.renderJinja(template_root, 'latest.j2', data)
         redirect = [pave.fs.join(publish_documentation_folder), 'index.html']

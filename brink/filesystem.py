@@ -117,8 +117,10 @@ class BrinkFilesystem(object):
         """
         shutil.copyfile(self.join(source), self.join(destination))
 
-    def copyFolder(self, source, destination,
-            excepted_folders=None, excepted_files=None):
+    def copyFolder(
+            self, source, destination,
+            excepted_folders=None, excepted_files=None,
+            ):
         """
         Copy `source` folder to `destination`.
 

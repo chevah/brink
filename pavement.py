@@ -85,9 +85,9 @@ TEST_PACKAGES = [
     'chevah-empirical==0.18.2',
 
     'pyflakes>=0.5.0-chevah2',
-    'closure_linter==2.3.9',
-    'pocketlint==0.5.31-chevah8',
-    'pocketlint-jshint',
+    'closure-linter==2.3.9',
+    'pocketlint==1.4.4.c2',
+
 
     # Never version of nose, hangs on closing some tests
     # due to some thread handling.
@@ -119,7 +119,7 @@ SETUP['pocket-lint']['include_files'] = [
     ]
 SETUP['pocket-lint']['include_folders'] = [
     'brink',
-    'chevah',
+    'documentation',
     ]
 SETUP['folders']['source'] = u'brink'
 SETUP['test']['package'] = 'brink.tests'
@@ -260,11 +260,13 @@ def test_os_dependent(args):
 
 
 @task
-@needs('deps_build', 'lint', 'test_documentation')
+@needs('deps_build')
 def test_os_independent():
     """
     Run os independent tests in buildbot.
     """
+    call_task('lint', options={'all': True})
+    call_task('test_documentation')
 
 
 @task

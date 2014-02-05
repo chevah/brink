@@ -5,9 +5,11 @@ import subprocess
 import sys
 
 
-def execute(command, input_text=None, output=None,
+def execute(
+        command, input_text=None, output=None,
         ignore_errors=False, verbose=False,
-        extra_environment=None):
+        extra_environment=None,
+        ):
     """
     Returns (exit_code, stdoutdata)
     """

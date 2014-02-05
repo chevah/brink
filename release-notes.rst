@@ -4,6 +4,20 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.36.0 - 05/02/2014
+-------------------
+
+* Update to latest pocket-lint and pep8 and fix newly discovered errors.
+* Remove support for jslint/jshint as we now use closure-linter.
+
+
+0.35.0 - 05/02/2014
+-------------------
+
+* Add default quick linter. Use -a / --all to lint all files.
+* Remove support for JSHint as we now use google-closure-linter.
+
+
 0.34.0 - 13/01/2014
 -------------------
 

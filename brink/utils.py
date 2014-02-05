@@ -61,7 +61,7 @@ class BrinkPaver(object):
             'python_version': results[1],
             'os_name': results[2],
             'platform': results[3],
-        }
+            }
         return default_values
 
     def execute(self, *args, **kwargs):
@@ -218,7 +218,8 @@ class BrinkPaver(object):
             time.sleep(0.1)
             builder_status = self.getJSON(url=base_url)
 
-    def getOption(self, options, task_name, option_name,
+    def getOption(
+            self, options, task_name, option_name,
             default_value=None, required=False):
         '''Return the paver option_name passed to task_name.'''
         try:
@@ -312,8 +313,9 @@ class BrinkPaver(object):
 
         return result
 
-    def createNSIS(self, folder_name, product_name, product_version,
-                  product_url, product_publisher):
+    def createNSIS(
+            self, folder_name, product_name, product_version,
+            product_url, product_publisher):
         '''Generate a self extracted install file using NSIS.'''
         defines = (
             '!define PRODUCT_NAME "%s"\n'
@@ -346,16 +348,16 @@ class BrinkPaver(object):
                 nsis_file.write(line)
 
         nsis_locations = [
-            "C:\Program Files (x86)\NSIS",
-            "C:\Program Files\NSIS",
-        ]
+            r'C:\Program Files (x86)\NSIS',
+            r'C:\Program Files\NSIS',
+            ]
         make_nsis_path = self.fs.which('makensis', nsis_locations)
         if not make_nsis_path:
             print (
                 'NullSoft Installer is not installed. '
                 'On Ubuntu you can install it using '
                 '"sudo apt-get install nsis".'
-            )
+                )
             sys.exit(1)
 
         make_nsis_command = [make_nsis_path, '-V2', 'windows-installer.nsi']
@@ -390,11 +392,12 @@ class BrinkPaver(object):
             print "Failed to convert some bat files."
             sys.exit(1)
 
-        source_folder = self.fs.join([python_lib,
-                    self.setup['folders']['source'],
-                    self.setup['folders']['static'],
-                    self.setup['folders']['configuration'],
-                    ])
+        source_folder = self.fs.join([
+            python_lib,
+            self.setup['folders']['source'],
+            self.setup['folders']['static'],
+            self.setup['folders']['configuration'],
+            ])
         config_files = os.listdir(source_folder)
         files_fixed = 0
         for filename in config_files:
@@ -450,8 +453,9 @@ class BrinkPaver(object):
         __import__(module_name)
         return sys.modules[module_name]
 
-    def createDownloadPage(self,
-            introduction, changelog, base_name, hostname, create_index=True):
+    def createDownloadPage(
+            self, introduction, changelog, base_name, hostname,
+            create_index=True):
         """
         Create a download page for product based on information from `data`.
         """
@@ -479,7 +483,7 @@ class BrinkPaver(object):
                 self.setup['product']['version'],
                 ),
             'distributables': self.setup['product']['distributables'],
-        }
+            }
 
         website_package = self.setup['website_package']
         website_path = self.importAsString(
@@ -555,9 +559,11 @@ class BrinkPaver(object):
         content = template.render(data=data)
         return content
 
-    def pocketLint(self,
+    def pocketLint(
+            self,
             folders=None, excluded_folders=None,
             files=None, excluded_files=None,
+            quick=False, dry=False,
             ):
         """
         Run pocketlint on `folders` and `files`.
@@ -568,13 +574,8 @@ class BrinkPaver(object):
         `excluded_folders` and `excluded` files contains regular expression
         which will match full folder names or file names.
         """
-        from pocketlint.formatcheck import (
-            check_sources,
-            JavascriptChecker,
-            JS,
-            )
+        from pocketlint.formatcheck import check_sources, PocketLintOptions
         from pocketlint.contrib import cssccc
-        import pocketlint
         import mimetypes
 
         # These types are not recognized by various OS.
@@ -599,14 +600,6 @@ class BrinkPaver(object):
         regex_folders = [
             re.compile(expression) for expression in excluded_folders]
 
-        class PocketLintOptions(object):
-            """
-            Holds the options used by pocket lint for Chevah project.
-            """
-            def __init__(self):
-                self.max_line_length = 79
-                self.google_closure_ignore = [1, 10, 11, 110, 220]
-
         def is_excepted_folder(folder_name):
             for expresion in regex_folders:
                 if expresion.match(folder_name):
@@ -619,9 +612,58 @@ class BrinkPaver(object):
                     return True
             return False
 
-        if self.os_name is 'ubuntu' and JS is None:
-            print 'Install "seed" or "gjs" to enable JS linting on Ubuntu.'
-            sys.exit(1)
+        if quick:
+            changes = self.git.diffFileNames()
+
+            quick_files = []
+            for change in changes:
+                # Filter deleted changes since we can not lint then.
+                if change[0] == 'd':
+                    continue
+
+                # Add files which are explicitly requested.
+                if change[1] in files:
+                    quick_files.append(change[1])
+                    continue
+
+                # Filter files in excluded folders.
+                folder_name = os.path.dirname(change[1])
+                if is_excepted_folder(folder_name):
+                    continue
+
+                # Filter files is in excluded files.
+                file_name = os.path.basename(change[1])
+                if is_excepted_file(file_name):
+                    continue
+
+                # Filter files outside of requested folders.
+                excluded_file = True
+                for folder in folders:
+                    if change[1].startswith(folder):
+                        excluded_file = False
+
+                if not excluded_file:
+                    quick_files.append(change[1])
+                    continue
+
+            # We only lint specific files in quick mode.
+            files = quick_files
+            folders = []
+
+        if dry:
+            print "\n---\nFiles\n---"
+            for name in files:
+                print name
+            print "\n---\nFolders\n---"
+            for name in folders:
+                print name
+            print "\n---\nExcluded files\n---"
+            for name in excluded_files:
+                print name
+            print "\n---\nExcluded folders\n---"
+            for name in excluded_folders:
+                print name
+            return 0
 
         sources = []
         for folder in folders:
@@ -636,23 +678,19 @@ class BrinkPaver(object):
             sources.append(file_name)
 
         count = -1
-        pocketlint_path = os.path.dirname(pocketlint.__file__)
-        jslint = self.fs.join([
-            pocketlint_path, 'pocketlint', 'jshint', 'jshint.js'])
-        jsreporter = self.fs.join([
-            pocketlint_path, 'pocketlint', 'jshint', 'jshintreporter.js'])
 
-        initial_jslint = JavascriptChecker.FULLJSLINT
-        initial_jsreporter = JavascriptChecker.JSREPORTER
         initial_ignore = cssccc.IGNORED_MESSAGES
+        options = PocketLintOptions()
+        options.max_line_length = 80
+        options.jslint['enabled'] = False
+        options.closure_linter['enabled'] = True
+        options.closure_linter['ignore'] = [1, 10, 11, 110, 220]
+        options.pep8['hang_closing'] = True
+
         try:
-            JavascriptChecker.FULLJSLINT = jslint
-            JavascriptChecker.JSREPORTER = jsreporter
             cssccc.IGNORED_MESSAGES = ['I005', 'I006']
-            count = check_sources(sources, PocketLintOptions())
+            count = check_sources(sources, options=options)
         finally:
-            JavascriptChecker.FULLJSLINT = initial_jslint
-            JavascriptChecker.JSREPORTER = initial_jsreporter
             cssccc.IGNORED_MESSAGES = initial_ignore
 
         return count
