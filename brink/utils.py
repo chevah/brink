@@ -282,7 +282,6 @@ class BrinkPaver(object):
                         continue
                     absolute_filename = os.path.join(root, fn)
                     zip_filename = absolute_filename[len(parent_path):]
-                    # FIXME
                     # See http://bugs.python.org/issue1734346
                     # for adding unicode support.
                     z.write(str(absolute_filename), str(zip_filename))
@@ -678,13 +677,25 @@ class BrinkPaver(object):
             sources.append(file_name)
 
         count = -1
-
         initial_ignore = cssccc.IGNORED_MESSAGES
         options = PocketLintOptions()
         options.max_line_length = 80
         options.jslint['enabled'] = False
         options.closure_linter['enabled'] = True
         options.closure_linter['ignore'] = [1, 10, 11, 110, 220]
+        ticket = self.git.branch_name.split('-', 1)[0]
+        # Strings are broken to not match the own rules.
+        options.regex_line = [
+            ('FIX' + 'ME:%s:' % (ticket), 'FIX' + 'ME for current branch.'),
+            ('(?i)FIX' + 'ME$', 'FIXME:123: is the required format.'),
+            ('(?i)FIX' + 'ME:$', 'FIXME:123: is the required format.'),
+            ('FIX' + 'ME[^:]', 'FIXME:123: is the required format.'),
+            ('(?i)FIX' + 'ME:[^0-9]', 'FIXME:123: is the required format.'),
+            ('(?i)FIX' + 'ME:[0-9]+[^:]$',
+                'FIXME:123: is the required format.'),
+            ('(?i)TO' + 'DO ', 'No TO' + 'DO markers are allowed.'),
+            ('(?i)TO' + 'DO$', 'No TO' + 'DO markers are allowed.'),
+            ]
         options.pep8['hang_closing'] = True
 
         try:

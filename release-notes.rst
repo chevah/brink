@@ -4,6 +4,18 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.37.1 - 06/02/2014
+-------------------
+
+* Add case insensitive search for markers.
+
+
+0.37.0 - 05/02/2014
+-------------------
+
+* Add linter for FIXME:123: and TO DO markers.
+
+
 0.36.0 - 05/02/2014
 -------------------
 
