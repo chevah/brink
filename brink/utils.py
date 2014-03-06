@@ -563,6 +563,7 @@ class BrinkPaver(object):
             folders=None, excluded_folders=None,
             files=None, excluded_files=None,
             quick=False, dry=False,
+            branch_name=None,
             ):
         """
         Run pocketlint on `folders` and `files`.
@@ -683,7 +684,9 @@ class BrinkPaver(object):
         options.jslint['enabled'] = False
         options.closure_linter['enabled'] = True
         options.closure_linter['ignore'] = [1, 10, 11, 110, 220]
-        ticket = self.git.branch_name.split('-', 1)[0]
+
+        ticket = branch_name.split('-', 1)[0]
+
         # Strings are broken to not match the own rules.
         options.regex_line = [
             ('FIX' + 'ME:%s:' % (ticket), 'FIX' + 'ME for current branch.'),

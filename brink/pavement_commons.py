@@ -80,6 +80,7 @@ class MD5SumFile(object):
 @cmdopts([
     ('all', 'a', 'Run linter for all changed files.'),
     ('dry', 'd', 'Don\'t run the linter and only show linted files.'),
+    ('branch=', 'b', 'Name of the branch for which test is executed.'),
     ])
 def lint(options):
     """
@@ -87,16 +88,22 @@ def lint(options):
     """
     all = pave.getOption(options, 'lint', 'all', default_value=False)
     dry = pave.getOption(options, 'lint', 'dry', default_value=False)
+    branch_name = pave.getOption(
+        options, 'lint', 'branch', default_value=None)
     folders = SETUP['pocket-lint']['include_folders'][:]
     files = SETUP['pocket-lint']['include_files'][:]
     excluded_folders = SETUP['pocket-lint']['exclude_folders'][:]
     excluded_files = SETUP['pocket-lint']['exclude_files'][:]
+
+    if not branch_name:
+        branch_name = pave.git.branch_name
 
     result = pave.pocketLint(
         folders=folders, excluded_folders=excluded_folders,
         files=files, excluded_files=excluded_files,
         quick=not all,
         dry=dry,
+        branch_name=branch_name,
         )
 
     if result > 0:
@@ -620,6 +627,8 @@ def release(args):
 
     publish/downloads/PRODUCT_NAME will go to download website
     publish
+
+    release [production|staging] [author_email]
     """
 
     try:

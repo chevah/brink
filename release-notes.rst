@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.38.0 - 05/03/2014
+-------------------
+
+* Add support to specify branch name for linter from command line.
+
+
 0.37.1 - 06/02/2014
 -------------------
 
