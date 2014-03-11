@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.38.1 - 06/02/2014
+-------------------
+
+* Fix PQM merge_init step.
+
+
 0.38.0 - 05/03/2014
 -------------------
 

@@ -338,7 +338,8 @@ def merge_init(args):
             print git.checkout('origin/master', b='master')
 
         print "Merge original branch with squash and no commit."
-        print git.merge(branch_name, no_commit=True, squash=True)
+        print git.merge(
+            branch_name, no_commit=True, squash=True)
 
         print "Check for merge conflicts."
         result = git.ls_files(unmerged=True).split('\n')
@@ -355,6 +356,9 @@ def merge_init(args):
         sys.exit(1)
     finally:
         print "Go back to initial branch."
+        # Since we merge with squash... we don't have a real merge so we
+        # can not use merge --abort here.
+        print git.reset(hard=True)
         print repo.heads[branch_name].checkout()
 
 
