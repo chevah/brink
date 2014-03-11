@@ -4,7 +4,19 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
-0.38.1 - 06/02/2014
+0.39.1 - 11/03/2014
+-------------------
+
+* Update lint task to latest buildbot changes.
+
+
+0.39.0 - 10/03/2014
+-------------------
+
+* Update steps for latest buildbot changes.
+
+
+0.38.1 - 06/03/2014
 -------------------
 
 * Fix PQM merge_init step.

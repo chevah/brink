@@ -20,6 +20,7 @@ from __future__ import with_statement
 
 from optparse import make_option
 import getpass
+import os
 import sys
 import subprocess
 import threading
@@ -95,6 +96,10 @@ def lint(options):
     excluded_folders = SETUP['pocket-lint']['exclude_folders'][:]
     excluded_files = SETUP['pocket-lint']['exclude_files'][:]
 
+    # If branch name was not specified from command line, try to get it from
+    # environment or from the current branch.
+    if not branch_name:
+        branch_name = os.environ.get('BRANCH', None)
     if not branch_name:
         branch_name = pave.git.branch_name
 
@@ -628,7 +633,7 @@ def release(args):
     publish/downloads/PRODUCT_NAME will go to download website
     publish
 
-    release [production|staging] [author_email]
+    release [production|staging] [latest] [author_email]
     """
 
     try:
@@ -666,6 +671,8 @@ def publish_distributables(args):
 
     publish/downloads/PRODUCT_NAME will go to download website
     publish
+
+    [production|staging] [yes|no]
     """
     try:
         target = args[0]
@@ -767,6 +774,8 @@ def publish_documentation(args):
 
     publish/downloads/PRODUCT_NAME will go to download website
     publish
+
+    [production|staging] [yes|no]
     """
     try:
         target = args[0]

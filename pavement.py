@@ -84,9 +84,8 @@ TEST_PACKAGES = [
     'chevah-compat==0.8.4',
     'chevah-empirical==0.18.2',
 
-    'pyflakes>=0.5.0-chevah2',
-    'closure-linter==2.3.9',
-    'pocketlint==1.4.4.c3',
+    'pyflakes==0.7.3',
+    'pocketlint==1.4.4.c4',
 
 
     # Never version of nose, hangs on closing some tests
@@ -247,6 +246,21 @@ def test(args):
     """
     Run Python tests.
     """
+
+
+@task
+@consume_args
+def test_ci(args):
+    """
+    Run tests in continous integration environment.
+    """
+    env = os.environ.copy()
+
+    test_type = env.get('TEST_TYPE', 'normal')
+    if test_type == 'os-independent':
+        return call_task('test_os_independent')
+
+    return call_task('test_os_dependent', args=args)
 
 
 @task

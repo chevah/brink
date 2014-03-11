@@ -85,13 +85,6 @@ def _get_pull(repo, pull_id):
     """
     Return the pull request details.
     """
-
-    try:
-        pull_id = int(pull_id)
-    except:
-        print "Failed to get pull_id from %s" % str(pull_id)
-        sys.exit(1)
-
     from github import GithubException
     try:
         return repo.get_pull(pull_id)
@@ -102,63 +95,11 @@ def _get_pull(repo, pull_id):
         sys.exit(1)
 
 
-def _open_pull(repo, pull_id):
-    """
-    Open pull request.
-    """
-    pull_request = _get_pull(repo, pull_id)
-
-    from github import GithubException
-    try:
-        if pull_request.state == u'open':
-            # Already opened.
-            return
-
-        pull_request.edit(state=u'open')
-    except GithubException, error:
-        print "Failed to open GitHub pull request"
-        print str(error)
-        sys.exit(1)
-
-    return pull_request
-
-
-def _close_pull(repo, pull_id, message=None):
-    """
-    Close pull request.
-    """
-    pull_request = _get_pull(repo, pull_id)
-
-    from github import GithubException
-    try:
-        if pull_request.state == u'closed':
-            # Already closed.
-            return
-
-        if message:
-            pull_request.create_issue_comment(message)
-
-        pull_request.edit(state=u'closed')
-
-    except GithubException, error:
-        print "Failed to close GitHub pull request"
-        print str(error)
-        sys.exit(1)
-
-    return pull_request
-
-
 def _review_properties(token, pull_id):
     """
     Helper for calling this task from multiple places, without messing
     with paver arguments.
     """
-    try:
-        pull_id = int(pull_id)
-    except:
-        print "Failed to get pull_id from %s" % str(pull_id)
-        sys.exit(1)
-
     from github import GithubException
     from chevah.github_hooks_server.handler import Handler
     handler = Handler(trac_url='mock')
@@ -267,15 +208,45 @@ def _review_properties(token, pull_id):
     return (pull_request, commit_message)
 
 
+def _get_environment(name, default=None):
+    """
+    Get environment variable.
+    """
+    value = os.environ.get(name, default)
+    if value is None:
+        raise AssertionError(
+            'Variable %s not found in environment !' % (name))
+    return value
+
+
+def _get_github_environment():
+    """
+    Get GitHub data from environment.
+    """
+
+    pull_id = _get_environment('GITHUB_PULL_ID')
+    try:
+        pull_id = int(pull_id)
+    except:
+        print "Invalid pull_id: %s" % str(pull_id)
+        sys.exit(1)
+
+    return {
+        'token': _get_environment('GITHUB_TOKEN'),
+        'pull_id': pull_id,
+        }
+
+
 @task
-@consume_args
-def merge_init(args):
+def merge_init():
     """
     Merge the current branch into master, without a commit.
+
+    Environment variables:
+    * GITHUB_PULL_ID
+    * GITHUB_TOKEN
     """
-    if len(args) != 2:
-        print "Usage: TOKEN GITHUB_PULL_ID"
-        sys.exit(1)
+    github_env = _get_github_environment()
 
     from git import GitCommandError, Repo
     repo = Repo(os.getcwd())
@@ -295,7 +266,7 @@ def merge_init(args):
 
     # Check pull request details on Github.
     (pull_request, message) = _review_properties(
-        token=args[0], pull_id=args[1])
+        token=github_env['token'], pull_id=github_env['pull_id'])
 
     remote_sha = pull_request.head.sha.lower()
     remote_name = pull_request.head.ref
@@ -372,15 +343,16 @@ def merge_commit(args):
     * 0 - ok
     * 1 - failure
     * 2 - warning
-    """
-    if len(args) < 3:
-        print "Usage: TOKEN GITHUB_PULL_ID AUTHOR"
-        sys.exit(1)
 
-    token = args[0]
-    pull_id = args[1]
+    Environment variables:
+    * GITHUB_PULL_ID
+    * GITHUB_TOKEN
+    * TEST_AUTHOR
+    """
+    github_env = _get_github_environment()
+
     # Paver or bash has a bug so we rejoin author name.
-    author = ' '.join(args[2:])
+    author = _get_environment('TEST_AUTHOR')
 
     from git import GitCommandError, Repo
     repo = Repo(os.getcwd())
@@ -388,8 +360,8 @@ def merge_commit(args):
 
     branch_name = repo.head.ref.name
 
-    (pull_request, message) = _review_properties(
-        token=token, pull_id=pull_id)
+    (_, message) = _review_properties(
+        token=github_env['token'], pull_id=github_env['pull_id'])
 
     try:
         # Merge branch into master.
@@ -415,7 +387,7 @@ def pqm(args):
     """
     Submit the branch to PQM.
 
-    test_remote PULL_ID
+    Arguments: PULL_ID
     """
     if len(args) != 1:
         print 'Please specify the pull request id for this branch.'
@@ -433,7 +405,7 @@ def pqm(args):
         print "Pull id in bad format. It must be an integer."
         sys.exit(1)
 
-    arguments = ['pqm', '--properties=pull_id=%s' % (pull_id)]
+    arguments = ['gk-merge', '--properties=github_pull_id=%s' % (pull_id)]
     environment.args = arguments
     from brink.pavement_commons import test_remote
     test_remote(arguments)
@@ -461,11 +433,7 @@ def rqm(options):
 
     latest = pave.getOption(options, 'rqm', 'latest', default_value='no')
 
-    arguments = [
-        'rqm',
-        '--properties=target=' + target,
-        '--properties=latest=' + latest,
-        ]
+    arguments = ['gk-release', target, latest]
     environment.args = arguments
     from brink.pavement_commons import test_remote
     test_remote(arguments)
