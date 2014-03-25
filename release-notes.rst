@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.39.2 - 25/03/2014
+-------------------
+
+* Fix QM merge_init.
+* Add dedicated test_review task.
+
+
 0.39.1 - 11/03/2014
 -------------------
 

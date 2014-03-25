@@ -220,6 +220,25 @@ def test_python(args):
 
 
 @task
+# Args are required to trigger environment creation.
+@consume_args
+def test_review(args):
+    """
+    Run test suite for review process.
+    """
+    result = pave.git.status()
+    if result:
+        print 'Please commit all files before requesting the release.'
+        print 'Aborted.'
+        sys.exit(1)
+
+    arguments = ['gk-review']
+    environment.args = arguments
+    from brink.pavement_commons import test_remote
+    test_remote(arguments)
+
+
+@task
 @consume_args
 def test_remote(args):
     """

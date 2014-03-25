@@ -30,6 +30,7 @@ from brink.pavement_commons import (
     test_documentation,
     test_python,
     test_remote,
+    test_review,
     test_normal,
     test_super,
     )
@@ -53,6 +54,7 @@ rqm
 test_documentation
 test_python
 test_remote
+test_review
 test_normal
 test_super
 

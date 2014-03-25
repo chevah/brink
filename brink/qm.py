@@ -252,7 +252,7 @@ def merge_init():
     repo = Repo(os.getcwd())
     git = repo.git
 
-    branch_name = repo.head.ref.name
+    branch_name = _get_environment('BRANCH', repo.head.ref.name)
     if branch_name in ['master', 'production']:
         print "You can not merge the main branches."
         sys.exit(1)
@@ -268,18 +268,14 @@ def merge_init():
     (pull_request, message) = _review_properties(
         token=github_env['token'], pull_id=github_env['pull_id'])
 
+    pr_branch_name = pull_request.head.ref
     remote_sha = pull_request.head.sha.lower()
-    remote_name = pull_request.head.ref
-
-    from git import Repo
-    repo = Repo(os.getcwd())
-    remote_name = repo.head.ref.name
     local_sha = repo.head.commit.hexsha
 
     if remote_sha != local_sha:
         print "Local branch and review branch are at different revision."
-        print "Local sha:  %s %s" % (local_sha, remote_name)
-        print "Review sha: %s %s" % (remote_sha, remote_name)
+        print "Local sha:  %s %s" % (local_sha, branch_name)
+        print "Review sha: %s %s" % (remote_sha, pr_branch_name)
         sys.exit(1)
 
     # Clear any unused files from this repo.
