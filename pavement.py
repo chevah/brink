@@ -24,7 +24,7 @@ from brink.pavement_commons import (
     pqm,
     publish_distributables,
     publish_documentation,
-    release,
+    publish,
     rqm,
     SETUP,
     test_documentation,
@@ -49,7 +49,7 @@ merge_commit
 pqm
 publish_distributables
 publish_documentation
-release
+publish
 rqm
 test_documentation
 test_python

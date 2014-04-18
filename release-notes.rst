@@ -4,6 +4,20 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.40.1 - 16/04/2014
+-------------------
+
+* Sync with latest master.
+* Fix release notes dates.
+
+
+0.40.0 - 15/04/2014
+-------------------
+
+* Update release helpers to latest build system.
+* Rename 'release',  to 'publish' and move it in qm.py.
+
+
 0.39.2 - 25/03/2014
 -------------------
 

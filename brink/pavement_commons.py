@@ -36,6 +36,7 @@ from brink.qm import (
     merge_commit,
     pqm,
     rqm,
+    publish,
     )
 
 # Silence lint.
@@ -46,14 +47,9 @@ merge_init
 merge_commit
 pqm
 rqm
+publish
 
 pave = BrinkPaver(setup=SETUP)
-
-
-RELEASE_MANAGERS = [
-    'Adi Roiban <adi.roiban@chevah.com>',
-    'Laura Gheorghiu <laura.gheorghiu@chevah.com>',
-    ]
 
 
 class MD5SumFile(object):
@@ -641,44 +637,6 @@ def _generateProjectDocumentation(arguments=None, experimental=False):
     print "Documentation files generated in %s" % pave.fs.join(destination)
     print "Exit with %d." % (exit_code)
     return exit_code
-
-
-@task
-@consume_args
-def release(args):
-    """
-    Publish download files and documentation.
-
-    publish/downloads/PRODUCT_NAME will go to download website
-    publish
-
-    release [production|staging] [latest] [author_email]
-    """
-
-    try:
-        target = args[0]
-    except IndexError:
-        target = 'staging'
-
-    try:
-        latest = args[1]
-    except IndexError:
-        latest = None
-
-    if args:
-        target = args[0]
-        author_email = args[-1].strip()
-    else:
-        target = 'staging'
-        author_email = 'unknown'
-
-    if target == 'production' and author_email not in RELEASE_MANAGERS:
-        print '%s is not allowed to release in production.' % (author_email)
-        exit(1)
-
-    arguments = [target, latest]
-    call_task('publish_documentation', args=arguments)
-    call_task('publish_distributables', args=arguments)
 
 
 @task

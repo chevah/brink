@@ -6,7 +6,7 @@ PQM related targets for paver.
 import os
 import sys
 
-from paver.easy import task
+from paver.easy import call_task, task
 from paver.tasks import environment, consume_args, cmdopts
 
 from brink.utils import BrinkPaver
@@ -401,7 +401,8 @@ def pqm(args):
         print "Pull id in bad format. It must be an integer."
         sys.exit(1)
 
-    arguments = ['gk-merge', '--properties=github_pull_id=%s' % (pull_id)]
+    pull_id_property = '--properties=github_pull_id=%s' % (pull_id)
+    arguments = ['gk-merge', pull_id_property]
     environment.args = arguments
     from brink.pavement_commons import test_remote
     test_remote(arguments)
@@ -411,6 +412,10 @@ def pqm(args):
 @cmdopts([
     ('target=', None, 'Base repository URI.'),
     ('latest=', None, '`yes` if this release is for latest version.'),
+    (
+        'pull-id=', None,
+        'ID of GitHub pull request for release. Required only for production.'
+        ),
     ])
 @task
 def rqm(options):
@@ -424,12 +429,44 @@ def rqm(options):
         sys.exit(1)
 
     target = pave.getOption(options, 'rqm', 'target', default_value=None)
-    if target != 'production':
-        target = 'staging'
+    if target == 'production':
+        target = 'gk-release'
+    else:
+        target = 'gk-release-staging'
 
-    latest = pave.getOption(options, 'rqm', 'latest', default_value='no')
+    test_arguments = 'latest=%s' % pave.getOption(
+        options, 'rqm', 'latest', default_value='no')
 
-    arguments = ['gk-release', target, latest]
+    pull_id_property = '--properties=github_pull_id=%s' % pave.getOption(
+        options, 'rqm', 'pull_id', default_value='not-defined')
+
+    arguments = [target, pull_id_property, test_arguments]
     environment.args = arguments
     from brink.pavement_commons import test_remote
     test_remote(arguments)
+
+
+@task
+@cmdopts([
+    ('target=', None, 'production | staging'),
+    ])
+def publish(options):
+    """
+    Publish download files and documentation.
+
+    Environment variables:
+    * TEST_ARGUMENTS - [latest=yes|latest=no]
+    """
+
+    target = pave.getOption(
+        options, 'publish', 'target', default_value='staging')
+
+    latest = _get_environment('TEST_ARGUMENTS', default='latest=no')
+    if latest == 'latest=yes':
+        latest = 'yes'
+    else:
+        latest = 'no'
+
+    arguments = [target, latest]
+    call_task('publish_documentation', args=arguments)
+    call_task('publish_distributables', args=arguments)
