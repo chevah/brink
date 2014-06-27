@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.41.0 - 27/06/2014
+-------------------
+
+* Fix arch detection on Solaris.
+
+
 0.40.1 - 16/04/2014
 -------------------
 
