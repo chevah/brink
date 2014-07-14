@@ -3,7 +3,7 @@
 """
 Utility code for Brink.
 """
-from __future__ import with_statement
+from __future__ import absolute_import, with_statement
 
 from contextlib import closing
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
@@ -19,7 +19,7 @@ from brink.execute import execute
 from brink.git_command import BrinkGit
 from brink.filesystem import BrinkFilesystem
 from brink.paths import ProjectPaths
-from brink.sphinx_tools import BrinkSphinx
+from brink.sphinx import BrinkSphinx
 
 
 class BrinkPaver(object):
@@ -490,17 +490,15 @@ class BrinkPaver(object):
         page_name = data['version'] + ".html"
         download_page = [target_folder, page_name]
         self.fs.copyFile(
-            source=[
-                website_path, 'templates',
-                'one_column_no_header_no_footer.html'],
+            source=[website_path, 'placeholders', 'simple.html'],
             destination=download_page,
             )
 
         print "Creating download page..."
         content = self.renderJinja(
             package=website_package,
-            folder='jinja2',
-            template='download_product.j2',
+            folder='jinja',
+            template='download_page_content.j2',
             data=data
             )
         changelog_html = self.renderRST(source=data['changelog'])

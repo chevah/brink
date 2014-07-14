@@ -27,13 +27,13 @@ from brink.pavement_commons import (
     publish,
     rqm,
     SETUP,
-    test_documentation,
     test_python,
     test_remote,
     test_review,
     test_normal,
     test_super,
     )
+from brink.sphinx import test_documentation
 from paver.easy import call_task, consume_args, needs, no_help, task
 
 # Make pylint shut up.
@@ -88,7 +88,7 @@ TEST_PACKAGES = [
 
     'pyflakes==0.7.3',
     'pocketlint==1.4.4.c4',
-
+    'closure-linter==2.3.9',
 
     # Never version of nose, hangs on closing some tests
     # due to some thread handling.

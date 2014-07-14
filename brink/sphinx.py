@@ -1,7 +1,11 @@
 # Copyright (c) 2012 Adi Roiban.
 # See LICENSE for details.
-from __future__ import with_statement
+from __future__ import absolute_import, with_statement
+from optparse import make_option
 import sys
+
+from paver.easy import cmdopts, needs, task
+from paver.tasks import BuildFailure
 
 
 class BrinkSphinx(object):
@@ -195,3 +199,89 @@ def setup(app):
 
         with open(self.fs.join(destination), 'w') as conf_file:
             conf_file.write(content)
+
+    def generateProjectDocumentation(
+            self, arguments=None, experimental=False, theme='standalone'):
+        """
+        Generate project documentation and return exit code.
+        """
+        if arguments is None:
+            arguments = []
+
+        product_name = self.paver.setup['product']['name']
+        version = self.paver.setup['product']['version']
+
+        website_path = self.paver.importAsString(
+            self.paver.setup['website_package']).get_module_path()
+
+        self.createConfiguration(
+            destination=[self.paver.path.build, 'doc_source', 'conf.py'],
+            project=product_name,
+            version=version,
+            copyright=self.paver.setup['product']['copyright_holder'],
+            themes_path=self.paver.fs.join([website_path, 'sphinx']),
+            theme_name=theme,
+            experimental=experimental,
+            )
+        destination = [self.paver.path.build, 'doc', 'html']
+        exit_code = self.createHTML(
+            arguments=arguments,
+            source=[self.paver.path.build, 'doc_source'],
+            target=destination,
+            )
+
+        print("Documentation files generated in %s" % (
+            self.paver.fs.join(destination)))
+        print("Exit with %d." % (exit_code))
+        return exit_code
+
+
+@task
+@cmdopts([
+    make_option(
+        "-c", "--check",
+        help="Check all pages.",
+        default=False,
+        action="store_true"
+        ),
+    ('all', None, 'Create all files.'),
+    ('production', None, 'Build with only production sections.'),
+    ('theme', None, 'Theme of the generated pages.'),
+    ])
+@needs('build', 'update_setup')
+def doc_html(options):
+    """
+    Generates the documentation.
+    """
+    # Avoid recursive import.
+    from brink.pavement_commons import pave
+
+    arguments = []
+    if pave.getOption(options, 'doc_html', 'all'):
+        arguments.extend(['-a', '-E', '-n'])
+    if pave.getOption(options, 'doc_html', 'production'):
+        experimental = False
+    else:
+        experimental = True
+
+    theme = pave.getOption(options, 'doc_html', 'theme', 'standalone')
+
+    return pave.sphinx.generateProjectDocumentation(
+        arguments, experimental=experimental, theme=theme)
+
+
+@task
+@needs('build', 'update_setup')
+def test_documentation():
+    """
+    Generates the documentation in testing mode.
+
+    Any warning are treated as errors.
+    """
+    # Avoid recursive import.
+    from brink.pavement_commons import pave
+
+    exit_code = pave.sphinx.generateProjectDocumentation(
+        ['-a', '-E', '-W', '-N', '-n'])
+    if exit_code:
+        raise BuildFailure('Documentation test failed.')

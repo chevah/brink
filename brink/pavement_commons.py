@@ -18,7 +18,6 @@ inside the project folder, there is one folder for each products.
 """
 from __future__ import with_statement
 
-from optparse import make_option
 import getpass
 import os
 import sys
@@ -562,84 +561,6 @@ def review(options):
 
 
 @task
-@cmdopts([
-    make_option(
-        "-c", "--check",
-        help="Check all pages.",
-        default=False,
-        action="store_true"
-        ),
-    ('all', None, 'Create all files.'),
-    ('production', None, 'Build with only production sections.'),
-    ])
-@needs('build', 'update_setup')
-def doc_html(options):
-    """
-    Generates the documentation.
-    """
-    arguments = []
-    if pave.getOption(options, 'doc_html', 'all'):
-        arguments.extend(['-a', '-E', '-n'])
-    if pave.getOption(options, 'doc_html', 'production'):
-        experimental = False
-    else:
-        experimental = True
-    return _generateProjectDocumentation(arguments, experimental=experimental)
-
-
-@task
-@needs('build', 'update_setup')
-def test_documentation():
-    """
-    Generates the documentation in testing mode.
-
-    Any warning are treated as errors.
-    """
-    exit_code = _generateProjectDocumentation(
-        ['-a', '-E', '-W', '-N', '-n'])
-    if exit_code:
-        raise BuildFailure('Documentation test failed.')
-
-
-def _generateProjectDocumentation(arguments=None, experimental=False):
-    """
-    Generate project documentation and return exit code.
-    """
-    if arguments is None:
-        arguments = []
-
-    product_name = SETUP['product']['name']
-    version = SETUP['product']['version']
-
-    website_path = pave.importAsString(
-        SETUP['website_package']).get_module_path()
-
-    pave.sphinx.createConfiguration(
-        destination=[pave.path.build, 'doc_source', 'conf.py'],
-        project=product_name,
-        version=version,
-        copyright=SETUP['product']['copyright_holder'],
-        themes_path=pave.fs.join([website_path, 'sphinx']),
-        theme_name='standalone',
-        experimental=experimental,
-        )
-    destination = [pave.path.build, 'doc', 'html']
-    exit_code = pave.sphinx.createHTML(
-        arguments=arguments,
-        source=[pave.path.build, 'doc_source'],
-        target=destination,
-        )
-
-    pave.fs.copyFolder(
-        source=[website_path, 'media'],
-        destination=[pave.path.build, 'doc', 'html', 'media'])
-
-    print "Documentation files generated in %s" % pave.fs.join(destination)
-    print "Exit with %d." % (exit_code)
-    return exit_code
-
-
-@task
 @needs('update_setup', 'dist')
 @consume_args
 def publish_distributables(args):
@@ -772,6 +693,8 @@ def publish_documentation(args):
         pave.path.publish, 'website', 'documentation']
     publish_release_folder = [
         pave.path.publish, 'website', 'documentation', version]
+    publish_latest_folder = [
+        pave.path.publish, 'website', 'documentation', 'latest']
     publish_experimental_folder = [
         pave.path.publish, 'website', 'documentation', 'experimental']
     publish_experimental_release_folder = [
@@ -785,29 +708,27 @@ def publish_documentation(args):
     pave.fs.createFolder(publish_documentation_folder)
     pave.fs.createFolder(publish_experimental_folder)
 
-    call_task(
-        'doc_html',
-        options={
-            'production': True,
-            'all': True,
-            },
-        )
+    call_task('documentation_website')
     pave.fs.copyFolder(
         source=[pave.path.build, 'doc', 'html'],
         destination=publish_release_folder,
         )
 
     call_task(
-        'doc_html',
-        options={
-            'production': False,
-            'all': True,
-            },
+        'documentation_website',
+        options={'experimental': True},
         )
     pave.fs.copyFolder(
         source=[pave.path.build, 'doc', 'html'],
         destination=publish_experimental_release_folder,
         )
+
+    # If we are releasing the latest version, also copy file to latest folder.
+    if latest == 'yes':
+        pave.fs.copyFolder(
+            source=[pave.path.build, 'doc', 'html'],
+            destination=publish_latest_folder,
+            )
 
     publish_config = SETUP['publish']
     if target == 'production':
@@ -818,18 +739,6 @@ def publish_documentation(args):
         documentation_hostname = publish_config['website_staging_hostname']
         destination_root = (
             documentation_hostname + '/documentation/' + product_name)
-
-    if latest == 'yes':
-        # Also create a latest redirect.
-        data = {
-            'url': 'http://%s/%s' % (destination_root, version),
-            'title': 'Redirecting to latest %s documentation' % (
-                product_name),
-            }
-        template_root = pave.fs.join([pave.path.build, 'doc_source'])
-        content = pave.renderJinja(template_root, 'latest.j2', data)
-        redirect = [pave.fs.join(publish_documentation_folder), 'index.html']
-        pave.fs.writeContentToFile(redirect, content=content)
 
     print "Publishing documentation to %s..." % (documentation_hostname)
     pave.rsync(

@@ -4,6 +4,28 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.44.0 - 13/07/2014
+-------------------
+
+* Undo removal of download page generation, since this method is used by
+  multiple projects.
+
+
+0.43.0 - 13/07/2014
+-------------------
+
+* Update documentation publish script to also copy latest version.
+* To publish documentation, users need to define a `documentation_website`
+  task.
+
+
+0.42.0 - 13/07/2014
+-------------------
+
+* Remove functionality to created download page.
+* Update Sphinx docs generation to create with different themes.
+
+
 0.41.0 - 27/06/2014
 -------------------
 
