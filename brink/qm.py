@@ -306,7 +306,7 @@ def merge_init():
 
         print "Merge original branch with squash and no commit."
         print git.merge(
-            branch_name, no_commit=True, squash=True)
+            local_sha, no_commit=True, squash=True)
 
         print "Check for merge conflicts."
         result = git.ls_files(unmerged=True).split('\n')

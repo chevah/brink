@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.44.1 - 29/07/2014
+-------------------
+
+* Fix PQM merge_init to not depend on branch name, but use commit SHA
+  instead.
+
+
 0.44.0 - 13/07/2014
 -------------------
 
