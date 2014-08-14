@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.45.0 - 14/08/2014
+-------------------
+
+* Add support for Ubuntu 14.04.
+
+
 0.44.1 - 29/07/2014
 -------------------
 
