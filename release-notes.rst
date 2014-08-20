@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.45.1 - 18/08/2014
+-------------------
+
+* Fix PQM merge which was not updating master before merge and so failing
+  to push finale changes to origin.
+
+
 0.45.0 - 14/08/2014
 -------------------
 

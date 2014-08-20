@@ -298,6 +298,8 @@ def merge_init():
         try:
             print "Switch to master branch"
             print repo.heads['master'].checkout()
+            print "Update master"
+            print git.pull()
         except IndexError:
             print "We don't have a master branch."
             print "Let's get it."
@@ -363,12 +365,18 @@ def merge_commit(args):
         # Merge branch into master.
         print "Go to master"
         repo.heads['master'].checkout()
+        print "Update master"
+        print git.pull()
         print "Merge branch"
         print git.merge(branch_name, squash=True, no_commit=True)
         print "Commit message"
         print git.commit(author=author, message=message)
         # Push merged changes.
-        print repo.remotes.origin.push()
+        for state in repo.remotes.origin.push():
+            print state.summary
+            if '[rejected]' in state.summary:
+                print 'Failed to push changes.'
+                sys.exit(1)
         # Delete original branch.
         print repo.remotes.origin.push(branch_name, delete=True)
     except GitCommandError, error:
