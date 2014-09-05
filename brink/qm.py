@@ -371,8 +371,8 @@ def merge_commit(args):
         print git.merge(branch_name, squash=True, no_commit=True)
         print "Commit message"
         print git.commit(author=author, message=message)
-        # Push merged changes.
-        for state in repo.remotes.origin.push():
+        # Push merged changes to master.
+        for state in repo.remotes.origin.push('master'):
             print state.summary
             if '[rejected]' in state.summary:
                 print 'Failed to push changes.'
