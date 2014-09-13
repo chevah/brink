@@ -379,8 +379,10 @@ detect_os() {
                 OS='rhel5'
             elif [ "$rhel_major_version" = "6" ] ; then
                 OS='rhel6'
+            elif [ "$rhel_major_version" = "7" ] ; then
+                OS='rhel7'
             else
-                echo 'Unsuported RHEL version.'
+                echo 'Unsupported RHEL version.'
                 exit 1
             fi
         elif [ -f /etc/SuSE-release ] ; then

@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.46.0 - 14/08/2014
+-------------------
+
+* Add support for RHEL 7.
+
+
 0.45.2 - 05/09/2014
 -------------------
 
