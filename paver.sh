@@ -372,7 +372,7 @@ detect_os() {
             rhel_version=`\
                 cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//`
             # RHEL4 glibc is not compatible with RHEL 5 and 6.
-            rhel_major_version=${rhel_version%.*}
+            rhel_major_version=${rhel_version%%.*}
             if [ "$rhel_major_version" = "4" ] ; then
                 OS='rhel4'
             elif [ "$rhel_major_version" = "5" ] ; then
