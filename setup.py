@@ -1,3 +1,4 @@
+
 # Copyright (c) 2012 Adi Roiban.
 # See LICENSE for details.
 """
@@ -8,7 +9,7 @@ These are the extensions build around paver.
 from setuptools import setup, find_packages, Command
 import os
 
-VERSION = u'0.46.1'
+VERSION = u'0.46.3'
 
 
 class PublishCommand(Command):

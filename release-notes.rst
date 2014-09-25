@@ -4,10 +4,24 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.46.3 - 22/08/2014
+-------------------
+
+* Revert changes from 0.46.2 as they were bad.
+
+
+0.46.2 - 22/08/2014
+-------------------
+
+* Fix PQM merge_init when branch name is not available on repo. Use only
+  branch SHA instead of branch name.
+
+
 0.46.1 - 22/09/2014
 -------------------
 
 * Fix OS detection for RHEL 7.
+* Accidentally releases with code from 0.46.2
 
 
 0.46.0 - 14/08/2014

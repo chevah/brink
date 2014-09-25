@@ -328,7 +328,7 @@ def merge_init():
         # Since we merge with squash... we don't have a real merge so we
         # can not use merge --abort here.
         print git.reset(hard=True)
-        print repo.heads[branch_name].checkout()
+        print git.checkout(branch_name)
 
 
 @task
@@ -356,7 +356,8 @@ def merge_commit(args):
     repo = Repo(os.getcwd())
     git = repo.git
 
-    branch_name = repo.head.ref.name
+    branch_name = _get_environment('BRANCH', repo.head.ref.name)
+    loca_sha = _get_environment('COMMIT')
 
     (_, message) = _review_properties(
         token=github_env['token'], pull_id=github_env['pull_id'])
@@ -368,7 +369,7 @@ def merge_commit(args):
         print "Update master"
         print git.pull()
         print "Merge branch"
-        print git.merge(branch_name, squash=True, no_commit=True)
+        print git.merge(loca_sha, squash=True, no_commit=True)
         print "Commit message"
         print git.commit(author=author, message=message)
         # Push merged changes to master.
