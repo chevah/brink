@@ -4,13 +4,21 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
-0.46.3 - 22/08/2014
+0.47.0 - 04/10/2014
+-------------------
+
+* Add support for OS X 10.8.
+* Rename `get_default_values` to `detect_os`.
+* Add /usr/local/bin to the default PATHs.
+
+
+0.46.3 - 22/09/2014
 -------------------
 
 * Revert changes from 0.46.2 as they were bad.
 
 
-0.46.2 - 22/08/2014
+0.46.2 - 22/09/2014
 -------------------
 
 * Fix PQM merge_init when branch name is not available on repo. Use only

@@ -117,6 +117,7 @@ SETUP['pocket-lint']['include_files'] = [
     'msys-console.js',
     'pavement.py',
     'release-notes.rst',
+    'paver.sh',
     ]
 SETUP['pocket-lint']['include_folders'] = [
     'brink',
