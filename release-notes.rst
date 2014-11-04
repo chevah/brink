@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.47.1 - 04/11/2014
+-------------------
+
+* Fix removing folders with read-only files on Windows.
+
+
 0.47.0 - 04/10/2014
 -------------------
 

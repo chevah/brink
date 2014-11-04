@@ -6,6 +6,7 @@ from contextlib import contextmanager
 import os
 import re
 import shutil
+import stat
 
 
 class BrinkFilesystem(object):
@@ -228,8 +229,22 @@ class BrinkFilesystem(object):
 
         Ignores errors if it does not exists.
         """
+
+        def on_error(func, path, exc_info):
+            """
+            Error handler for ``shutil.rmtree``.
+
+            If the error is due to an access error (read only file)
+            it attempts to add write permission and then retries.
+
+            If the error is for another reason it re-raises the error.
+            """
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+
         try:
-            shutil.rmtree(self.join(target))
+            shutil.rmtree(
+                self.join(target), ignore_errors=False, onerror=on_error)
         except OSError, error:
             if error.errno == 2:
                 pass
