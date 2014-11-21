@@ -433,12 +433,15 @@ detect_os() {
 
     elif [ "${OS}" = "darwin" ] ; then
         osx_version=`sw_vers -productVersion`
-        if [ "$osx_version" = "10.8" ] ; then
-            OS='osx108'
-        else
-            echo 'Unsuported OS X version:' $osx_version
-            exit 1
-        fi
+        case $osx_version in
+            10.8*)
+                OS='osx108'
+                ;;
+            *)
+                echo 'Unsuported OS X version:' $osx_version
+                exit 1
+                ;;
+        esac
 
         osx_arch=`uname -m`
         if [ "$osx_arch" = "Power Macintosh" ] ; then
