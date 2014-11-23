@@ -20,3 +20,4 @@ TODO
 
 * Update python, pip and setuptool. Right now we need to clean the build
   folder to update python pip or setuptools.
+* Add support to install binary packages.
