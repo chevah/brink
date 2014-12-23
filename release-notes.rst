@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.48.0 - 18/12/2014
+-------------------
+
+* Update linter to check for ticket id of current branch. This should make
+  sure known issues are kept in sync.
+
+
 0.47.1 - 04/11/2014
 -------------------
 

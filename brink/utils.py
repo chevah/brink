@@ -696,6 +696,7 @@ class BrinkPaver(object):
                 'FIXME:123: is the required format.'),
             ('(?i)TO' + 'DO ', 'No TO' + 'DO markers are allowed.'),
             ('(?i)TO' + 'DO$', 'No TO' + 'DO markers are allowed.'),
+            ('\[#' + '%s\] ' % (ticket), 'Branch should fix this issue.'),
             ]
         options.pep8['hang_closing'] = True
 
