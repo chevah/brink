@@ -691,8 +691,10 @@ def publish_documentation(args):
     publish_website_folder = [pave.path.publish, 'website']
     publish_documentation_folder = [
         pave.path.publish, 'website', 'documentation']
+    publish_documentation_versioned_folder = [
+        pave.path.publish, 'website', 'documentation', 'v']
     publish_release_folder = [
-        pave.path.publish, 'website', 'documentation', version]
+        pave.path.publish, 'website', 'documentation', 'v', version]
     publish_latest_folder = [
         pave.path.publish, 'website', 'documentation', 'latest']
     publish_experimental_folder = [
@@ -706,6 +708,7 @@ def publish_documentation(args):
     pave.fs.deleteFolder(publish_website_folder)
     pave.fs.createFolder(publish_website_folder)
     pave.fs.createFolder(publish_documentation_folder)
+    pave.fs.createFolder(publish_documentation_versioned_folder)
     pave.fs.createFolder(publish_experimental_folder)
 
     call_task('documentation_website')

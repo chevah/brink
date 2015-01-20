@@ -4,6 +4,24 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.49.2 - 07/01/2015
+-------------------
+
+* Really fix publishing versioned documentation.
+
+
+0.49.1 - 07/01/2015
+-------------------
+
+* Fix publishing versioned documentation.
+
+
+0.49.0 - 06/01/2015
+-------------------
+
+* Update publish task to put versioned documentation into dedicated folder.
+
+
 0.48.1 - 08/01/2015
 -------------------
 
