@@ -204,7 +204,7 @@ def test_python(args):
         run_elevated = False
         if SETUP['test']['elevated']:
             for arg in args:
-                if SETUP['test']['elevated'] in arg:
+                if arg.startswith(SETUP['test']['elevated']):
                     run_elevated = True
                     break
         if run_elevated:

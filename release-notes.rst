@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.49.3 - 07/01/2015
+-------------------
+
+* Fix execution of python elevated test.
+
+
 0.49.2 - 07/01/2015
 -------------------
 
