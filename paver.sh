@@ -61,13 +61,8 @@ LOCAL_PYTHON_BINARY_DIST=""
 # Put default values and create them as global variables.
 OS='not-detected-yet'
 ARCH='x86'
-
-# When run on Linux distros other then those supported by us (Red Hat, SUSE,
-# Ubuntu), we match the LSB distros to the oldest Ubuntu LTS supported by us.
-# For non-LSB distros we use the oldest supported Linux distro. No guarantees
-# made... For details, please see the Linux bits in detect_os() below.
-OS_LINUX_LSB='ubuntu1204'
-OS_LINUX_NONLSB='ubuntu1004'
+CC='gcc'
+CXX='g++'
 
 
 clean_build() {
@@ -164,7 +159,8 @@ update_path_variables() {
 
 
 write_default_values() {
-    echo ${BUILD_FOLDER} ${PYTHON_VERSION} ${OS} ${ARCH} > DEFAULT_VALUES
+    echo ${BUILD_FOLDER} ${PYTHON_VERSION} ${OS} ${ARCH} ${CC} ${CXX} \
+        > DEFAULT_VALUES
 }
 
 
@@ -352,17 +348,13 @@ detect_os() {
 
     elif [ "${OS}" = "sunos" ] ; then
 
+        # By default, we use Sun's Studio compiler. Comment these two for GCC.
+        CC="cc"
+        CXX="CC"
+
         OS="solaris"
         ARCH=`isainfo -n`
         VERSION=`uname -r`
-
-        if [ "$ARCH" = "i386" ] ; then
-            ARCH='x86'
-        elif [ "$ARCH" = "amd64" ]; then
-            ARCH='x64'
-        elif [ "$ARCH" = "sparcv9" ] ; then
-            ARCH='sparc64'
-        fi
 
         if [ "$VERSION" = "5.10" ] ; then
             OS="solaris10"
@@ -370,19 +362,19 @@ detect_os() {
 
     elif [ "${OS}" = "aix" ] ; then
 
+        # By default, we use IBM's XL C compiler. Comment these two for GCC.
+        # Beware that GCC 4.2 from IBM's RPMs will fail with GMP and Python!
+        CC="xlc_r"
+        CXX="xlC_r"
+
+        ARCH="ppc`getconf HARDWARE_BITMODE`"
         release=`oslevel`
         case $release in
-            5.1.*)
-                OS='aix51'
-                ARCH='ppc'
-            ;;
             5.3.*)
                 OS='aix53'
-                ARCH='ppc'
             ;;
             7.1.*)
                 OS='aix71'
-                ARCH='ppc'
             ;;
         esac
 
@@ -421,7 +413,7 @@ detect_os() {
             if [ "$sles_version" = "11" ] ; then
                 OS='sles11'
             else
-                echo 'Unsuported SLES version.'
+                echo 'Unsupported SLES version.'
                 exit 1
             fi
         elif [ -f /etc/lsb-release ] ; then
@@ -443,11 +435,9 @@ detect_os() {
                         exit 1
                     ;;
                 esac
-            else
-                OS=$OS_LINUX_LSB
             fi
         else
-            OS=$OS_LINUX_NONLSB
+            OS='linux'
         fi
 
     elif [ "${OS}" = "darwin" ] ; then
@@ -457,36 +447,28 @@ detect_os() {
                 OS='osx108'
                 ;;
             *)
-                echo 'Unsuported OS X version:' $osx_version
+                echo 'Unsupported OS X version:' $osx_version
                 exit 1
                 ;;
         esac
 
-        osx_arch=`uname -m`
-        if [ "$osx_arch" = "Power Macintosh" ] ; then
-            ARCH='ppc'
-        elif [ "$osx_arch" = "x86_64" ] ; then
-            ARCH='x64'
-        else
-            echo 'Unsuported OS X architecture:' $osx_arch
-            exit 1
-        fi
+        ARCH=`uname -m`
     else
-        echo 'Unsuported operating system:' $OS
+        echo 'Unsupported operating system:' $OS
         exit 1
     fi
 
     # Fix arch names.
-    if [ "$ARCH" = "i686" ] ; then
+    if [ "$ARCH" = "i686" -o "$ARCH" = "i386" ]; then
         ARCH='x86'
-
-    fi
-    if [ "$ARCH" = "i386" ] ; then
-        ARCH='x86'
-    fi
-
-    if [ "$ARCH" = "x86_64" ] ; then
+    elif [ "$ARCH" = "x86_64" -o "$ARCH" = "amd64" ]; then
         ARCH='x64'
+    elif [ "$ARCH" = "sparcv9" ]; then
+        ARCH='sparc64'
+    elif [ "$ARCH" = "ppc64" ]; then
+        # Python has not been fully tested on AIX when compiled as a 64 bit
+        # application and has math rounding error problems (at least with XL C).
+        ARCH='ppc'
     fi
 }
 
