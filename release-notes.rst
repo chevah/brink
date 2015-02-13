@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.50.0 - 13/02/2015
+-------------------
+
+* Refactored OS detection.
+
+
 0.49.3 - 07/01/2015
 -------------------
 
