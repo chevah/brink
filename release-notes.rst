@@ -4,6 +4,15 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.51.0 - 24/02/2015
+-------------------
+
+* Add ARM64 support.
+* Add HP-UX support.
+* Fix OS detection for Solaris 9 and OS X 10.10.
+* Allow unreadable directories in PATH.
+
+
 0.50.0 - 13/02/2015
 -------------------
 

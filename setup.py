@@ -9,7 +9,7 @@ These are the extensions build around paver.
 from setuptools import setup, find_packages, Command
 import os
 
-VERSION = u'0.50.0'
+VERSION = u'0.51.0'
 
 
 class PublishCommand(Command):
