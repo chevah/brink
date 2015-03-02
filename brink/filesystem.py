@@ -375,7 +375,13 @@ class BrinkFilesystem(object):
 
         Method is a helper for testing.
         """
-        result = os.listdir(path)
+        try:
+            result = os.listdir(path)
+        except OSError as error:
+            if error.errno == 13:
+                return []
+            else:
+                raise
         return result
 
     def _isValidSystemPath(self, path):
