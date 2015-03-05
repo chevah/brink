@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.52.0 - 04/03/2015
+-------------------
+
+* Add support for `changes-approved` command in PQM.
+
+
 0.51.0 - 24/02/2015
 -------------------
 

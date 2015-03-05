@@ -4,6 +4,7 @@
 PQM related targets for paver.
 """
 import os
+import re
 import sys
 
 from paver.easy import call_task, task
@@ -13,6 +14,10 @@ from brink.utils import BrinkPaver
 from brink.configuration import SETUP
 
 pave = BrinkPaver(SETUP)
+
+RE_REVIEWERS = '.*reviewers{0,1}:{0,1} @.*'
+RE_NEEDS_CHANGES = '.*needs{0,1}[\-_]changes{0,1}.*'
+RE_CHANGES_APPROVED = '.*changes{0,1}[\-_]approved{0,1}.*'
 
 
 @task
@@ -101,8 +106,6 @@ def _review_properties(token, pull_id):
     with paver arguments.
     """
     from github import GithubException
-    from chevah.github_hooks_server.handler import Handler
-    handler = Handler(trac_url='mock')
     try:
         repo = _get_repo(token=token, repo=SETUP['github']['repo'])
         pull_request = _get_pull(repo, pull_id=pull_id)
@@ -161,15 +164,11 @@ def _review_properties(token, pull_id):
         # approved.
         pending_approval = []
         for reviewer in reviewers:
-            approved_sha = getApprovedSHA(reviewer, comments)
-            if not approved_sha:
-                pending_approval.append((reviewer, 'Not approved yet.'))
+            if _approvedByReviewer(reviewer, comments):
+                # All good.
                 continue
 
-            if not sha.startswith(approved_sha):
-                pending_approval.append((
-                    reviewer, 'Approved at "%s". Branch at "%s".' % (
-                        approved_sha, sha)))
+            pending_approval.append((reviewer, 'Not approved yet.'))
 
         if pending_approval:
             print "Review not approved. See list below"
@@ -177,28 +176,11 @@ def _review_properties(token, pull_id):
                 print reason
             sys.exit(1)
 
-    def getApprovedSHA(reviewer, comments):
-        """
-        Return the line in which the review has approved the review.
-
-        Return None if no approval comment was found.
-        """
-        for author, content, updated_at in comments:
-            if reviewer != author:
-                # Not a comment from reviewer.
-                continue
-
-            sha = handler._getApprovedSHA(content)
-            if sha:
-                return sha
-
-        return None
-
     branch_name = pull_request.head.ref
     branch_sha = pull_request.head.sha.lower()
     ticket_id = pave.getTicketIDFromBranchName(branch_name)
 
-    reviewers = handler._getGitHubReviewers(pull_request.body)
+    reviewers = _getGitHubReviewers(pull_request.body)
     checkReviewApproval(
         comments=comments, reviewers=reviewers, sha=branch_sha)
 
@@ -206,6 +188,60 @@ def _review_properties(token, pull_id):
     commit_message = "[#%s] %s" % (ticket_id, review_title)
 
     return (pull_request, commit_message)
+
+
+def _getGitHubReviewers(description):
+    """
+    Return a list of reviewers from review request description.
+    """
+    results = []
+    for line in description.splitlines():
+        result = re.match(RE_REVIEWERS, line)
+        if not result:
+            continue
+        for word in line.split(' '):
+            if word.startswith('@'):
+                results.append(word[1:].strip())
+    return results
+
+
+def _approvedByReviewer(reviewer, comments):
+    """
+    Return `True` if reviewer has approved the changes.
+    """
+    for author, content, updated_at in comments:
+        if reviewer != author:
+            # Not a comment from reviewer.
+            continue
+
+        action = _getActionFromComment(content)
+        if action in ['needs-changes']:
+            return False
+
+        if action != 'changes-approved':
+            continue
+
+        return True
+
+    return False
+
+
+def _getActionFromComment(comment):
+    """
+    Return action associated with comment.
+
+    Supported commands:
+    * changes-approved - all good
+    * needs-changes - more work
+    """
+    for line in comment.splitlines():
+        line = line.lower()
+        if re.match(RE_CHANGES_APPROVED, line):
+            return 'changes-approved'
+        if re.match(RE_NEEDS_CHANGES, line):
+            return 'needs-changes'
+
+    return 'no-action'
 
 
 def _get_environment(name, default=None):
@@ -387,13 +423,19 @@ def merge_commit(args):
 
 
 @task
-@consume_args
-def pqm(args):
+@cmdopts([
+    ('force-clean', None, 'Force cleaning the merge environment.'),
+    ])
+def pqm(options):
     """
     Submit the branch to PQM.
 
-    Arguments: PULL_ID
+    Arguments AFTER all options: PULL_ID
     """
+    # Beside command options with also support command arguments, but paver
+    # don't support both... so we manually extract the options.
+    args = [arg for arg in sys.argv[2:] if not arg.startswith('-')]
+
     if len(args) != 1:
         print 'Please specify the pull request id for this branch.'
         sys.exit(1)
@@ -412,6 +454,10 @@ def pqm(args):
 
     pull_id_property = '--properties=github_pull_id=%s' % (pull_id)
     arguments = ['gk-merge', pull_id_property]
+
+    if pave.getOption(options, 'pqm', 'force_clean'):
+        arguments.append('--properties=force_clean=yes')
+
     environment.args = arguments
     from brink.pavement_commons import test_remote
     test_remote(arguments)
