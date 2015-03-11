@@ -70,7 +70,7 @@ BUILD_PACKAGES = [
     'docutils>=0.9.1-chevah2',
 
     # Buildbot is used for try scheduler
-    'buildbot',
+    'buildbot==0.8.11.pre.143.gac88f1b.c2',
 
     # For PQM
     'smmap==0.8.2',
