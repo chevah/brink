@@ -4,6 +4,7 @@
 System tests for `BrinkFilesystem`.
 """
 import os
+import sys
 
 from brink.testing import BrinkTestCase, mk
 
@@ -31,7 +32,7 @@ class TestBrinkFilesystem(BrinkTestCase):
         """
         full_path = mk.fs.getRealPathFromSegments(self.test_segments)
 
-        if os.name == 'posix':
+        if os.name == 'posix' and not sys.platform.startswith('darwin'):
             command = self.file_name.encode('utf-8')
             folder = self.folder.encode('utf-8')
             full_path = full_path.encode('utf-8')

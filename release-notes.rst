@@ -4,6 +4,14 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.53.1 - 02/04/2015
+-------------------
+
+* Fix approval of a review if there is a `needs-changes` before a
+  `changes-approved` marker.
+* Fix `which` on OSX for Unicode paths.
+
+
 0.53.0 - 11/03/2015
 -------------------
 

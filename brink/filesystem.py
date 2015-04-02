@@ -7,6 +7,8 @@ import os
 import re
 import shutil
 import stat
+import sys
+import unicodedata
 
 
 class BrinkFilesystem(object):
@@ -375,6 +377,11 @@ class BrinkFilesystem(object):
 
         Method is a helper for testing.
         """
+        if sys.platform.startswith('darwin') or os.name == 'nt':
+            # On Windows and OSX we force Unicode as low filesystem is Unicode.
+            if not isinstance(path, unicode):
+                path = path.decode('utf-8')
+
         try:
             result = os.listdir(path)
         except OSError as error:
@@ -382,6 +389,12 @@ class BrinkFilesystem(object):
                 return []
             else:
                 raise
+
+        if sys.platform.startswith('darwin'):
+            # On OSX we need to normalize the Unicode result
+            result = [
+                unicodedata.normalize('NFC', name)
+                for name in result]
         return result
 
     def _isValidSystemPath(self, path):

@@ -210,13 +210,17 @@ def _approvedByReviewer(reviewer, comments):
     Return `True` if reviewer has approved the changes.
     """
     for author, content, updated_at in comments:
+        action = _getActionFromComment(content)
+
+        if action in ['needs-changes']:
+            # We have a needs-changes, before an approval.
+            # This is not approved even if the comment is from another
+            # reviewer.
+            return False
+
         if reviewer != author:
             # Not a comment from reviewer.
             continue
-
-        action = _getActionFromComment(content)
-        if action in ['needs-changes']:
-            return False
 
         if action != 'changes-approved':
             continue
