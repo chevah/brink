@@ -312,14 +312,14 @@ install_dependencies(){
     exit_code=$?
     set -e
     if [ $exit_code -ne 0 ]; then
-        echo 'Failed to run the inital "paver deps" command.'
+        echo 'Failed to run the initial "paver deps" command.'
         exit 1
     fi
 }
 
 
 #
-# Chech that we have a pavement.py in the current dir.
+# Check that we have a pavement.py in the current dir.
 # otherwise it means we are out of the source folder and paver can not be
 # used there.
 #
