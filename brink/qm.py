@@ -44,16 +44,13 @@ def github(args):
     import webbrowser
 
     if args[0] == 'open':
-        url = "%s/%s" % (SETUP['github']['base_url'], SETUP['github']['repo'])
-        webbrowser.open_new_tab(url)
+        webbrowser.open_new_tab(SETUP['repository']['github'])
         sys.exit(0)
 
     if args[0] == 'new':
         pave.git.publish()
-        url = "%s/%s/pull/new/%s" % (
-            SETUP['github']['base_url'],
-            SETUP['github']['repo'],
-            pave.git.branch_name)
+        url = "%s/compare/%s?expand=1" % (
+            SETUP['repository']['github'], pave.git.branch_name)
         webbrowser.open_new_tab(url)
         sys.exit(0)
 
@@ -77,11 +74,13 @@ def _github_token(username, password):
     return authorization.token
 
 
-def _get_repo(token, repo):
+def _get_repo(token):
     """
     Return GitHub repository.
     """
     from github import Github
+    repo = SETUP['repository']['github'].split('/')
+    repo = repo[-2] + '/' + repo[-1]
     github = Github(token, user_agent='pygithub/chevah-pqm')
     return github.get_repo(repo)
 
@@ -107,7 +106,7 @@ def _review_properties(token, pull_id):
     """
     from github import GithubException
     try:
-        repo = _get_repo(token=token, repo=SETUP['github']['repo'])
+        repo = _get_repo(token=token)
         pull_request = _get_pull(repo, pull_id=pull_id)
 
         # Fail early if branch can not be merged.
@@ -318,20 +317,31 @@ def merge_init():
         print "Review sha: %s %s" % (remote_sha, pr_branch_name)
         sys.exit(1)
 
-    # Clear any unused files from this repo.
-    print git.clean(force=True, quiet=True)
-
     # Buildbot repos don't have a remote configured.
     try:
-        print git.remote(
-            'add', 'origin',
-            '%s%s.git' % (
-                SETUP['repository']['push_uri'],
-                SETUP['repository']['name'],
-                ),
-            )
-    except GitCommandError:
-        pass
+        origin = SETUP['repository']['github']
+        if origin.startswith('https://'):
+            origin = 'https://%s@%s' % (
+                github_env['token'], origin[8:])
+
+        try:
+            repo.remote('origin')
+            repo.delete_remote('origin')
+        except ValueError:
+            # Remote does not exists.
+            pass
+        except GitCommandError as error:
+            print error
+
+        print 'Set `origin` remote to %s' % (origin,)
+        print repo.create_remote('origin', origin)
+    except GitCommandError as error:
+        print error
+        sys.exit(1)
+
+    # Clear any unused files from this repo.
+    print 'Clean repo'
+    print git.clean(force=True, quiet=True)
 
     try:
         # Switch to master
@@ -339,11 +349,11 @@ def merge_init():
             print "Switch to master branch"
             print repo.heads['master'].checkout()
             print "Update master"
-            print git.pull()
+            print repo.remote('origin').pull('+master')
         except IndexError:
             print "We don't have a master branch."
             print "Let's get it."
-            print repo.remotes['origin'].fetch()
+            print repo.remote('origin').fetch()
             print git.checkout('origin/master', b='master')
 
         print "Merge original branch with squash and no commit."
@@ -407,7 +417,7 @@ def merge_commit(args):
         print "Go to master"
         repo.heads['master'].checkout()
         print "Update master"
-        print git.pull()
+        print repo.remote('origin').pull('+master')
         print "Merge branch"
         print git.merge(loca_sha, squash=True, no_commit=True)
         print "Commit message"
@@ -427,20 +437,15 @@ def merge_commit(args):
 
 
 @task
-@cmdopts([
-    ('force-clean', None, 'Force cleaning the merge environment.'),
-    ])
-def pqm(options):
+def pqm():
     """
     Submit the branch to PQM.
 
-    Arguments AFTER all options: PULL_ID
+    Arguments AFTER all options: PULL_ID [--force-clean]
     """
-    # Beside command options with also support command arguments, but paver
-    # don't support both... so we manually extract the options.
-    args = [arg for arg in sys.argv[2:] if not arg.startswith('-')]
+    args = sys.argv[2:]
 
-    if len(args) != 1:
+    if len(args) < 1:
         print 'Please specify the pull request id for this branch.'
         sys.exit(1)
 
@@ -459,7 +464,7 @@ def pqm(options):
     pull_id_property = '--properties=github_pull_id=%s' % (pull_id)
     arguments = ['gk-merge', pull_id_property]
 
-    if pave.getOption(options, 'pqm', 'force_clean'):
+    if '--force-clean' in args:
         arguments.append('--properties=force_clean=yes')
 
     environment.args = arguments

@@ -261,6 +261,8 @@ def test_remote(args):
     for argument in args[1:]:
         if argument.startswith('--properties=') or argument == '--wait':
             arguments.append(argument)
+        elif argument.startswith('--force_'):
+            arguments.append('--properties=%s' % argument[2:])
         else:
             test_arguments.append(argument)
 
@@ -478,86 +480,6 @@ def buildbot_list(args):
             for line in new_out.getvalue().split('\n'):
                 if selector in line:
                     print line
-
-
-@task
-@cmdopts([
-    ('username=', None, 'Username for which to request review.'),
-    ('review_id=', 'r', 'Review ID to update.'),
-    ('name=', 'n', 'The name of this review.'),
-    ('description=', 'd', 'Description of changes.'),
-    ])
-def review(options):
-    '''Creates and updates reviews hosted on ReviewBoard.'''
-    from rbtools.postreview import main as postreview_main
-
-    branch_name = pave.git.branch_name
-
-    print "Pushing changes..."
-    git_push = ['git', 'push', '--set-upstream', 'origin', branch_name]
-    pave.execute(git_push)
-
-    username = pave.getOption(
-        options, 'review', 'username', default_value=None)
-
-    if not username:
-        # Get the ReviewBoard username based on git account.
-        # Translate: Name Surname <name@domain.tld>
-        # As: namesurname
-        from unidecode import unidecode
-        username = unidecode(pave.git.account)
-        username = username.split('<')[0].strip().lower()
-        username = username.replace(' ', '')
-
-    review_id = pave.getOption(options, 'review', 'review_id')
-
-    # Try to get the bug number from branch name as 23-some_description.
-    # If it is not number, set it to None.
-    bug = pave.getTicketIDFromBranchName(branch_name)
-    try:
-        int(bug)
-    except ValueError:
-        bug = None
-
-    name = pave.getOption(options, 'review', 'name')
-    if name is None:
-        name = branch_name
-
-    description = pave.getOption(options, 'review', 'description')
-
-    module = SETUP['repository']['name']
-
-    new_args = ['rbtools']
-    new_args.extend([
-        '--server=http://review.chevah.com/',
-        '--repository-url=/srv/git/' + module + '.git',
-        '--username=%s' % username,
-        ])
-
-    if review_id:
-        new_args.append('--review-request-id=%s' % review_id)
-
-        if description is None:
-            description = pave.git.last_commit
-        new_args.append('--change-description=' + description)
-
-        # We don't want to update the summary when posting an updated diff.
-        name = None
-        description = None
-        bug = None
-
-    if name:
-        new_args.append('--summary=' + name)
-
-    if description:
-        new_args.append('--description=' + description)
-
-    if bug:
-        new_args.append('--bugs-closed=' + bug)
-
-    sys.argv = new_args
-    print 'Posting review as user: ' + username
-    postreview_main()
 
 
 @task

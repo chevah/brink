@@ -26,8 +26,7 @@ SETUP = {
         },
     'repository': {
         'name': None,
-        'base_uri': 'http://172.20.0.11/git/',
-        'push_uri': 'git@git.chevah.com:'
+        'github': 'NO GitHub URI defined',
         },
     'buildbot': {
         'vcs': 'git',
@@ -58,10 +57,6 @@ SETUP = {
         'package': 'chevah.product.tests',
         # Module inside the test-package where elevated test are located.
         'elevated': None,
-        },
-    'github': {
-        'base_url': 'https://github.com',
-        'repo': 'chevah',
         },
     }
 

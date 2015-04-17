@@ -4,6 +4,27 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.54.4 - 16/04/2015
+-------------------
+
+* Fix merge_init and merge_commit step.
+
+
+0.54.1 - 16/04/2015
+-------------------
+
+* Improve error messages for git set remote.
+* Set remote automatically from GitHub url.
+
+
+0.54.0 - 16/04/2015
+-------------------
+
+* Update PQM to work with GitHub push.
+* Update URL used in new GitHub pull requests.
+* Update test_remote to allow `--force_*` commands.
+
+
 0.53.1 - 02/04/2015
 -------------------
 

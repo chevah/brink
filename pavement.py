@@ -60,7 +60,7 @@ test_super
 
 RUN_PACKAGES = [
     'zope.interface==3.8.0',
-    'twisted==12.1.0-chevah3',
+    'twisted==15.1.0.c1',
     ]
 
 BUILD_PACKAGES = [
@@ -75,8 +75,8 @@ BUILD_PACKAGES = [
     # For PQM
     'smmap==0.8.2',
     'async==0.6.1',
-    'gitdb==0.5.4',
-    'gitpython==0.3.2.RC1',
+    'gitdb==0.6.4',
+    'gitpython==1.0.0',
     'pygithub==1.10.0',
     ]
 
@@ -110,8 +110,7 @@ NODE_PACKAGES = [
     ]
 
 SETUP['repository']['name'] = u'brink'
-SETUP['github']['repo'] = 'chevah/brink'
-SETUP['github']['url'] = 'https://github.com/chevah/brink'
+SETUP['repository']['github'] = 'https://github.com/chevah/brink'
 SETUP['pocket-lint']['include_files'] = [
     'msys-console.js',
     'pavement.py',
