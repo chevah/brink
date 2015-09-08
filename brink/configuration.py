@@ -65,11 +65,13 @@ DIST_TYPE = {
     'NSIS': 1,
     'TAR_GZ': 2,
     'NSIS_RENAMED': 3,
+    'TAR_GZ_LINK': 4,
     }
 
 DIST_EXTENSION = {
     DIST_TYPE['ZIP']: 'zip',
     DIST_TYPE['NSIS']: 'exe',
     DIST_TYPE['TAR_GZ']: 'tar.gz',
+    DIST_TYPE['TAR_GZ_LINK']: 'tar.gz',
     DIST_TYPE['NSIS_RENAMED']: 'rename_to_exe'
     }

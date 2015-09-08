@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.55.0 - 09/08/2015
+-------------------
+
+* Fix loading of paver.conf variables.
+* Add support for linked tar.gz download files.
+
+
 0.54.4 - 16/04/2015
 -------------------
 

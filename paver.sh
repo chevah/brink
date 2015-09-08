@@ -29,9 +29,6 @@ set -o pipefail
 COMMAND=${1-''}
 DEBUG=${DEBUG-0}
 
-# Load repo specific configuration.
-source paver.conf
-
 # Set default locale.
 # We use C (alias for POSIX) for having a basic default value and
 # to make sure we explictly convert all unicode values.
@@ -57,11 +54,22 @@ CACHE_FOLDER="cache"
 PYTHON_BIN=""
 PYTHON_LIB=""
 LOCAL_PYTHON_BINARY_DIST=""
-CLEAN_PYTHON_BINARY_DIST_CACHE=""
 
 # Put default values and create them as global variables.
 OS='not-detected-yet'
 ARCH='x86'
+
+# Initialize default values from paver.conf
+PYTHON_VERSION='python2.7'
+BINARY_DIST_URI='http://chevah.com/binary'
+PIP_INDEX='http://chevah.com/pypi'
+PAVER_VERSION='1.2.1'
+PIP_VERSION="1.4.1.c4"
+SETUPTOOLS_VERSION="1.4.1"
+CLEAN_PYTHON_BINARY_DIST_CACHE=""
+
+# Load repo specific configuration.
+source paver.conf
 
 
 clean_build() {
