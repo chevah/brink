@@ -272,7 +272,7 @@ def test_remote(args):
             '--properties=test=' + ' '.join(test_arguments))
 
     # There is no point in waiting for pqm, all or other long builds.
-    if not '--wait' in arguments:
+    if '--wait' not in arguments:
         print 'Builder execute in non-interactive mode.'
         print 'Check Buildbot page for status or wait for email.'
         print 'Use --wait if you want to wait to test result.'
@@ -460,7 +460,7 @@ def buildbot_list(args):
     print 'Running %s' % new_args
 
     new_out = None
-    if not 'all' in args:
+    if 'all' not in args:
         from StringIO import StringIO
         new_out = StringIO()
         sys.stdout = new_out

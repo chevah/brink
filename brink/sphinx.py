@@ -40,10 +40,13 @@ class BrinkSphinx(object):
             sphinx_command.extend(arguments)
 
         if source is None:
-            source = [self.paver.path.build, 'doc']
+            source = [self.paver.path.build, 'doc_source']
 
         if target is None:
-            target = [self.paver.path.build, 'doc_build']
+            target = [self.paver.path.build, 'doc']
+
+        sphinx_command.extend([
+            '-d', self.fs.join([self.paver.path.build, 'doc_build'])])
 
         sphinx_command.extend([
             '-b', 'html', self.fs.join(source), self.fs.join(target)])

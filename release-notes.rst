@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.55.1 - 08/09/2015
+-------------------
+
+* Create Sphinx build files outside of the output dir.
+
+
 0.55.0 - 09/08/2015
 -------------------
 
