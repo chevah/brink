@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.55.2 - 17/09/2015
+-------------------
+
+* Allow fine grained customization of the download page.
+
+
 0.55.1 - 08/09/2015
 -------------------
 

@@ -454,11 +454,22 @@ class BrinkPaver(object):
 
     def createDownloadPage(
             self, introduction, changelog, base_name, hostname,
-            create_index=True):
+            create_index=True, product_name=None):
         """
         Create a download page for product based on information from `data`.
+
+        * introduction - a text/description for the top of the page.
+        * changelog - the whole changelog of this release
+          (and previous releases).
+        * base_name - Name used to construct the URL path to the download file.
+        * product_name - Name used to describe the product which is downloaded.
+        * hostname - FQDN for the host where the files are stored.
+        * create_index - When `True` will create the index.html
         """
         from brink.pavement_commons import DIST_EXTENSION
+
+        if not product_name:
+            product_name = base_name
 
         target_folder = self.path.dist
 
@@ -466,7 +477,7 @@ class BrinkPaver(object):
 
         base_url = "http://%s/%s/%s/%s" % (
             hostname,
-            self.setup['product']['name'].lower(),
+            base_name.lower(),
             self.setup['product']['version_major'],
             self.setup['product']['version_minor'],
             )
@@ -476,9 +487,9 @@ class BrinkPaver(object):
             'base_url': base_url,
             'version': self.setup['product']['version'],
             'extensions': DIST_EXTENSION,
-            'base_name': base_name,
+            'base_name': product_name.replace(' ', '-').lower(),
             'page_title': "%s %s Download" % (
-                self.setup['product']['name'],
+                product_name,
                 self.setup['product']['version'],
                 ),
             'distributables': self.setup['product']['distributables'],
