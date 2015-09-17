@@ -454,7 +454,7 @@ class BrinkPaver(object):
 
     def createDownloadPage(
             self, introduction, changelog, base_name, hostname,
-            create_index=True, product_name=None):
+            create_index=True, product_name=None, page_title=None):
         """
         Create a download page for product based on information from `data`.
 
@@ -470,6 +470,12 @@ class BrinkPaver(object):
 
         if not product_name:
             product_name = base_name
+
+        if not page_title:
+            page_title = "%s %s Downloads" % (
+                product_name,
+                self.setup['product']['version'],
+                )
 
         target_folder = self.path.dist
 
@@ -488,10 +494,7 @@ class BrinkPaver(object):
             'version': self.setup['product']['version'],
             'extensions': DIST_EXTENSION,
             'base_name': product_name.replace(' ', '-').lower(),
-            'page_title': "%s %s Download" % (
-                product_name,
-                self.setup['product']['version'],
-                ),
+            'page_title': page_title,
             'distributables': self.setup['product']['distributables'],
             }
 
