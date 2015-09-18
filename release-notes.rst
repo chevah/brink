@@ -3,6 +3,13 @@ chevah-brink release notes
 
 Here are the release notes for past brink version.
 
+
+0.55.4 - 18/09/2015
+-------------------
+
+* Allow custom url fragment for download and documentation.
+
+
 0.55.3 - 17/09/2015
 -------------------
 

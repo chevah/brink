@@ -504,7 +504,7 @@ def publish_distributables(args):
     except IndexError:
         latest = None
 
-    product_name = SETUP['product']['name'].lower()
+    url_fragment = SETUP['product']['url_fragment']
     version = SETUP['product']['version']
     version_major = SETUP['product']['version_major']
     version_minor = SETUP['product']['version_minor']
@@ -519,10 +519,10 @@ def publish_distributables(args):
 
     publish_downloads_folder = [pave.path.publish, 'downloads']
     publish_website_folder = [pave.path.publish, 'website']
-    product_folder = [pave.fs.join(publish_downloads_folder), product_name]
+    product_folder = [pave.fs.join(publish_downloads_folder), url_fragment]
     release_publish_folder = [
         pave.fs.join(publish_downloads_folder),
-        product_name, version_major, version_minor]
+        url_fragment, version_major, version_minor]
 
     # Create publishing content for download site.
     pave.fs.deleteFolder(publish_downloads_folder)
@@ -568,8 +568,8 @@ def publish_distributables(args):
     pave.rsync(
         username='chevah_site',
         hostname=download_hostname,
-        source=[pave.path.publish, 'downloads', product_name + '/'],
-        destination=download_hostname + '/' + product_name,
+        source=[pave.path.publish, 'downloads', url_fragment + '/'],
+        destination=download_hostname + '/' + url_fragment,
         verbose=True,
         )
 
@@ -578,7 +578,7 @@ def publish_distributables(args):
         username='chevah_site',
         hostname=documentation_hostname,
         source=[pave.path.publish, 'website', 'downloads/'],
-        destination=documentation_hostname + '/downloads/' + product_name,
+        destination=documentation_hostname + '/downloads/' + url_fragment,
         verbose=True,
         )
 
