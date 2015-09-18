@@ -9,6 +9,12 @@ Here are the release notes for past brink version.
 * Allow custom page title for the the download page.
 
 
+0.55.3 - 17/09/2015
+-------------------
+
+* Support Raspbian.
+
+
 0.55.2 - 17/09/2015
 -------------------
 

@@ -435,8 +435,7 @@ detect_os() {
 
         if [ -f /etc/redhat-release ]; then
             # Avoid getting confused by Red Hat derivatives such as Fedora.
-            egrep 'Red\ Hat|CentOS|Scientific' /etc/redhat-release > /dev/null
-            if [ $? -eq 0 ]; then
+            if egrep -q 'Red\ Hat|CentOS|Scientific' /etc/redhat-release; then
                 os_version_raw=$(\
                     cat /etc/redhat-release | sed s/.*release// | cut -d' ' -f2)
                 check_os_version "Red Hat Enterprise Linux" 4 \
@@ -452,13 +451,24 @@ detect_os() {
                     "$os_version_raw" os_version_chevah
                 OS="sles${os_version_chevah}"
             fi
+        elif [ -f /etc/rpi-issue ]; then
+            # Raspbian is a special case, a Debian unofficial derivative.
+            if egrep -q ^'NAME="Raspbian GNU/Linux' /etc/os-release; then
+                os_version_raw=$(\
+                    grep ^'VERSION_ID=' /etc/os-release | cut -d'"' -f2)
+                check_os_version "Raspbian GNU/Linux" 7 \
+                    "$os_version_raw" os_version_chevah
+                # For now, we only generate a Raspbian version 7.x package,
+                # and we should use that in newer Raspbian versions too.
+                OS="raspbian7"
+            fi
         elif [ $(command -v lsb_release) ]; then
             lsb_release_id=$(lsb_release -is)
             os_version_raw=$(lsb_release -rs)
             if [ $lsb_release_id = Ubuntu ]; then
                 check_os_version "Ubuntu Long-term Support" 10.04 \
                     "$os_version_raw" os_version_chevah
-                # Only Long-term Support versions are oficially endorsed, thus
+                # Only Long-term Support versions are officially endorsed, thus
                 # $os_version_chevah should end in 04 and the first two digits
                 # should represent an even year.
                 if [ ${os_version_chevah%%04} != ${os_version_chevah} -a \
