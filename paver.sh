@@ -3,7 +3,9 @@
 # See LICENSE for details.
 #
 # Helper script for bootstraping the build system on Unix/Msys.
-# It will write the default values into 'DEFAULT_VALUES' file.
+# It will export the default values into the CHEVAH_DEFAULTS
+# environment variable.
+
 #
 # To use this script you will need to publish binary archive files for the
 # following components:
@@ -15,7 +17,7 @@
 # It will delegate the argument to the paver script, with the exception of
 # these commands:
 # * clean - remove everything, except cache
-# * detect_os - create DEFAULT_VALUES and exit
+# * detect_os - detect operating system, and export CHEVAH_DEFAULTS accordingly
 # * get_python - download Python distribution in cache
 # * get_agent - download Rexx/Putty distribution in cache
 #
@@ -80,8 +82,6 @@ clean_build() {
     delete_folder ${DIST_FOLDER}
     echo "Removing publish..."
     delete_folder 'publish'
-    echo "Cleaning project temporary files..."
-    rm -f DEFAULT_VALUES
     echo "Cleaning pyc files ..."
     if [ $OS = "rhel4" ]; then
         # RHEL 4 don't support + option in -exec
@@ -165,8 +165,8 @@ update_path_variables() {
 }
 
 
-write_default_values() {
-    echo ${BUILD_FOLDER} ${PYTHON_VERSION} ${OS} ${ARCH} > DEFAULT_VALUES
+export_default_values() {
+    export CHEVAH_DEFAULTS="${BUILD_FOLDER} ${PYTHON_VERSION} ${OS} ${ARCH}"
 }
 
 
@@ -469,7 +469,7 @@ detect_os() {
                 check_os_version "Ubuntu Long-term Support" 10.04 \
                     "$os_version_raw" os_version_chevah
                 # Only Long-term Support versions are officially endorsed, thus
-                # $os_version_chevah should end in 04 and the first two digits
+                # $os_version_chevah should end in 04, and the first two digits
                 # should represent an even year.
                 if [ ${os_version_chevah%%04} != ${os_version_chevah} -a \
                     $(( ${os_version_chevah%%04} % 2 )) -eq 0 ]; then
@@ -501,7 +501,7 @@ detect_os() {
         ARCH='sparc64'
     elif [ "$ARCH" = "ppc64" ]; then
         # Python has not been fully tested on AIX when compiled as a 64 bit
-        # application and has math rounding error problems (at least with XL C).
+        # binary, and has math rounding error problems (at least with XL C).
         ARCH='ppc'
     elif [ "$ARCH" = "aarch64" ]; then
         ARCH='arm64'
@@ -517,7 +517,7 @@ if [ "$COMMAND" = "clean" ] ; then
 fi
 
 if [ "$COMMAND" = "detect_os" ] ; then
-    write_default_values
+    export_default_values
     exit 0
 fi
 
@@ -532,7 +532,7 @@ if [ "$COMMAND" = "get_agent" ] ; then
 fi
 
 check_source_folder
-write_default_values
+export_default_values
 copy_python
 install_dependencies
 

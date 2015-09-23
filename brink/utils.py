@@ -53,8 +53,9 @@ class BrinkPaver(object):
 
     def _getDefaultValues(self):
         '''Get the default build folder and python version.'''
-        with open('DEFAULT_VALUES') as default_values:
-            output = default_values.read()
+        output = os.environ.get('CHEVAH_DEFAULTS', None)
+        if not output:
+            raise AssertionError('No CHEVAH_DEFAULTS env var. Old paver.sh?')
         results = output.strip().split(' ')
         default_values = {
             'build_folder': results[0],
