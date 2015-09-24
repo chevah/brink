@@ -4,3 +4,4 @@ dist/
 pavement_lib*
 *.egg-info/
 *.pyc
+DEFAULT_VALUES

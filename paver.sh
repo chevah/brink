@@ -3,9 +3,7 @@
 # See LICENSE for details.
 #
 # Helper script for bootstraping the build system on Unix/Msys.
-# It will export the default values into the CHEVAH_DEFAULTS
-# environment variable.
-
+# It will write the default values in the 'DEFAULT_VALUES' file.
 #
 # To use this script you will need to publish binary archive files for the
 # following components:
@@ -17,7 +15,7 @@
 # It will delegate the argument to the paver script, with the exception of
 # these commands:
 # * clean - remove everything, except cache
-# * detect_os - detect operating system, and export CHEVAH_DEFAULTS accordingly
+# * detect_os - detect operating system, create the DEFAULT_VALUES file and exit
 # * get_python - download Python distribution in cache
 # * get_agent - download Rexx/Putty distribution in cache
 #
@@ -82,6 +80,8 @@ clean_build() {
     delete_folder ${DIST_FOLDER}
     echo "Removing publish..."
     delete_folder 'publish'
+    echo "Cleaning project temporary files..."
+    rm -f DEFAULT_VALUES
     echo "Cleaning pyc files ..."
     if [ $OS = "rhel4" ]; then
         # RHEL 4 don't support + option in -exec
@@ -165,8 +165,8 @@ update_path_variables() {
 }
 
 
-export_default_values() {
-    export CHEVAH_DEFAULTS="${BUILD_FOLDER} ${PYTHON_VERSION} ${OS} ${ARCH}"
+write_default_values() {
+    echo ${BUILD_FOLDER} ${PYTHON_VERSION} ${OS} ${ARCH} > DEFAULT_VALUES
 }
 
 
@@ -517,7 +517,7 @@ if [ "$COMMAND" = "clean" ] ; then
 fi
 
 if [ "$COMMAND" = "detect_os" ] ; then
-    export_default_values
+    write_default_values
     exit 0
 fi
 
@@ -532,7 +532,7 @@ if [ "$COMMAND" = "get_agent" ] ; then
 fi
 
 check_source_folder
-export_default_values
+write_default_values
 copy_python
 install_dependencies
 

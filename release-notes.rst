@@ -4,22 +4,28 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.55.6 - 24/09/2015
+-------------------
+
+* Revert to using the DEFAULTS_VALUE file because of issues with python-package.
+
+
 0.55.5 - 22/09/2015
 -------------------
 
-* Get rid of the CUSTOM_DEFAULTS temp file and the unused 'make-it-happen.sh'.
+* Get rid of the DEFAULTS_VALUE temp file and the unused 'make-it-happen.sh'.
 
 
 0.55.4 - 17/09/2015
 -------------------
 
-* Allow custom page title for the the download page.
+* Support Raspbian.
 
 
 0.55.3 - 17/09/2015
 -------------------
 
-* Support Raspbian.
+* Allow custom page title for the the download page.
 
 
 0.55.2 - 17/09/2015
