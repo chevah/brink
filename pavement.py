@@ -3,9 +3,7 @@
 """
 Build script for Chevah brink repository.
 
-The main script is 'make-it-happen.sh'.
-
-This is here just to help with review, buildbot and other tasks.
+This is here to help with review, buildbot, and other tasks.
 """
 import os
 import sys
@@ -207,8 +205,6 @@ def build():
 
     import setup
     setup.distribution.run_command('install')
-    pave.fs.copyFile(
-        ['DEFAULT_VALUES'], [pave.path.build, 'DEFAULT_VALUES'])
 
 
 @task
