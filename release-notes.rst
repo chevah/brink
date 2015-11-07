@@ -8,6 +8,8 @@ Here are the release notes for past brink version.
 -------------------
 
 * Allow custom url fragment for download and documentation.
+* Allow passing PocketLint options.
+* Prevent PQM of release series.
 
 
 0.55.6 - 24/09/2015

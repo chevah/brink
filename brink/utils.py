@@ -576,6 +576,7 @@ class BrinkPaver(object):
             files=None, excluded_files=None,
             quick=False, dry=False,
             branch_name=None,
+            options=None,
             ):
         """
         Run pocketlint on `folders` and `files`.
@@ -691,11 +692,13 @@ class BrinkPaver(object):
 
         count = -1
         initial_ignore = cssccc.IGNORED_MESSAGES
-        options = PocketLintOptions()
-        options.max_line_length = 80
-        options.jslint['enabled'] = False
-        options.closure_linter['enabled'] = True
-        options.closure_linter['ignore'] = [1, 10, 11, 110, 220]
+
+        if options is None:
+            options = PocketLintOptions()
+            options.max_line_length = 80
+            options.jslint['enabled'] = False
+            options.closure_linter['enabled'] = True
+            options.closure_linter['ignore'] = [1, 10, 11, 110, 220]
 
         ticket = branch_name.split('-', 1)[0]
 

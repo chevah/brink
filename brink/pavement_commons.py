@@ -90,6 +90,7 @@ def lint(options):
     files = SETUP['pocket-lint']['include_files'][:]
     excluded_folders = SETUP['pocket-lint']['exclude_folders'][:]
     excluded_files = SETUP['pocket-lint']['exclude_files'][:]
+    options = SETUP['pocket-lint'].get('options', None)
 
     # If branch name was not specified from command line, try to get it from
     # environment or from the current branch.
@@ -104,6 +105,7 @@ def lint(options):
         quick=not all,
         dry=dry,
         branch_name=branch_name,
+        options=options,
         )
 
     if result > 0:

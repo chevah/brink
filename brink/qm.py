@@ -292,7 +292,7 @@ def merge_init():
     git = repo.git
 
     branch_name = _get_environment('BRANCH', repo.head.ref.name)
-    if branch_name in ['master', 'production']:
+    if branch_name in 'master' or branch_name.startswith('series-'):
         print "You can not merge the main branches."
         sys.exit(1)
 
