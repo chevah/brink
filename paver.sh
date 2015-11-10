@@ -197,6 +197,7 @@ pip() {
             --index-url=$PIP_INDEX/simple \
             --download-cache=${CACHE_FOLDER} \
             --find-links=file://${CACHE_FOLDER} \
+            --use-wheel \
             --upgrade
 
     exit_code=$?
@@ -291,6 +292,8 @@ copy_python() {
         cp -RL "${CACHE_FOLDER}/$setuptools_package//setuptools.egg-info" \
             ${PYTHON_LIB}/site-packages/
         cp "${CACHE_FOLDER}/$setuptools_package/pkg_resources.py" \
+            ${PYTHON_LIB}/site-packages/
+        cp -RL "${CACHE_FOLDER}/$setuptools_package/_markerlib" \
             ${PYTHON_LIB}/site-packages/
         cp "${CACHE_FOLDER}/$setuptools_package/easy_install.py" \
             ${PYTHON_LIB}/site-package

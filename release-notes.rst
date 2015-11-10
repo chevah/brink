@@ -4,7 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
-0.55.7 - 18/09/2015
+0.55.8 - 08/11/2015
+-------------------
+
+* Prefer wheels in pip.
+
+
+0.55.7 - 07/11/2015
 -------------------
 
 * Allow custom url fragment for download and documentation.

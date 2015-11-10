@@ -125,8 +125,10 @@ class BrinkPaver(object):
             pip_arguments.extend(
                 ['--build=' + self.fs.join(pip_build_path)])
 
-            pip_arguments.extend(
-                ['--find-links=file://' + self.path.cache])
+            pip_arguments.extend([
+                '--find-links=file://' + self.path.cache,
+                '--use-wheel',
+                ])
 
         if silent:
             pip_arguments.extend(['-q'])
