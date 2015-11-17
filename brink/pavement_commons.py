@@ -554,10 +554,16 @@ def publish_distributables(args):
             content=version,
             )
         download_hostname = publish_config['download_production_hostname']
+        download_username = publish_config['download_production_username']
+
         documentation_hostname = publish_config['website_production_hostname']
+        documentation_username = publish_config['website_production_username']
     else:
         download_hostname = publish_config['download_staging_hostname']
+        download_username = publish_config['download_staging_username']
+
         documentation_hostname = publish_config['website_staging_hostname']
+        documentation_username = publish_config['website_staging_username']
 
     if latest == 'yes':
         pave.fs.copyFile(
@@ -568,7 +574,7 @@ def publish_distributables(args):
 
     print "Publishing distributable(s) to %s ..." % (download_hostname)
     pave.rsync(
-        username='chevah_site',
+        username=download_username,
         hostname=download_hostname,
         source=[pave.path.publish, 'downloads', url_fragment + '/'],
         destination=download_hostname + '/' + url_fragment,
@@ -577,7 +583,7 @@ def publish_distributables(args):
 
     print "Publishing download pages to %s..." % (documentation_hostname)
     pave.rsync(
-        username='chevah_site',
+        username=documentation_username,
         hostname=documentation_hostname,
         source=[pave.path.publish, 'website', 'downloads/'],
         destination=documentation_hostname + '/downloads/' + url_fragment,
@@ -660,16 +666,18 @@ def publish_documentation(args):
     publish_config = SETUP['publish']
     if target == 'production':
         documentation_hostname = publish_config['website_production_hostname']
+        documentation_username = publish_config['website_production_username']
         destination_root = (
             documentation_hostname + '/documentation/' + product_name)
     else:
         documentation_hostname = publish_config['website_staging_hostname']
+        documentation_username = publish_config['website_staging_username']
         destination_root = (
             documentation_hostname + '/documentation/' + product_name)
 
     print "Publishing documentation to %s..." % (documentation_hostname)
     pave.rsync(
-        username='chevah_site',
+        username=documentation_username,
         hostname=documentation_hostname,
         source=[pave.path.publish, 'website', 'documentation/'],
         destination=destination_root,

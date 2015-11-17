@@ -193,6 +193,9 @@ def build():
     pave.fs.deleteFolder([
         pave.path.build, pave.getPythonLibPath(), 'brink'])
 
+    # Copy generated DEFAULT_VALUES file.
+    pave.fs.copyFile(['DEFAULT_VALUES'], [pave.path.build, 'DEFAULT_VALUES'])
+
     sys.argv = ['setup.py', 'build', '--build-base', build_target]
     print "Building in " + build_target
 

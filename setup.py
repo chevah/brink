@@ -9,7 +9,7 @@ These are the extensions build around paver.
 from setuptools import setup, find_packages, Command
 import os
 
-VERSION = u'0.55.8'
+VERSION = u'0.55.9'
 
 
 class PublishCommand(Command):
@@ -30,6 +30,7 @@ class PublishCommand(Command):
     def run(self):
         assert os.getcwd() == self.cwd, (
             'Must be in package root: %s' % self.cwd)
+        # We publish both sdist and wheel for backward compatibly.
         self.run_command('sdist')
         self.run_command('bdist_wheel')
 
