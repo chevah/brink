@@ -4,6 +4,18 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+0.55.10 - 02/12/2015
+--------------------
+
+* Support FreeBSD.
+
+
+0.55.9 - 17/11/2015
+-------------------
+
+* Publish on staging under different username.
+
+
 0.55.8 - 08/11/2015
 -------------------
 
