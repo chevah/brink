@@ -371,11 +371,9 @@ class BrinkFilesystem(object):
         """
         return paths.split(';')
 
-    def _getFolderListing(self, path):
+    def listFolder(self, path):
         """
         Returns the contents of the specified `path` as a list.
-
-        Method is a helper for testing.
         """
         if sys.platform.startswith('darwin') or os.name == 'nt':
             # On Windows and OSX we force Unicode as low filesystem is Unicode.
@@ -427,7 +425,7 @@ class BrinkFilesystem(object):
             windows_targets.extend(targets)
             targets = windows_targets
 
-        files = self._getFolderListing(path)
+        files = self.listFolder(path)
         for target in targets:
             for candidate in files:
                 if candidate == target:

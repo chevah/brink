@@ -51,6 +51,10 @@ SETUP = {
         'exclude_folders': [],
         'include_files': ['pavement.py'],
         'include_folders': [],
+        # Leaver it empty if project has no managed release notes.
+        'release_notes_folder': '',
+        # All in lowercase.
+        'ignored_release_fragments': ['readme', 'readme.rst'],
         },
     'website_package': 'chevah.website',
     'test': {

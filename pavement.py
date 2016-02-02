@@ -70,6 +70,9 @@ BUILD_PACKAGES = [
     # Buildbot is used for try scheduler
     'buildbot==0.8.11.pre.143.gac88f1b.c2',
 
+    'configparser==3.5.0b2',
+    'towncrier==16.0.0.chevah4',
+
     # For PQM
     'smmap==0.8.2',
     'async==0.6.1',
@@ -107,6 +110,10 @@ NODE_PACKAGES = [
     'karma-jasmine'
     ]
 
+SETUP['product']['version'] = '0.55.12'
+SETUP['product']['version_major'] = '0'
+SETUP['product']['version_minor'] = '55'
+
 SETUP['repository']['name'] = u'brink'
 SETUP['repository']['github'] = 'https://github.com/chevah/brink'
 SETUP['pocket-lint']['include_files'] = [
@@ -118,7 +125,9 @@ SETUP['pocket-lint']['include_files'] = [
 SETUP['pocket-lint']['include_folders'] = [
     'brink',
     'documentation',
+    'release-notes',
     ]
+SETUP['pocket-lint']['release_notes_folder'] = 'release-notes'
 SETUP['folders']['source'] = u'brink'
 SETUP['test']['package'] = 'brink.tests'
 SETUP['test']['elevated'] = 'brink.tests.elevated'
@@ -126,6 +135,7 @@ SETUP['website_package'] = 'brink.website'
 SETUP['buildbot']['server'] = 'build.chevah.com'
 SETUP['buildbot']['web_url'] = 'http://build.chevah.com:10088'
 SETUP['pypi']['index_url'] = 'http://pypi.chevah.com:10042/simple'
+
 
 if os.name == 'nt':
     # Fix temp folder
@@ -234,9 +244,6 @@ def update_setup():
     """
     Fake updating of versions for testing.
     """
-    SETUP['product']['version'] = '1.2.0'
-    SETUP['product']['version_major'] = '1'
-    SETUP['product']['version_minor'] = '2'
 
 
 @task
@@ -301,3 +308,30 @@ def test_web_functional(args):
 
     Right now it does nothing.
     """
+
+
+@task
+@consume_args
+def publish(args):
+    """
+    Placeholder to test the whole publish process.
+    """
+    print "Publishing: %s" % (args,)
+
+
+@task
+@needs('update_setup')
+def release_notes():
+    """
+    Update the release notes.
+    """
+    from pkg_resources import load_entry_point
+    args = [
+        '--yes',
+        '--version=%s' % (SETUP['product']['version'],),
+        '--package=brink',
+        '--filename=release-notes.rst',
+        ]
+    towncrier_main = load_entry_point(
+        'towncrier', 'console_scripts', 'towncrier')
+    return sys.exit(towncrier_main(prog_name='towncrier', args=args))

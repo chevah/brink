@@ -28,7 +28,7 @@ class TestBrinkFilesystem(BrinkTestCase):
         """
         command = mk.string()
         extra_paths = [mk.string()]
-        self.brink_fs._getFolderListing = self.Mock(return_value=[])
+        self.brink_fs.listFolder = self.Mock(return_value=[])
 
         result = self.brink_fs.which(command, extra_paths=extra_paths)
 
@@ -50,7 +50,7 @@ class TestBrinkFilesystem(BrinkTestCase):
                 result.append(command)
             return result
 
-        self.brink_fs._getFolderListing = _folderListing
+        self.brink_fs.listFolder = _folderListing
 
         result = self.brink_fs.which(command, extra_paths=extra_paths)
 
@@ -63,7 +63,7 @@ class TestBrinkFilesystem(BrinkTestCase):
         """
         command = mk.string()
         path_exe_file = '%s.exe' % command
-        self.brink_fs._getFolderListing = self.Mock(return_value=[])
+        self.brink_fs.listFolder = self.Mock(return_value=[])
         extra_paths = [mk.string(), path_exe_file]
 
         result = self.brink_fs.which(command, extra_paths=extra_paths)
@@ -117,7 +117,7 @@ class TestBrinkFilesystem(BrinkTestCase):
             bat_command,
             cmd_command,
             ]
-        self.brink_fs._getFolderListing = self.Mock(return_value=files)
+        self.brink_fs.listFolder = self.Mock(return_value=files)
 
         result = self.brink_fs._findCommand(command, path)
 
@@ -145,7 +145,7 @@ class TestBrinkFilesystem(BrinkTestCase):
             command,
             exe_command,
             ]
-        self.brink_fs._getFolderListing = self.Mock(return_value=files)
+        self.brink_fs.listFolder = self.Mock(return_value=files)
 
         result = self.brink_fs._findCommand(command, path)
 
@@ -167,7 +167,7 @@ class TestBrinkFilesystem(BrinkTestCase):
             command,
             exe_command,
             ]
-        self.brink_fs._getFolderListing = self.Mock(return_value=files)
+        self.brink_fs.listFolder = self.Mock(return_value=files)
 
         result = self.brink_fs._findCommand(exe_command, path)
 
@@ -193,7 +193,7 @@ class TestBrinkFilesystem(BrinkTestCase):
         command = mk.string()
         path = mk.string()
         files = [mk.string(), mk.string()]
-        self.brink_fs._getFolderListing = self.Mock(return_value=files)
+        self.brink_fs.listFolder = self.Mock(return_value=files)
 
         result = self.brink_fs._findCommand(command, path)
 

@@ -109,12 +109,6 @@ def _review_properties(token, pull_id):
         repo = _get_repo(token=token)
         pull_request = _get_pull(repo, pull_id=pull_id)
 
-        # Fail early if branch can not be merged.
-        if not pull_request.mergeable:
-            print "GitHub said that branch can not be merged."
-            print "Please merge latest code from master and pull all changes."
-            sys.exit(1)
-
         comments = []
         for comment in pull_request.get_issue_comments():
             comments.append((
@@ -279,7 +273,7 @@ def _get_github_environment():
 @task
 def merge_init():
     """
-    Merge the current branch into master, without a commit.
+    Check if current branch can be merged.
 
     Environment variables:
     * GITHUB_PULL_ID
@@ -287,7 +281,7 @@ def merge_init():
     """
     github_env = _get_github_environment()
 
-    from git import GitCommandError, Repo
+    from git import Repo
     repo = Repo(os.getcwd())
     git = repo.git
 
@@ -317,68 +311,16 @@ def merge_init():
         print "Review sha: %s %s" % (remote_sha, pr_branch_name)
         sys.exit(1)
 
-    # Buildbot repos don't have a remote configured.
-    try:
-        origin = SETUP['repository']['github']
-        if origin.startswith('https://'):
-            origin = 'https://%s@%s' % (
-                github_env['token'], origin[8:])
-
-        try:
-            repo.remote('origin')
-            repo.delete_remote('origin')
-        except ValueError:
-            # Remote does not exists.
-            pass
-        except GitCommandError as error:
-            print error
-
-        print 'Set `origin` remote to %s' % (origin,)
-        print repo.create_remote('origin', origin)
-    except GitCommandError as error:
-        print error
+    # Fail early if branch can not be merged.
+    if not pull_request.mergeable:
+        print "GitHub said that branch can not be merged."
+        print "Please resole conflict and pull the changes."
         sys.exit(1)
 
-    # Clear any unused files from this repo.
+    # Clear any unused files from this repo as this might be done
+    # before a release.
     print 'Clean repo'
     print git.clean(force=True, quiet=True)
-
-    try:
-        # Switch to master
-        try:
-            print "Switch to master branch"
-            print repo.heads['master'].checkout()
-            print "Update master"
-            print repo.remote('origin').pull('+master')
-        except IndexError:
-            print "We don't have a master branch."
-            print "Let's get it."
-            print repo.remote('origin').fetch()
-            print git.checkout('origin/master', b='master')
-
-        print "Merge original branch with squash and no commit."
-        print git.merge(
-            local_sha, no_commit=True, squash=True)
-
-        print "Check for merge conflicts."
-        result = git.ls_files(unmerged=True).split('\n')
-
-        result = [line.strip() for line in result if line.strip()]
-        if result:
-            print "The following files have conflicts:"
-            print "\n".join(result)
-            sys.exit(1)
-
-    except GitCommandError, error:
-        print "Failed to run git command."
-        print str(error)
-        sys.exit(1)
-    finally:
-        print "Go back to initial branch."
-        # Since we merge with squash... we don't have a real merge so we
-        # can not use merge --abort here.
-        print git.reset(hard=True)
-        print git.checkout(branch_name)
 
 
 @task
@@ -406,24 +348,71 @@ def merge_commit(args):
     repo = Repo(os.getcwd())
     git = repo.git
 
-    branch_name = _get_environment('BRANCH', repo.head.ref.name)
-    loca_sha = _get_environment('COMMIT')
-
-    (_, message) = _review_properties(
+    (pull_request, message) = _review_properties(
         token=github_env['token'], pull_id=github_env['pull_id'])
 
+    branch_name = _get_environment('BRANCH', repo.head.ref.name)
+    remote_sha = pull_request.head.sha.lower()
+    local_sha = repo.head.commit.hexsha
+
+    # Fail early if branch can not be merged or at wrong commit.
+    if remote_sha != local_sha:
+        print "Local branch and review branch are at different revision."
+        print "Local sha:  %s %s" % (local_sha, branch_name)
+        print "Review sha: %s" % (remote_sha,)
+        sys.exit(1)
+
+    if not pull_request.mergeable:
+        print "GitHub said that branch can not be merged."
+        print "Please resole conflict and pull the changes."
+        sys.exit(1)
+
+    landing_branch = pull_request.base.ref
+
     try:
-        # Merge branch into master.
-        print "Go to master"
-        repo.heads['master'].checkout()
-        print "Update master"
-        print repo.remote('origin').pull('+master')
+        # Buildbot repos don't have a remote configured.
+        origin = SETUP['repository']['github']
+        if origin.startswith('https://'):
+            origin = 'https://%s@%s' % (github_env['token'], origin[8:])
+
+        try:
+            repo.remote('origin')
+            repo.delete_remote('origin')
+        except ValueError:
+            # Remote does not exists.
+            pass
+        except GitCommandError as error:
+            print error
+
+        print 'Set `origin` remote to %s' % (origin,)
+        print repo.create_remote('origin', origin)
+
+        update_tags = False
+        if _get_environment('RQM', 'no') == 'yes':
+            update_tags = True
+            # Create tag as this un-merged branch.
+            repo.create_tag(SETUP['product']['version'])
+
+        # Merge branch into the landing branch.
+
+        try:
+            print "Switch to %s branch" % (landing_branch,)
+            print repo.heads[landing_branch].checkout()
+            print "Update %s" % (landing_branch,)
+            print repo.remote('origin').pull('+' + landing_branch)
+        except IndexError:
+            print "We don't have a %s branch." % (landing_branch,)
+            print "Let's get it."
+            print repo.remote('origin').fetch()
+            print git.checkout('origin/master', b=landing_branch)
+
         print "Merge branch"
-        print git.merge(loca_sha, squash=True, no_commit=True)
+        print git.merge(local_sha, squash=True, no_commit=True)
         print "Commit message"
         print git.commit(author=author, message=message)
-        # Push merged changes to master.
-        for state in repo.remotes.origin.push('master'):
+        # Push merged changes to landing branch.
+        for state in repo.remotes.origin.push(
+                landing_branch, tags=update_tags):
             print state.summary
             if '[rejected]' in state.summary:
                 print 'Failed to push changes.'

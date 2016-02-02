@@ -4,6 +4,21 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.55.12, 2016-02-03
+---------------------------
+
+* Fix merge_commit.
+
+
+Version 0.55.11, 2016-02-01
+---------------------------
+
+* Update RQM to publish the tag on a release.
+* Update lint to check that the release branch has no unpublished release
+  notes.
+* Update lint to check for release notes fragments.
+
+
 0.55.10 - 02/12/2015
 --------------------
 

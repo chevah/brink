@@ -99,7 +99,7 @@ def lint(options):
     if not branch_name:
         branch_name = pave.git.branch_name
 
-    result = pave.pocketLint(
+    pocket_lint_result = pave.pocketLint(
         folders=folders, excluded_folders=excluded_folders,
         files=files, excluded_files=excluded_files,
         quick=not all,
@@ -108,8 +108,34 @@ def lint(options):
         options=options,
         )
 
-    if result > 0:
+    if pocket_lint_result > 0:
             raise BuildFailure('Lint failed.')
+
+    release_notes = SETUP['pocket-lint']['release_notes_folder']
+    if release_notes:
+        # This repo has managed release notes.
+        members = pave.fs.listFolder(release_notes)
+
+        if '-release-' in branch_name:
+            # Check that release notes have all fragments published.
+            ignored_files = SETUP['pocket-lint']['ignored_release_fragments']
+            fragments = [m for m in members if m.lower() not in ignored_files]
+            if fragments:
+                raise BuildFailure(
+                    u'Branch name hint it is a release branch. '
+                    u'It has unpublished release notes. %s' % (fragments,))
+        else:
+            # Check that it has release notes fragment.
+            ticket_id = branch_name.split('-', 1)[0]
+            ticket_mark = '%s.' % (ticket_id,)
+            has_fragment = False
+            for member in members:
+                if member.startswith(ticket_mark):
+                    has_fragment = True
+            if not has_fragment:
+                raise BuildFailure(
+                    u'No release notes fragment for %s' % (ticket_id,))
+
     return 0
 
 
