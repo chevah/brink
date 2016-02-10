@@ -112,7 +112,11 @@ def lint(options):
             raise BuildFailure('Lint failed.')
 
     release_notes = SETUP['pocket-lint']['release_notes_folder']
-    if release_notes:
+    is_release_series_branch = (
+        branch_name in ['master', 'trunk'] or
+        branch_name.startswith('series-')
+        )
+    if release_notes and not is_release_series_branch:
         # This repo has managed release notes.
         members = pave.fs.listFolder(release_notes)
 
@@ -529,8 +533,12 @@ def publish_distributables(args):
 
     try:
         latest = args[1]
+        if latest == 'no':
+            latest = False
+        else:
+            latest = True
     except IndexError:
-        latest = None
+        latest = True
 
     url_fragment = SETUP['product']['url_fragment']
     version = SETUP['product']['version']
@@ -591,7 +599,7 @@ def publish_distributables(args):
         documentation_hostname = publish_config['website_staging_hostname']
         documentation_username = publish_config['website_staging_username']
 
-    if latest == 'yes':
+    if latest:
         pave.fs.copyFile(
             source=[pave.path.dist, release_html_name],
             destination=[
@@ -638,8 +646,12 @@ def publish_documentation(args):
 
     try:
         latest = args[1]
+        if latest == 'no':
+            latest = False
+        else:
+            latest = True
     except IndexError:
-        latest = None
+        latest = True
 
     product_name = SETUP['product']['name'].lower()
     version = SETUP['product']['version']
@@ -683,7 +695,7 @@ def publish_documentation(args):
         )
 
     # If we are releasing the latest version, also copy file to latest folder.
-    if latest == 'yes':
+    if latest:
         pave.fs.copyFolder(
             source=[pave.path.build, 'doc', 'html'],
             destination=publish_latest_folder,

@@ -4,6 +4,14 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.55.13, 2016-02-03
+---------------------------
+
+* Add code to build PDF documentation.
+* Fix release notes fragment linter on release series branches.
+* Publish latest release by default.
+
+
 Version 0.55.12, 2016-02-03
 ---------------------------
 

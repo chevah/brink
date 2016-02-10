@@ -7,7 +7,7 @@ import os
 import re
 import sys
 
-from paver.easy import call_task, task
+from paver.easy import call_task, needs, task
 from paver.tasks import environment, consume_args, cmdopts
 
 from brink.utils import BrinkPaver
@@ -324,6 +324,7 @@ def merge_init():
 
 
 @task
+@needs('update_setup')
 @consume_args
 def merge_commit(args):
     """
@@ -464,7 +465,7 @@ def pqm():
 @task
 @cmdopts([
     ('target=', None, 'Base repository URI.'),
-    ('latest=', None, '`yes` if this release is for latest version.'),
+    ('latest=', None, '`no` if this release is not for latest version.'),
     (
         'pull-id=', None,
         'ID of GitHub pull request for release. Required only for production.'
@@ -488,7 +489,7 @@ def rqm(options):
         target = 'gk-release-staging'
 
     test_arguments = 'latest=%s' % pave.getOption(
-        options, 'rqm', 'latest', default_value='no')
+        options, 'rqm', 'latest', default_value='yes')
 
     pull_id_property = '--properties=github_pull_id=%s' % pave.getOption(
         options, 'rqm', 'pull_id', default_value='not-defined')

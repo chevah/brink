@@ -58,10 +58,23 @@ class BrinkSphinx(object):
         finally:
             sys.argv = sys_argv
 
-    def createPDF(self):
-        '''Generates a PDF file for the documentation.'''
+    def createPDF(self, source=None, target=None):
+        """
+        Generates a PDF file for the documentation.
+        """
         from sphinx import main as sphinx_main
-        sys.argv = ['sphinx', '-b', 'pdf', 'doc', 'doc_build']
+
+        if source is None:
+            source = [self.paver.path.build, 'doc_source']
+
+        if target is None:
+            target = [self.paver.path.build, 'doc']
+
+        sys.argv = [
+            'sphinx',
+            '-d', self.fs.join([self.paver.path.build, 'doc_build']),
+            '-b', 'pdf', self.fs.join(source), self.fs.join(target),
+            ]
         return sphinx_main(sys.argv)
 
     def apidoc(self, module, destination):
@@ -90,6 +103,7 @@ class BrinkSphinx(object):
         content = """
 
 extensions = [
+    # 'rst2pdf.pdfbuilder',
     'repoze.sphinx.autointerface',
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
@@ -110,6 +124,18 @@ release = "%(version)s"
 autodoc_default_flags = ['members']
 primary_domain = 'py'
 experimental = %(experimental)s
+
+
+pdf_documents = [(
+    'index',
+    u'%(project)s-%(version)s',
+    u'%(project)s Documentation',
+    u'%(copyright)s',
+    )]
+pdf_stylesheets = ['sphinx', 'kerning', 'a4']
+pdf_use_toc = False
+pdf_toc_depth = 2
+
 
 from docutils.parsers.rst import Directive
 from sphinx import addnodes
@@ -204,7 +230,9 @@ def setup(app):
             conf_file.write(content)
 
     def generateProjectDocumentation(
-            self, arguments=None, experimental=False, theme='standalone'):
+        self, arguments=None, experimental=False, theme='standalone',
+        format='html',
+            ):
         """
         Generate project documentation and return exit code.
         """
@@ -226,12 +254,20 @@ def setup(app):
             theme_name=theme,
             experimental=experimental,
             )
-        destination = [self.paver.path.build, 'doc', 'html']
-        exit_code = self.createHTML(
-            arguments=arguments,
-            source=[self.paver.path.build, 'doc_source'],
-            target=destination,
-            )
+
+        if format == 'html':
+            destination = [self.paver.path.build, 'doc', 'html']
+            exit_code = self.createHTML(
+                arguments=arguments,
+                source=[self.paver.path.build, 'doc_source'],
+                target=destination,
+                )
+        else:
+            destination = [self.paver.path.build, 'doc', 'pdf']
+            exit_code = self.createPDF(
+                source=[self.paver.path.build, 'doc_source'],
+                target=destination,
+                )
 
         print("Documentation files generated in %s" % (
             self.paver.fs.join(destination)))
@@ -271,6 +307,19 @@ def doc_html(options):
 
     return pave.sphinx.generateProjectDocumentation(
         arguments, experimental=experimental, theme=theme)
+
+
+@needs('build', 'update_setup')
+def doc_pdf(options):
+    """
+    Generates the documentation.
+    """
+    # Avoid recursive import.
+    from brink.pavement_commons import pave
+
+    arguments = ['-a', '-E', '-n']
+    return pave.sphinx.generateProjectDocumentation(
+        arguments, experimental=False, theme='standalone', format='pdf')
 
 
 @task

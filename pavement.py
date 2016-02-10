@@ -110,9 +110,9 @@ NODE_PACKAGES = [
     'karma-jasmine'
     ]
 
-SETUP['product']['version'] = '0.55.12'
-SETUP['product']['version_major'] = '0'
-SETUP['product']['version_minor'] = '55'
+SETUP['product']['version'] = None
+SETUP['product']['version_major'] = None
+SETUP['product']['version_minor'] = None
 
 SETUP['repository']['name'] = u'brink'
 SETUP['repository']['github'] = 'https://github.com/chevah/brink'
@@ -242,8 +242,11 @@ def dist():
 @task
 def update_setup():
     """
-    Fake updating of versions for testing.
+    Updating of version at runtime for testing.
     """
+    SETUP['product']['version'] = '0.55.13'
+    SETUP['product']['version_major'] = '0'
+    SETUP['product']['version_minor'] = '55'
 
 
 @task
