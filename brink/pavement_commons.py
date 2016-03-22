@@ -22,7 +22,6 @@ import getpass
 import os
 import sys
 import subprocess
-import threading
 
 from paver.easy import call_task, cmdopts, task, pushd, needs
 from paver.tasks import BuildFailure, environment, help, consume_args
@@ -293,8 +292,12 @@ def test_remote(args):
     for argument in args[1:]:
         if argument.startswith('--properties=') or argument == '--wait':
             arguments.append(argument)
-        elif argument.startswith('--force_'):
-            arguments.append('--properties=%s' % argument[2:])
+        elif argument.startswith('--force'):
+            argument = argument[2:].replace('-', '_')
+            if '=' not in argument:
+                # Buildot property require an explicit value.
+                argument += '=yes'
+            arguments.append('--properties=%s' % argument)
         else:
             test_arguments.append(argument)
 
@@ -402,8 +405,6 @@ def buildbot_try(args):
     from buildbot.scripts import runner
     from unidecode import unidecode
 
-    status_thread = None
-    interactive = True
     builder = ''
 
     for index, arg in enumerate(args):
@@ -417,11 +418,6 @@ def buildbot_try(args):
     if not builder:
         print 'No builder was specified. Use "-b" to send tests to a builder.'
         sys.exit(1)
-
-    if '--wait' in args:
-        interactive = True
-    else:
-        interactive = False
 
     who = unidecode(pave.git.account)
     if not who:
@@ -438,6 +434,7 @@ def buildbot_try(args):
             SETUP['buildbot']['server'],
             SETUP['buildbot']['port']
             ),
+        '--web-status=%s' % (SETUP['buildbot']['web_url'],),
         '--username=%s' % (SETUP['buildbot']['username']),
         '--passwd=%s' % (SETUP['buildbot']['password']),
         '--vc=%s' % (SETUP['buildbot']['vcs']),
@@ -453,17 +450,7 @@ def buildbot_try(args):
     pave.git.push()
 
     print 'Running %s' % new_args
-
-    if interactive:
-        status_thread = threading.Thread(
-            target=pave.buildbotShowProgress, args=(builder,))
-        try:
-            status_thread.start()
-            runner.run()
-        finally:
-            status_thread.join()
-    else:
-        runner.run()
+    runner.run()
 
 
 @task

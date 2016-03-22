@@ -13,7 +13,6 @@ import re
 import socket
 import subprocess
 import sys
-import urllib2
 
 from brink.execute import execute
 from brink.git_command import BrinkGit
@@ -142,83 +141,6 @@ class BrinkPaver(object):
             sys.exit(result)
 
         return result
-
-    def openPage(self, url):
-        open_url = urllib2.build_opener()
-        request = urllib2.Request(url)
-        try:
-            result = open_url.open(request)
-            return result
-        except:
-            print 'Failed to open ' + url
-            sys.exit(1)
-
-    def getJSON(self, url):
-        """
-        Get URL as JSON and return the dict representations.
-        """
-        try:
-            import simplejson as json
-            json  # Shut the linter.
-        except ImportError:
-            import json
-
-        result = json.load(self.openPage(url))
-        return result
-
-    def buildbotShowLastStep(self, builder):
-        """
-        Show logs for last step from last build for builder.
-        """
-        base_url = (
-            self.setup['buildbot']['web_url'] +
-            '/json/builders/' +
-            builder)
-        result = self.getJSON(url=base_url)
-        last_build = str(result['cachedBuilds'][-1])
-
-        result = self.getJSON(url=base_url + '/builds/' + last_build)
-        for line in self.openPage(result['logs'][-1][1] + '/text'):
-            print line,
-
-    def buildbotShowProgress(self, builder):
-        """
-        Show interactive progess of builder activity.
-        """
-        # Wait a bit for the new build to start.
-        import time
-        time.sleep(2)
-
-        # How to data to read and print from status stream.
-        CHUNK = 2 * 1024
-
-        base_url = (
-            self.setup['buildbot']['web_url'] +
-            '/json/builders/' +
-            builder)
-        builder_status = self.getJSON(url=base_url)
-        if builder_status['currentBuilds']:
-            last_build = str(builder_status['currentBuilds'][0])
-        else:
-            # This build was was... no progress to list so we get
-            # the last build status.
-            self.buildbotShowLastStep(builder)
-            return
-
-        while builder_status['state'] == 'building':
-            last_step = self.getJSON(url=base_url + '/builds/' + last_build)
-            last_step_url = last_step['logs'][-1][1] + '/text'
-
-            req = urllib2.urlopen(last_step_url)
-            while True:
-                chunk = req.read(CHUNK)
-                if not chunk:
-                    break
-                print chunk,
-
-            # Wait a bit for next step to start
-            time.sleep(0.1)
-            builder_status = self.getJSON(url=base_url)
 
     def getOption(
             self, options, task_name, option_name,

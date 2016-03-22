@@ -68,7 +68,7 @@ BUILD_PACKAGES = [
     'docutils>=0.9.1-chevah2',
 
     # Buildbot is used for try scheduler
-    'buildbot==0.8.11.pre.143.gac88f1b.c2',
+    'buildbot==0.8.11.c7',
 
     'configparser==3.5.0b2',
     'towncrier==16.0.0.chevah4',
@@ -127,14 +127,15 @@ SETUP['pocket-lint']['include_folders'] = [
     'documentation',
     'release-notes',
     ]
-SETUP['pocket-lint']['release_notes_folder'] = 'release-notes'
+# We don't use the managed release notes for this project.
+SETUP['pocket-lint']['release_notes_folder'] = None
 SETUP['folders']['source'] = u'brink'
 SETUP['test']['package'] = 'brink.tests'
 SETUP['test']['elevated'] = 'brink.tests.elevated'
 SETUP['website_package'] = 'brink.website'
-SETUP['buildbot']['server'] = 'build.chevah.com'
-SETUP['buildbot']['web_url'] = 'http://build.chevah.com:10088'
-SETUP['pypi']['index_url'] = 'http://pypi.chevah.com:10042/simple'
+SETUP['buildbot']['server'] = 'buildbot.chevah.com'
+SETUP['buildbot']['web_url'] = 'https://buildbot.chevah.com:10443'
+SETUP['pypi']['index_url'] = 'http://pypi.chevah.com/simple'
 
 
 if os.name == 'nt':

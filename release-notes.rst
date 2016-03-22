@@ -4,6 +4,19 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.55.15, 2016-03-19
+---------------------------
+
+* Add nicer CLI for forcing steps in test_remote.
+  You can now use --force-purge.
+
+
+Version 0.55.14, 2016-03-19
+---------------------------
+
+* Fix log output in test_remote --wait to use the logs retrieved over PB.
+
+
 Version 0.55.13, 2016-02-03
 ---------------------------
 

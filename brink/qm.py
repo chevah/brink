@@ -70,7 +70,7 @@ def _github_token(username, password):
     authorization = user.create_authorization(
         scopes=['repo'],
         note='Chevah PQM',
-        note_url='http://build.chevah.com/waterfall')
+        note_url='https://buildbot.chevah.com')
     return authorization.token
 
 
@@ -442,7 +442,7 @@ def pqm():
     result = pave.git.status()
     if result:
         print 'Please commit all files and get review approval.'
-        print 'PQM cancelled.'
+        print 'PQM canceled.'
         sys.exit(1)
 
     try:
@@ -454,8 +454,8 @@ def pqm():
     pull_id_property = '--properties=github_pull_id=%s' % (pull_id)
     arguments = ['gk-merge', pull_id_property]
 
-    if '--force-clean' in args:
-        arguments.append('--properties=force_clean=yes')
+    if '--force-purge' in args:
+        arguments.append('--properties=force_purge=yes')
 
     environment.args = arguments
     from brink.pavement_commons import test_remote
