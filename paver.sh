@@ -62,12 +62,11 @@ ARCH='x86'
 
 # Initialize default values from paver.conf
 PYTHON_VERSION='python2.7'
-BINARY_DIST_URI='http://chevah.com/binary'
-PIP_INDEX='http://chevah.com/pypi'
+BINARY_DIST_URI='https://binary.chevah.com/production'
+PIP_INDEX='http://pypi.chevah.com'
 PAVER_VERSION='1.2.1'
 PIP_VERSION="1.4.1.c4"
 SETUPTOOLS_VERSION="1.4.1"
-CLEAN_PYTHON_BINARY_DIST_CACHE=""
 
 # Load repo specific configuration.
 source paver.conf
@@ -100,11 +99,18 @@ clean_build() {
     # In some case pip hangs with a build folder in temp and
     # will not continue until it is manually removed.
     rm -rf /tmp/pip*
+}
 
-    if [ "$CLEAN_PYTHON_BINARY_DIST_CACHE" = "yes" ]; then
-        echo "Cleaning python binary ..."
-        rm -rf cache/python*
-    fi
+
+#
+# Removes the download/pip cache entries. Must be called before
+# building/generating the distribution.
+#
+purge_cache() {
+    clean_build
+
+    echo "Cleaning download cache ..."
+    rm -rf cache/*
 }
 
 
@@ -132,7 +138,7 @@ execute() {
         echo "Executing:" $@
     fi
 
-    #Make sure $@ is called in quotes as otherwise it will not work.
+    # Make sure $@ is called in quotes as otherwise it will not work.
     set +e
     "$@"
     exit_code=$?
@@ -198,7 +204,6 @@ pip() {
             --index-url=$PIP_INDEX/simple \
             --download-cache=${CACHE_FOLDER} \
             --find-links=file://${CACHE_FOLDER} \
-            --use-wheel \
             --upgrade
 
     exit_code=$?
@@ -282,6 +287,7 @@ copy_python() {
             echo "No ${pip_package}. Start downloading it..."
             get_binary_dist "$pip_package" "$PIP_INDEX/packages"
         fi
+        rm -rf ${PYTHON_LIB}/site-packages/pip
         cp -RL "${CACHE_FOLDER}/$pip_package/pip" ${PYTHON_LIB}/site-packages/
 
         if [ ! -d ${CACHE_FOLDER}/$setuptools_package ]; then
@@ -290,7 +296,9 @@ copy_python() {
         fi
         cp -RL "${CACHE_FOLDER}/$setuptools_package/setuptools" \
             ${PYTHON_LIB}/site-packages/
-        cp -RL "${CACHE_FOLDER}/$setuptools_package//setuptools.egg-info" \
+        cp -RL "${CACHE_FOLDER}/$setuptools_package/_markerlib" \
+            ${PYTHON_LIB}/site-packages/
+        cp -RL "${CACHE_FOLDER}/$setuptools_package/setuptools.egg-info" \
             ${PYTHON_LIB}/site-packages/
         cp "${CACHE_FOLDER}/$setuptools_package/pkg_resources.py" \
             ${PYTHON_LIB}/site-packages/
@@ -538,6 +546,11 @@ if [ "$COMMAND" = "clean" ] ; then
     exit 0
 fi
 
+if [ "$COMMAND" = "purge" ] ; then
+    purge_cache
+    exit 0
+fi
+
 if [ "$COMMAND" = "detect_os" ] ; then
     write_default_values
     exit 0
@@ -557,6 +570,13 @@ check_source_folder
 write_default_values
 copy_python
 install_dependencies
+
+# Update while we migrate to wheels.
+# Should be removed later after we roll all new
+# python packages.
+setuptools_package="setuptools-$SETUPTOOLS_VERSION"
+cp -RL "${CACHE_FOLDER}/$setuptools_package/_markerlib" \
+    ${PYTHON_LIB}/site-packages/
 
 # Always update brink when running buildbot tasks.
 for paver_task in "deps" "test_os_dependent" "test_os_independent"; do
