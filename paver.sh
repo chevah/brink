@@ -2,7 +2,7 @@
 # Copyright (c) 2010-2013 Adi Roiban.
 # See LICENSE for details.
 #
-# Helper script for bootstraping the build system on Unix/Msys.
+# Helper script for bootstrapping the build system on Unix/Msys.
 # It will write the default values in the 'DEFAULT_VALUES' file.
 #
 # To use this script you will need to publish binary archive files for the
@@ -14,11 +14,12 @@
 #
 # It will delegate the argument to the paver script, with the exception of
 # these commands:
+#
 # * clean - remove everything, except cache
+# * purge - remove (empty) the cache
 # * detect_os - detect operating system, create the DEFAULT_VALUES file and exit
 # * get_python - download Python distribution in cache
 # * get_agent - download Rexx/Putty distribution in cache
-#
 
 # Script initialization.
 set -o nounset
@@ -29,10 +30,9 @@ set -o pipefail
 COMMAND=${1-''}
 DEBUG=${DEBUG-0}
 
-
 # Set default locale.
 # We use C (alias for POSIX) for having a basic default value and
-# to make sure we explictly convert all unicode values.
+# to make sure we explicitly convert all unicode values.
 export LANG='C'
 export LANGUAGE='C'
 export LC_ALL='C'
@@ -153,7 +153,6 @@ execute() {
 # Update global variables with current paths.
 #
 update_path_variables() {
-
     if [ "${OS}" = "windows" ] ; then
         PYTHON_BIN="/lib/python.exe"
         PYTHON_LIB="/lib/Lib/"
@@ -257,7 +256,7 @@ copy_python() {
     # Check that python dist was installed
     if [ ! -s ${PYTHON_BIN} ]; then
         # Install python-dist since everything else depends on it.
-        echo "Bootstraping ${PYTHON_VERSION} environment to ${BUILD_FOLDER}..."
+        echo "Bootstrapping ${PYTHON_VERSION} environment to ${BUILD_FOLDER}..."
         mkdir -p ${BUILD_FOLDER}
 
         # If we don't have a cached python distributable,
@@ -267,7 +266,7 @@ copy_python() {
             get_binary_dist \
                 ${PYTHON_VERSION}-${OS}-${ARCH} "$BINARY_DIST_URI/python"
         fi
-        echo "Copying bootstraping files... "
+        echo "Copying bootstrapping files... "
         cp -R ${python_distributable}/* ${BUILD_FOLDER}
 
         # Backwards compatibility with python 2.5 build.
@@ -463,6 +462,9 @@ detect_os() {
                     "$os_version_raw" os_version_chevah
                 OS="sles${os_version_chevah}"
             fi
+        elif [ -f /etc/arch-release ]; then
+            # ArchLinux is a rolling distro, no version info available.
+            OS="archlinux"
         elif [ -f /etc/rpi-issue ]; then
             # Raspbian is a special case, a Debian unofficial derivative.
             if egrep -q ^'NAME="Raspbian GNU/Linux' /etc/os-release; then
@@ -489,7 +491,6 @@ detect_os() {
                 fi
             fi
         fi
-
     elif [ "${OS}" = "darwin" ]; then
         ARCH=$(uname -m)
 
@@ -512,10 +513,10 @@ detect_os() {
         ARCH=$(uname -m)
 
         os_version_raw=$(uname -r)
-        check_os_version "OpenBSD" 5.8 "$os_version_raw" os_version_chevah
+        check_os_version "OpenBSD" 5.9 "$os_version_raw" os_version_chevah
 
-        # For now, no matter the actual OpenBSD version returned, we use '58'.
-        OS="openbsd58"
+        # For now, no matter the actual OpenBSD version returned, we use '59'.
+        OS="openbsd59"
 
     else
         echo 'Unsupported operating system:' $OS
