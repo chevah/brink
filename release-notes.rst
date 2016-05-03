@@ -4,10 +4,16 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.55.23, 2016-05-03
+---------------------------
+
+* Fix CODECOV_TOKEN variable passing in test_super.
+
+
 Version 0.55.22, 2016-05-03
 ---------------------------
 
-* Add test_os_dependent task.
+* Add test_os_dependent and test_os_independent tasks.
 
 
 Version 0.55.21, 2016-05-01
