@@ -48,7 +48,11 @@ class BrinkPaver(object):
         if self.os_name == 'windows':
             self.python_command_super = [self.path.python_executable]
         else:
-            self.python_command_super = ['sudo', self.path.python_executable]
+            self.python_command_super = [
+                'sudo',
+                'CODECOV_TOKEN=$CODECOV_TOKEN',
+                self.path.python_executable,
+                ]
 
     def _getDefaultValues(self):
         '''Get the default build folder and python version.'''

@@ -259,9 +259,37 @@ def test_review(args):
         sys.exit(1)
 
     arguments = ['gk-review']
+
+    if args:
+        pull_id = args[0]
+        arguments.append('--properties=github_pull_id=%s' % (pull_id,))
+
     environment.args = arguments
     from brink.pavement_commons import test_remote
     test_remote(arguments)
+
+
+@consume_args
+def test_os_dependent(args):
+    """
+    Execute all tests.
+    """
+    call_task('test_python', args=args)
+
+    # Only publish coverage for os dependent tests.
+    codecov_token = os.environ.get('CODECOV_TOKEN', '')
+    if codecov_token:
+        # Only publish if we have a token.
+        call_task('coverage_publish')
+
+
+@task
+def test_os_independent():
+    """
+    Run os independent tests in buildbot.
+    """
+    call_task('lint', options={'all': True})
+    call_task('test_documentation')
 
 
 @task
@@ -361,6 +389,78 @@ def run_test(python_command, switch_user, arguments):
         exit_code = subprocess.call(test_command)
         print 'Exit code is: %d' % (exit_code)
         return exit_code
+
+
+@task
+def coverage_prepare():
+    """
+    Prepare for a new coverage execution.
+    """
+    # Delete previous coverage
+    pave.fs.deleteFile([pave.path.build, '.coverage'])
+    pave.fs.deleteFile([pave.path.build, 'coverage.xml'])
+
+    # Update configuration file.
+    pave.fs.copyFile(
+        source=['.coveragerc'],
+        destination=[pave.path.build, '.coveragerc'],
+        )
+
+
+@task
+def coverage_publish():
+    """
+    Send the coverage report.
+
+    It expects that the GITHUB_PULL_ID environment variable is set.
+    """
+    from pkg_resources import load_entry_point
+    import coverage
+
+    codecov_main = load_entry_point('codecov', 'console_scripts', 'codecov')
+
+    builder_name = os.environ.get('BUILDER_NAME', pave.getHostname())
+    github_pull_id = os.environ.get('GITHUB_PULL_ID', '')
+
+    with pushd(pave.path.build):
+
+        cov = coverage.Coverage()
+        cov.load()
+        cov.report(show_missing=False)
+        cov.xml_report(outfile='coverage.xml')
+
+        sys.argv = [
+            'codecov',
+            '--build', builder_name,
+            '--file', 'coverage.xml',
+            ]
+
+        if github_pull_id:
+            # We are publishing for a PR.
+            sys.argv.extend(['--pr', github_pull_id])
+
+        codecov_main()
+
+
+@task
+@consume_args
+def test_coverage(args):
+    """
+    Run tests with coverage.
+    """
+    import coverage
+    # Trigger coverage creation.
+    os.environ['CODECOV_TOKEN'] = 'local'
+
+    call_task('test', args=args)
+
+    # Generate reports.
+    with pushd(pave.path.build):
+        cov = coverage.Coverage(auto_data=True, config_file='.coveragerc')
+        cov.load()
+        cov.report()
+        cov.xml_report()
+        cov.html_report()
 
 
 @task

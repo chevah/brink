@@ -3,6 +3,7 @@
 """
 Tests for brink utilities.
 """
+import hashlib
 from brink.testing import BrinkTestCase, mk
 
 from brink.utils import BrinkPaver
@@ -53,3 +54,19 @@ class TestBrinkPaver(BrinkTestCase):
             u' \tspaces\r\n'
             ),
             result)
+
+    def test_createMD5Sum(self):
+        """
+        Return the MD5 of file at path, which is specified as segments
+        """
+        content = (
+            u'one line\t \n'
+            u' \tspaces\n'
+            )
+        self.test_segments = mk.fs.createFileInTemp(content=content)
+        name = self.test_segments[-1]
+
+        result = self.utils.createMD5Sum([mk.fs.temp_path, name])
+
+        expected = hashlib.md5(content).hexdigest()
+        self.assertEqual(expected, result)

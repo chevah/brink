@@ -4,6 +4,54 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.55.22, 2016-05-03
+---------------------------
+
+* Add test_os_dependent task.
+
+
+Version 0.55.21, 2016-05-01
+---------------------------
+
+* Don't publish .coveragerc file
+
+
+Version 0.55.20, 2016-05-01
+---------------------------
+
+* Build .coveragerc file under standard name.
+
+
+Version 0.55.19, 2016-05-01
+---------------------------
+
+* Add task to run local tests with coverage and produce stdout, xml and
+  html reports.
+
+
+Version 0.55.18, 2016-05-01
+---------------------------
+
+* Remove support for coverage using nose, as coverage is now provided by
+  empirical.
+
+
+Version 0.55.17, 2016-04-30
+---------------------------
+
+* Allow disabling coverage from pavement.py.
+* Make PR publish option so that coverage can also be published for the
+  `master` repo post-merge.
+* Fix package under coverage target.
+
+
+Version 0.55.16, 2016-04-30
+---------------------------
+
+* Add support for generating code coverage and sending report to Codecov
+  and having Codecov send reports back to GitHub PR.
+
+
 Version 0.55.15, 2016-03-19
 ---------------------------
 

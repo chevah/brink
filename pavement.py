@@ -11,6 +11,8 @@ import sys
 from brink.pavement_commons import (
     buildbot_list,
     buildbot_try,
+    coverage_prepare,
+    coverage_publish,
     default,
     github,
     harness,
@@ -25,6 +27,9 @@ from brink.pavement_commons import (
     publish,
     rqm,
     SETUP,
+    test_coverage,
+    test_os_dependent,
+    test_os_independent,
     test_python,
     test_remote,
     test_review,
@@ -37,6 +42,8 @@ from paver.easy import call_task, consume_args, needs, no_help, task
 # Make pylint shut up.
 buildbot_list
 buildbot_try
+coverage_prepare
+coverage_publish
 default
 github,
 harness
@@ -49,7 +56,10 @@ publish_distributables
 publish_documentation
 publish
 rqm
+test_coverage
 test_documentation
+test_os_dependent
+test_os_independent
 test_python
 test_remote
 test_review
@@ -83,17 +93,24 @@ BUILD_PACKAGES = [
 
 TEST_PACKAGES = [
     # Required for seesaw testing.
-    'chevah-compat==0.8.4',
-    'chevah-empirical==0.18.2',
+    'chevah-compat==0.34.0',
+    'chevah-empirical==0.38.1',
 
-    'pyflakes==0.7.3',
-    'pocketlint==1.4.4.c4',
-    'closure-linter==2.3.9',
+    # Requried by empirical.
+    'wmi==1.4.9',
+
+    'pocketlint==1.4.4.c12',
+    'pyflakes>=1.0.0',
+    'closure-linter==2.3.13',
+    'pep8>=1.6.2',
 
     # Never version of nose, hangs on closing some tests
     # due to some thread handling.
-    'nose==1.1.2-chevah1',
+    'nose==1.3.6',
     'mock',
+
+    'coverage==4.0.3',
+    'codecov==2.0.3',
 
     # Test SFTP service using a 3rd party client.
     'paramiko',
@@ -104,11 +121,6 @@ TEST_PACKAGES = [
     'bunch',
     ]
 
-NODE_PACKAGES = [
-    'karma@0.10.2',
-    'karma-firefox-launcher',
-    'karma-jasmine'
-    ]
 
 SETUP['product']['version'] = None
 SETUP['product']['version_major'] = None
@@ -132,6 +144,7 @@ SETUP['pocket-lint']['release_notes_folder'] = None
 SETUP['folders']['source'] = u'brink'
 SETUP['test']['package'] = 'brink.tests'
 SETUP['test']['elevated'] = 'brink.tests.elevated'
+SETUP['test']['cover_package'] = 'brink'
 SETUP['website_package'] = 'brink.website'
 SETUP['buildbot']['server'] = 'buildbot.chevah.com'
 SETUP['buildbot']['web_url'] = 'https://buildbot.chevah.com:10443'
@@ -182,16 +195,7 @@ def deps_build():
 
 
 @task
-@needs('deps_build')
-def deps_web():
-    """
-    Install all dependencies required to run web tests.
-    """
-    for package in NODE_PACKAGES:
-        pave.npm(command="install", arguments=[package])
-
-
-@task
+@needs('coverage_prepare')
 def build():
     """
     Copy new source code to build folder.
@@ -269,29 +273,9 @@ def test_ci(args):
 
     test_type = env.get('TEST_TYPE', 'normal')
     if test_type == 'os-independent':
-        return call_task('test_os_independent')
-
-    return call_task('test_os_dependent', args=args)
-
-
-@task
-@consume_args
-@needs('deps_testing')
-def test_os_dependent(args):
-    """
-    Run os dependent tests in buildbot.
-    """
-    call_task('test_python')
-
-
-@task
-@needs('deps_build')
-def test_os_independent():
-    """
-    Run os independent tests in buildbot.
-    """
-    call_task('lint', options={'all': True})
-    call_task('test_documentation')
+        call_task('test_os_independent')
+    else:
+        call_task('test_os_dependent', args=args)
 
 
 @task
