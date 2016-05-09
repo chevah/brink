@@ -4,11 +4,10 @@ coverage:
   round: down
   status:
     patch:
-      enabled: yes
-      target: 100%
-    changes:
-      enabled: no
+      default:
+        enabled: yes
+        target: 100%
+    changes: False
 
 comment:
-  layout: "header, diff, suggestions"
-  behavior: default
+  layout: "header, diff, uncovered"
