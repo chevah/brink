@@ -4,6 +4,14 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.55.24, 2016-06-02
+---------------------------
+
+* Add support for SLES 10.
+* Skip CODECOV_TOKEN variable passing in test_super on SLES 10 as it has an
+  old sudo without support for preserving environment variables.
+
+
 Version 0.55.23, 2016-05-03
 ---------------------------
 

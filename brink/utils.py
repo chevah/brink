@@ -47,6 +47,11 @@ class BrinkPaver(object):
         self.python_command_normal = [self.path.python_executable]
         if self.os_name == 'windows':
             self.python_command_super = [self.path.python_executable]
+        elif self.os_name == 'sles10':
+            self.python_command_super = [
+                'sudo',
+                self.path.python_executable,
+                ]
         else:
             self.python_command_super = [
                 'sudo',
