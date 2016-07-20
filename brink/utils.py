@@ -223,7 +223,7 @@ class BrinkPaver(object):
                 # entry.
                 # 16 works, but some places suggest using 48.
                 if not files and not dirs:
-                    foldername = root + '/'
+                    foldername = root[len(parent_path):] + '/'
                     zip_info = ZipInfo(foldername)
                     zip_info.external_attr = 16
                     z.writestr(zip_info, "")

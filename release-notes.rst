@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.55.25, 2016-07-20
+---------------------------
+
+* Fix creation of empty folder in zip archive.
+
+
 Version 0.55.24, 2016-06-02
 ---------------------------
 
