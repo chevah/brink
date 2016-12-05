@@ -37,7 +37,7 @@ from brink.pavement_commons import (
     test_super,
     )
 from brink.sphinx import test_documentation
-from paver.easy import call_task, consume_args, needs, no_help, task
+from paver.easy import call_task, consume_args, needs, no_help, pushd, task
 
 # Make pylint shut up.
 buildbot_list
@@ -322,4 +322,6 @@ def release_notes():
         ]
     towncrier_main = load_entry_point(
         'towncrier', 'console_scripts', 'towncrier')
-    return sys.exit(towncrier_main(prog_name='towncrier', args=args))
+
+    with pushd('brink/tests'):
+        return sys.exit(towncrier_main(prog_name='towncrier', args=args))
