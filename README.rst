@@ -39,4 +39,4 @@ Every change must be documented under release-notes.rst following the same
 format as earlier releases (see the file contents).
 
 Note: The release-notes fragment files are only used on chevah/server, so the
-fragments folder was moved to test/release-notes on this package.
+fragments folder was moved to brink/tests/release-notes on this package.
