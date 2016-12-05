@@ -20,44 +20,19 @@ TODO
 * Add support to install binary packages.
 
 
-Development process
-===================
+Development
+===========
 
 Each change needs a dedicated ticket and a dedicated branch::
 
     $ git checkout -b TICKET_ID-short-name
 
-After code is committed and branch is published run the test for review::
 
-    $ git push --set-upstream origin TICKET-short-name
-    $ ./paver.sh test_review
+Release Notes
+=============
 
-Each branch should have a release note fragment, which is a simple text file
-located in 'release-notes' folder and named based on TICKET_ID.CATEGORY.
+Every change must be documented under release-notes.rst following the same format
+as earlier releases (see the file contents).
 
-Supported categories are:
-
-* .feature - for new features visible to end users
-* .bugfix - for bug /  defect fixes
-* .removal - for removing / deprecating things
-* .ignore - for branch which doesn't affect the end users
-
-Release note fragment files can contain multiple lines.
-The lines are concatenated and wrapped when the final notes are generated.
-
-
-Create a review request using::
-
-    $ ./paver.sh github new
-
-If changes are required after review, change code, commit and re-rerun
-review tests (will push changes for you)::
-
-    $ ./paver.sh test_review
-
-After code was approved, request the branch to merge::
-
-    $ ./paver.sh pqm PULL_REQUEST_ID
-
-`master` branch is a protected branch on GitHub. Only repo administrators
-and the buildmaster is allowed to push changes to master.
+Note: The release-notes fragment files are only used on chevah/server, so the
+fragments folder was moved to test/release-notes on this package.
