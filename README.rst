@@ -31,8 +31,12 @@ Each change needs a dedicated ticket and a dedicated branch::
 Release Notes
 =============
 
-Every change must be documented under release-notes.rst following the same format
-as earlier releases (see the file contents).
+Each change in chevah/brink should be done under a different version number.
+
+Record the version number in `setup.py`.
+
+Every change must be documented under release-notes.rst following the same
+format as earlier releases (see the file contents).
 
 Note: The release-notes fragment files are only used on chevah/server, so the
 fragments folder was moved to test/release-notes on this package.
