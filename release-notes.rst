@@ -4,12 +4,18 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.55.27, 2016-12-08
+---------------------------
+
+* Update msys-console.js to use latest Git for Windows distribution.
+
+
 Version 0.55.26, 2016-12-05
 ---------------------------
 
 * Update README to include release notes creation process
 * Move 'release-notes' folder to 'test/release-notes' to avoid confusion,
-  as the feature files are used on chevah/server only. 
+  as the feature files are used on chevah/server only.
 
 
 Version 0.55.25, 2016-07-20
