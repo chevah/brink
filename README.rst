@@ -40,3 +40,11 @@ format as earlier releases (see the file contents).
 
 Note: The release-notes fragment files are only used on chevah/server, so the
 fragments folder was moved to brink/tests/release-notes on this package.
+
+Paver Script
+============
+
+The paver.sh script we use is taken from chevah/python-package repository.
+
+If modifications to paver.sh file are required, they should be done on a
+branch on that repository.
