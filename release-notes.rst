@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.55.28, 2017-01-08
+---------------------------
+
+* Add support for OpenBSD 6.0 and newer.
+
+
 Version 0.55.27, 2016-12-08
 ---------------------------
 
