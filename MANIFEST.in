@@ -1,2 +1,2 @@
-include AUTHORS README.rst setup.py
+include AUTHORS README.rst setup.py release-notes.rst
 graft brink

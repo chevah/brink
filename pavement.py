@@ -145,6 +145,7 @@ SETUP['folders']['source'] = u'brink'
 SETUP['test']['package'] = 'brink.tests'
 SETUP['test']['elevated'] = 'brink.tests.elevated'
 SETUP['test']['cover_package'] = 'brink'
+SETUP['test']['nose_options'] = ['--with-run-reporter', '--with-timer']
 SETUP['website_package'] = 'brink.website'
 SETUP['buildbot']['server'] = 'buildbot.chevah.com'
 SETUP['buildbot']['web_url'] = 'https://buildbot.chevah.com:10443'

@@ -4,6 +4,20 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.57.0, 2017-01-31
+--------------------------
+
+* Update paver.sh from python-package to add support for macOS 10.12.
+* Test runner can now be configured with a list of default nose arguments.
+* Test runner will pass the right token when using sudo.
+
+
+Version 0.56.0, 2015-08-10
+--------------------------
+
+* Release reserved for the new python-distribution.
+
+
 Version 0.55.28, 2017-01-08
 ---------------------------
 

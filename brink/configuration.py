@@ -61,6 +61,8 @@ SETUP = {
         'package': 'chevah.product.tests',
         # Module inside the test-package where elevated test are located.
         'elevated': None,
+        # List of nose arguments passed to all tests.
+        'nose_options': [],
         },
     }
 

@@ -53,9 +53,10 @@ class BrinkPaver(object):
                 self.path.python_executable,
                 ]
         else:
+            CODECOV_TOKEN = os.getenv('CODECOV_TOKEN', '')
             self.python_command_super = [
                 'sudo',
-                'CODECOV_TOKEN=$CODECOV_TOKEN',
+                'CODECOV_TOKEN=%s' % (CODECOV_TOKEN,),
                 self.path.python_executable,
                 ]
 
