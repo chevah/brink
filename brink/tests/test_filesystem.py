@@ -18,8 +18,8 @@ class TestBrinkFilesystem(BrinkTestCase):
     def setUp(self):
         super(TestBrinkFilesystem, self).setUp()
 
-        self.brink_fs = BrinkFilesystem()
-        self.brink_fs._isValidSystemPath = self.Mock(return_value=True)
+        self.sut = BrinkFilesystem()
+        self.sut._isValidSystemPath = self.Mock(return_value=True)
 
     def test_which_extra_paths_not_defined(self):
         """
@@ -28,9 +28,9 @@ class TestBrinkFilesystem(BrinkTestCase):
         """
         command = mk.string()
         extra_paths = [mk.string()]
-        self.brink_fs.listFolder = self.Mock(return_value=[])
+        self.sut.listFolder = self.Mock(return_value=[])
 
-        result = self.brink_fs.which(command, extra_paths=extra_paths)
+        result = self.sut.which(command, extra_paths=extra_paths)
 
         self.assertIsNone(result)
 
@@ -50,9 +50,9 @@ class TestBrinkFilesystem(BrinkTestCase):
                 result.append(command)
             return result
 
-        self.brink_fs.listFolder = _folderListing
+        self.sut.listFolder = _folderListing
 
-        result = self.brink_fs.which(command, extra_paths=extra_paths)
+        result = self.sut.which(command, extra_paths=extra_paths)
 
         self.assertEqual(full_path_to_command, result)
 
@@ -63,10 +63,10 @@ class TestBrinkFilesystem(BrinkTestCase):
         """
         command = mk.string()
         path_exe_file = '%s.exe' % command
-        self.brink_fs.listFolder = self.Mock(return_value=[])
+        self.sut.listFolder = self.Mock(return_value=[])
         extra_paths = [mk.string(), path_exe_file]
 
-        result = self.brink_fs.which(command, extra_paths=extra_paths)
+        result = self.sut.which(command, extra_paths=extra_paths)
 
         self.assertIsNone(result)
 
@@ -78,7 +78,7 @@ class TestBrinkFilesystem(BrinkTestCase):
         path2 = mk.string()
         paths = u'%s:%s' % (path1, path2)
 
-        result = self.brink_fs._parseUnixPaths(paths)
+        result = self.sut._parseUnixPaths(paths)
 
         self.assertEqual(2, len(result))
         self.assertContains(path1, result)
@@ -92,7 +92,7 @@ class TestBrinkFilesystem(BrinkTestCase):
         path2 = mk.string()
         paths = u'%s;%s' % (path1, path2)
 
-        result = self.brink_fs._parseWindowsPaths(paths)
+        result = self.sut._parseWindowsPaths(paths)
 
         self.assertEqual(2, len(result))
         self.assertContains(path1, result)
@@ -117,15 +117,15 @@ class TestBrinkFilesystem(BrinkTestCase):
             bat_command,
             cmd_command,
             ]
-        self.brink_fs.listFolder = self.Mock(return_value=files)
+        self.sut.listFolder = self.Mock(return_value=files)
 
-        result = self.brink_fs._findCommand(command, path)
+        result = self.sut._findCommand(command, path)
 
         self.assertIsNone(result)
 
         files.append(command)
 
-        result = self.brink_fs._findCommand(command, path)
+        result = self.sut._findCommand(command, path)
 
         self.assertEqual(full_path, result)
 
@@ -145,9 +145,9 @@ class TestBrinkFilesystem(BrinkTestCase):
             command,
             exe_command,
             ]
-        self.brink_fs.listFolder = self.Mock(return_value=files)
+        self.sut.listFolder = self.Mock(return_value=files)
 
-        result = self.brink_fs._findCommand(command, path)
+        result = self.sut._findCommand(command, path)
 
         self.assertEqual(full_path, result)
 
@@ -167,9 +167,9 @@ class TestBrinkFilesystem(BrinkTestCase):
             command,
             exe_command,
             ]
-        self.brink_fs.listFolder = self.Mock(return_value=files)
+        self.sut.listFolder = self.Mock(return_value=files)
 
-        result = self.brink_fs._findCommand(exe_command, path)
+        result = self.sut._findCommand(exe_command, path)
 
         self.assertEqual(full_path, result)
 
@@ -179,9 +179,9 @@ class TestBrinkFilesystem(BrinkTestCase):
         """
         command = mk.string()
         path = mk.string()
-        self.brink_fs._isValidSystemPath = self.Mock(return_value=False)
+        self.sut._isValidSystemPath = self.Mock(return_value=False)
 
-        result = self.brink_fs._findCommand(command, path)
+        result = self.sut._findCommand(command, path)
 
         self.assertIsNone(result)
 
@@ -193,9 +193,9 @@ class TestBrinkFilesystem(BrinkTestCase):
         command = mk.string()
         path = mk.string()
         files = [mk.string(), mk.string()]
-        self.brink_fs.listFolder = self.Mock(return_value=files)
+        self.sut.listFolder = self.Mock(return_value=files)
 
-        result = self.brink_fs._findCommand(command, path)
+        result = self.sut._findCommand(command, path)
 
         self.assertIsNone(result)
 
@@ -205,11 +205,11 @@ class TestBrinkFilesystem(BrinkTestCase):
         variable.
         """
         if os.name == 'posix':
-            paths = self.brink_fs._parseUnixPaths(os.environ['PATH'])
+            paths = self.sut._parseUnixPaths(os.environ['PATH'])
         else:
-            paths = self.brink_fs._parseWindowsPaths(os.environ['PATH'])
+            paths = self.sut._parseWindowsPaths(os.environ['PATH'])
 
-        result = self.brink_fs._getSearchPaths()
+        result = self.sut._getSearchPaths()
 
         self.assertEqual(paths, result)
 
@@ -222,12 +222,54 @@ class TestBrinkFilesystem(BrinkTestCase):
         path1 = mk.string
         path2 = mk.string
         if os.name == 'posix':
-            path3 = self.brink_fs._parseUnixPaths(os.environ['PATH'])[0]
+            path3 = self.sut._parseUnixPaths(os.environ['PATH'])[0]
         else:
-            path3 = self.brink_fs._parseWindowsPaths(os.environ['PATH'])[0]
+            path3 = self.sut._parseWindowsPaths(os.environ['PATH'])[0]
 
-        result = self.brink_fs._getSearchPaths(extra_paths=[path1, path2])
+        result = self.sut._getSearchPaths(extra_paths=[path1, path2])
 
         self.assertEqual(path1, result[0])
         self.assertEqual(path2, result[1])
         self.assertEqual(path3, result[2])
+
+    def test_copyFolder_no_overwrite(self):
+        """
+        It can copy the folder without overwriting existing files.
+        """
+        source_segments = mk.fs.createFolderInTemp(prefix=u'src-')
+        destination_segments = mk.fs.createFolderInTemp(prefix=u'dst-')
+        self.addCleanup(lambda: mk.fs.deleteFolder(source_segments))
+        self.addCleanup(lambda: mk.fs.deleteFolder(destination_segments))
+        existing_name = mk.makeFilename()
+        existing_source_segments = source_segments + [existing_name]
+        existing_destination_segments = destination_segments + [existing_name]
+        mk.fs.createFile(existing_source_segments, content=b'source-exist')
+        mk.fs.createFile(
+            existing_destination_segments, content=b'destination-exist')
+        mk.fs.createFile(source_segments + [u'other-file'], content=b'other')
+
+        self.sut.copyFolder(
+            source=[u'/'] + source_segments,
+            destination=[u'/'] + destination_segments,
+            overwrite=False,
+            )
+
+        self.assertTrue(
+            mk.fs.exists(destination_segments + [u'other-file']))
+        self.assertTrue(
+            mk.fs.exists(existing_destination_segments))
+        self.assertEqual(
+            b'destination-exist',
+            mk.fs.getFileContent(existing_destination_segments, utf8=False))
+
+    def test_join_rejoin_unicode(self):
+        """
+        It can join and re-join the result from unicode path.
+        """
+        first_join = self.sut.join([mk.makeFilename(), mk.makeFilename()])
+        second_join = self.sut.join([first_join, mk.makeFilename()])
+
+        if os.name == 'posix':
+            self.assertIsInstance(str, second_join)
+        else:
+            self.assertIsInstance(unicode, second_join)

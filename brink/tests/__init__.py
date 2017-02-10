@@ -3,7 +3,7 @@
 """
 Tests for Brink build system.
 """
-from chevah.empirical import mk
+from chevah.compat.testing import mk
 
 
 def setup_package():

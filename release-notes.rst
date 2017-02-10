@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.58.0, 2017-02-10
+--------------------------
+
+* Add an non overwrite option to BrinkFilesystem.copyFolder.
+
+
 Version 0.57.0, 2017-01-31
 --------------------------
 

@@ -33,9 +33,20 @@ class BrinkFilesystem(object):
 
         It also converts all paths to backslash paths.
         """
-        result = os.path.join(*paths)
         if os.name == 'posix':
-            result = result.encode('utf-8')
+            # Make sure we don't mix unicode
+            new_paths = []
+            for path in paths:
+                if isinstance(path, unicode):
+                    path = path.encode('utf-8')
+                new_paths.append(path)
+            paths = new_paths
+        elif os.name == 'nt':
+            if paths[0].startswith('/') and not paths[1].endswith(":"):
+                # Try figuring out if this is an absolute path and fix it.
+                paths = [paths[1] + u':', os.sep] + paths[2:]
+
+        result = os.path.join(*paths)
         return result.replace('\\', '/')
 
     def readFile(self, destination):
@@ -123,6 +134,7 @@ class BrinkFilesystem(object):
     def copyFolder(
             self, source, destination,
             excepted_folders=None, excepted_files=None,
+            overwrite=True,
             ):
         """
         Copy `source` folder to `destination`.
@@ -162,6 +174,8 @@ class BrinkFilesystem(object):
                 os.mkdir(destination_folder)
 
             for file_ in files:
+                destination_file = self.join([destination_folder, file_])
+                source_file = self.join([source_folder, file_])
 
                 # Check if we need to skip this file.
                 skip_file = False
@@ -169,11 +183,15 @@ class BrinkFilesystem(object):
                     if re.match(excepted_file, file_):
                         skip_file = True
                         break
+
+                destination_file = self.join([destination_folder, file_])
+                source_file = self.join([source_folder, file_])
+
+                if not overwrite and os.path.exists(destination_file):
+                    skip_file = True
+
                 if skip_file:
                     continue
-
-                source_file = self.join([source_folder, file_])
-                destination_file = self.join([destination_folder, file_])
 
                 if os.path.exists(destination_file):
                     os.remove(destination_file)
