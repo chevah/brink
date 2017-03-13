@@ -92,8 +92,10 @@ BUILD_PACKAGES = [
     ]
 
 TEST_PACKAGES = [
-    # Required for seesaw testing.
+    # Required for testing.
     'chevah-compat==0.40.0',
+    # Required by compat.
+    'future',
 
     # Requried by empirical.
     'wmi==1.4.9',
