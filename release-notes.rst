@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.58.1, 2017-04-20
+--------------------------
+
+* Add support for Solaris 10 versions older than u8, based on u3.
+
+
 Version 0.58.0, 2017-02-10
 --------------------------
 
