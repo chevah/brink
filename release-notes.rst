@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.59.0, unreleased
+--------------------------
+
+* Use pip and setuptools directly from the python package.
+* Initial steps for py3 tests.
+
+
 Version 0.58.1, 2017-04-20
 --------------------------
 

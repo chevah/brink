@@ -7,7 +7,7 @@ from __future__ import absolute_import, with_statement
 
 from contextlib import closing
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
-import md5
+from hashlib import md5
 import os
 import re
 import socket
@@ -98,13 +98,7 @@ class BrinkPaver(object):
         working_set.by_key = {}
         map(working_set.add_entry, sys.path)
 
-        from pip import log, main
-
-        # Fix multiple log consumers.
-        # pip does not support multiple runs from a single python instance
-        # so at start, it just appends the log consumers.
-        # Here we reset them as a python instance was just started.
-        log.logger.consumers = []
+        from pip import main
 
         pip_build_path = [self.path.build, 'pip-build']
         self.fs.deleteFolder(pip_build_path)
@@ -118,6 +112,7 @@ class BrinkPaver(object):
         pip_arguments = [command]
 
         if command == 'install':
+            pip_arguments.extend(['--trusted-host', 'pypi.chevah.com'])
             if only_cache:
                 pip_arguments.extend(['--no-index'])
             else:
@@ -129,7 +124,7 @@ class BrinkPaver(object):
                     '--install-hook=%s' % (install_hook)])
 
             pip_arguments.extend(
-                ['--download-cache=' + self.path.cache])
+                ['--cache-dir=' + self.path.cache])
 
             pip_arguments.extend(
                 ['--build=' + self.fs.join(pip_build_path)])
@@ -144,7 +139,7 @@ class BrinkPaver(object):
 
         pip_arguments.extend(arguments)
 
-        result = main(initial_args=pip_arguments)
+        result = main(args=pip_arguments)
 
         if result != 0 and exit_on_errors:
             print "Failed to run:\npip %s" % (' '.join(pip_arguments))
@@ -233,7 +228,7 @@ class BrinkPaver(object):
         '''
         Returns an MD5 hash for the file specified by file_path.
         '''
-        md5hash = md5.new()
+        md5hash = md5()
 
         with open(self.fs.join(source), 'rb') as input_file:
             while True:

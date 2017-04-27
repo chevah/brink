@@ -5,8 +5,10 @@ Build script for Chevah brink repository.
 
 This is here to help with review, buildbot, and other tasks.
 """
+from __future__ import absolute_import, print_function, unicode_literals
 import os
 import sys
+import warnings
 
 from brink.pavement_commons import (
     buildbot_list,
@@ -66,17 +68,14 @@ test_review
 test_normal
 test_super
 
+# These are the hard dependencies needed by the library itself.
 RUN_PACKAGES = [
     'zope.interface==3.8.0',
-    'twisted==15.1.0.c1',
+    'twisted==15.5.0.chevah4',
     ]
 
+# Packages required to use the dev/build system.
 BUILD_PACKAGES = [
-    'sphinx==1.1.3-chevah1',
-    'repoze.sphinx.autointerface==0.7.1-chevah2',
-    # Docutils is required for RST parsing and for Sphinx.
-    'docutils>=0.9.1-chevah2',
-
     # Buildbot is used for try scheduler
     'buildbot==0.8.11.c7',
 
@@ -91,19 +90,29 @@ BUILD_PACKAGES = [
     'pygithub==1.10.0',
     ]
 
-TEST_PACKAGES = [
-    # Required for testing.
-    'chevah-compat==0.40.0',
-    # Required by compat.
-    'future',
-
-    # Requried by empirical.
-    'wmi==1.4.9',
-
+# Packages required by the static analysis tests.
+LINT_PACKAGES = [
     'pocketlint==1.4.4.c12',
     'pyflakes>=1.0.0',
     'closure-linter==2.3.13',
     'pep8>=1.6.2',
+    # Used for py3 porting and other checks.
+    'pylint==1.4.3',
+
+    # These are build packages, but are used for testing the documentation.
+    'sphinx==1.1.3-chevah1',
+    'repoze.sphinx.autointerface==0.7.1-chevah2',
+    # Docutils is required for RST parsing and for Sphinx.
+    'docutils>=0.9.1-chevah2',
+    ]
+
+# Packages required to run the test suite.
+TEST_PACKAGES = [
+    'chevah-compat==0.41.1',
+
+    # Required by compat.
+    'future',
+    'wmi==1.4.9',
 
     # Never version of nose, hangs on closing some tests
     # due to some thread handling.
@@ -160,39 +169,27 @@ if os.name == 'nt':
 
 
 @task
-@needs('deps_testing', 'deps_build')
 def deps():
     """
     Install all dependencies.
     """
+    print('Installing dependencies to %s...' % (pave.path.build,))
+    packages = RUN_PACKAGES + TEST_PACKAGES
 
+    env_ci = os.environ.get('CI', '').strip()
+    if env_ci.lower() != 'true':
+        packages += BUILD_PACKAGES + LINT_PACKAGES
+    else:
+        builder = os.environ.get('BUILDER_NAME', '')
+        if 'os-independent' in builder or '-py3' in builder:
+            packages += LINT_PACKAGES
+            print('Installing only lint and test dependencies.')
+        else:
+            print('Installing only test dependencies.')
 
-@task
-def deps_testing():
-    """
-    Get dependencies for running the tests.
-    """
-    print('Installing testing dependencies to %s.' % (pave.path.build))
     pave.pip(
         command='install',
-        arguments=RUN_PACKAGES,
-        )
-    pave.pip(
-        command='install',
-        arguments=TEST_PACKAGES,
-        )
-
-
-@task
-@needs('deps_testing')
-def deps_build():
-    """
-    Get dependencies for building the project.
-    """
-    print('Installing build dependencies to %s.' % (pave.path.build))
-    pave.pip(
-        command='install',
-        arguments=BUILD_PACKAGES,
+        arguments=packages,
         )
 
 
@@ -214,7 +211,7 @@ def build():
     pave.fs.copyFile(['DEFAULT_VALUES'], [pave.path.build, 'DEFAULT_VALUES'])
 
     sys.argv = ['setup.py', 'build', '--build-base', build_target]
-    print "Building in " + build_target
+    print("Building in " + build_target)
 
     pave.fs.deleteFolder(
         [pave.path.build, 'doc_source'])
@@ -269,15 +266,85 @@ def test(args):
 @consume_args
 def test_ci(args):
     """
-    Run tests in continous integration environment.
+    Run tests in continuous integration environment.
     """
+    # Show some info about the current environment.
+    from OpenSSL import SSL, __version__ as pyopenssl_version
+    from coverage.cmdline import main as coverage_main
+
+    print('PYTHON %s' % (sys.version,))
+    print('%s (%s)' % (
+        SSL.SSLeay_version(SSL.SSLEAY_VERSION), SSL.OPENSSL_VERSION_NUMBER))
+    print('pyOpenSSL %s' % (pyopenssl_version,))
+    coverage_main(argv=['--version'])
+
     env = os.environ.copy()
 
     test_type = env.get('TEST_TYPE', 'normal')
     if test_type == 'os-independent':
-        call_task('test_os_independent')
-    else:
-        call_task('test_os_dependent', args=args)
+        return call_task('test_os_independent')
+
+    if test_type == 'py3':
+        return call_task('test_py3', args=args)
+
+    return call_task('test_os_dependent', args=args)
+
+
+@task
+def test_py3():
+    """
+    Run checks for py3 compatibility.
+    """
+    from pylint.lint import Run
+    from nose.core import main as nose_main
+    arguments = ['--py3k', SETUP['folders']['source']]
+    linter = Run(arguments, exit=False)
+    stats = linter.linter.stats
+    errors = (
+        stats['info'] + stats['error'] + stats['refactor'] +
+        stats['fatal'] + stats['convention'] + stats['warning']
+        )
+    if errors:
+        print('Pylint failed')
+        sys.exit(1)
+
+    print('Compiling in Py3 ...',)
+    command = ['python3', '-m', 'compileall', '-q', 'chevah']
+    pave.execute(command, output=sys.stdout)
+    print('done')
+
+    sys.argv = sys.argv[:1]
+    pave.python_command_normal.extend(['-3'])
+
+    captured_warnings = []
+
+    def capture_warning(
+        message, category, filename,
+        lineno=None, file=None, line=None
+            ):
+        if not filename.startswith('chevah'):
+            # Not our code.
+            return
+        line = (message.message, filename, lineno)
+        if line in captured_warnings:
+            # Don't include duplicate warnings.
+            return
+        captured_warnings.append(line)
+
+    warnings.showwarning = capture_warning
+
+    sys.args = ['nose', 'brink.tests.normal']
+    runner = nose_main(exit=False)
+    if not runner.success:
+        print('Test failed')
+        sys.exit(1)
+    if not captured_warnings:
+        sys.exit(0)
+
+    print('\nCaptured warnings\n')
+    for warning, filename, line in captured_warnings:
+        print('%s:%s %s' % (filename, line, warning))
+    sys.exit(1)
 
 
 @task
@@ -306,7 +373,7 @@ def publish(args):
     """
     Placeholder to test the whole publish process.
     """
-    print "Publishing: %s" % (args,)
+    print("Publishing: %s" % (args,))
 
 
 @task
