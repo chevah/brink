@@ -108,7 +108,7 @@ LINT_PACKAGES = [
 
 # Packages required to run the test suite.
 TEST_PACKAGES = [
-    'chevah-compat==0.41.1',
+    'chevah-compat==0.43.2',
 
     # Required by compat.
     'future',

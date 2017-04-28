@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.60.0, 2017-05-05
+--------------------------
+
+* Fix getBinaryDistributionFolder for new paver.sh
+* Update paver.sh for netbsd.
+
+
 Version 0.59.0, 2017-04-28
 --------------------------
 

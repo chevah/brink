@@ -711,7 +711,7 @@ class BrinkPaver(object):
         else:
             command.append('get_python')
 
-        command.append(distribution)
+        command.extend(platform.split('-'))
 
         (exit_code, output) = self.execute(command, output=sys.stdout)
 
