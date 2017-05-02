@@ -1,13 +1,25 @@
 # Copyright (c) 2012 Adi Roiban.
 # See LICENSE for details.
+# We don't want to depende on six/future so we have our own unicode handling.
+# pylint: disable=unicode-builtin
 """
 Unit tests for brink filesystem.
 """
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
 import os
 
+from brink.filesystem import BrinkFilesystem
 from brink.testing import BrinkTestCase, mk
 
-from brink.filesystem import BrinkFilesystem
+try:
+    bool(type(unicode))
+except NameError:
+    unicode = str
 
 
 class TestBrinkFilesystem(BrinkTestCase):

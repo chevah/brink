@@ -3,7 +3,13 @@
 """
 Git support for brink.
 """
-from __future__ import with_statement
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
+
 
 import os
 import sys
@@ -105,7 +111,7 @@ class BrinkGit(object):
         command = [self.git, 'clone', repo_uri, project_name]
         exit_code, output = execute(command)
         if exit_code != 0:
-            print 'Failed to clone "%s".' % repo_uri
+            print('Failed to clone "%s".' % repo_uri)
             sys.exit(1)
 
     def pull(self, repo_uri='origin', branch='master'):
@@ -114,7 +120,7 @@ class BrinkGit(object):
 
         exit_code, output = execute(command)
         if exit_code != 0:
-            print 'Failed to update repo "%s".' % repo_uri
+            print('Failed to update repo "%s".' % repo_uri)
             sys.exit(1)
 
     def copyFile(self, source, destination, branch='master'):
@@ -131,7 +137,7 @@ class BrinkGit(object):
         command = ['git', 'diff', '--name-status', '%s' % (ref)]
         exit_code, output = execute(command)
         if exit_code != 0:
-            print 'Failed to diff files.'
+            print('Failed to diff files.')
             sys.exit(1)
 
         for line in output.splitlines():

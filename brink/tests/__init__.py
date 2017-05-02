@@ -3,6 +3,12 @@
 """
 Tests for Brink build system.
 """
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
 from chevah.compat.testing import mk
 
 

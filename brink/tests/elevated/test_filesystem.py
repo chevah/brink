@@ -3,6 +3,12 @@
 """
 Elevated tests for `BrinkFilesystem`.
 """
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
 from brink.testing import BrinkTestCase
 
 from brink.filesystem import BrinkFilesystem

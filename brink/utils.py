@@ -3,7 +3,12 @@
 """
 Utility code for Brink.
 """
-from __future__ import absolute_import, with_statement
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
 
 from contextlib import closing
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
@@ -96,7 +101,7 @@ class BrinkPaver(object):
         working_set.entries = []
         working_set.entry_keys = {}
         working_set.by_key = {}
-        map(working_set.add_entry, sys.path)
+        list(map(working_set.add_entry, sys.path))
 
         from pip import main
 
@@ -142,7 +147,7 @@ class BrinkPaver(object):
         result = main(args=pip_arguments)
 
         if result != 0 and exit_on_errors:
-            print "Failed to run:\npip %s" % (' '.join(pip_arguments))
+            print("Failed to run:\npip %s" % (' '.join(pip_arguments)))
             sys.exit(result)
 
         return result
@@ -160,7 +165,7 @@ class BrinkPaver(object):
             value = task_options[option_name]
         except KeyError:
             if required:
-                print 'It is required to provide option "%s".' % (option_name)
+                print('It is required to provide option "%s".' % (option_name))
                 sys.exit(1)
             value = default_value
         return value
@@ -281,7 +286,7 @@ class BrinkPaver(object):
             ]
         make_nsis_path = self.fs.which('makensis', nsis_locations)
         if not make_nsis_path:
-            print (
+            print(
                 'NullSoft Installer is not installed. '
                 'On Ubuntu you can install it using '
                 '"sudo apt-get install nsis".'
@@ -292,12 +297,12 @@ class BrinkPaver(object):
 
         try:
             with self.fs.changeFolder([target]):
-                print "Executing %s" % make_nsis_command
+                print("Executing %s" % make_nsis_command)
                 subprocess.call(make_nsis_command)
         except OSError, os_error:
             if os_error.errno != 2:
                 raise
-            print (
+            print(
                 'NullSoft Installer is not installed. '
                 'On Ubuntu you can install it using '
                 '"sudo apt-get install nsis".'
@@ -317,7 +322,7 @@ class BrinkPaver(object):
                 files_fixed += 1
 
         if files_fixed == 0:
-            print "Failed to convert some bat files."
+            print("Failed to convert some bat files.")
             sys.exit(1)
 
         source_folder = self.fs.join([
@@ -335,15 +340,15 @@ class BrinkPaver(object):
                 files_fixed += 1
 
         if files_fixed == 0:
-            print "Failed to convert some configuration files."
+            print("Failed to convert some configuration files.")
             sys.exit(1)
 
     def _convertToDOSNewlines(self, file_path):
         """
         Convert the file to DOS newlines.
         """
+        tmp_file_path = self.fs.getEncodedPath(file_path + '.tmp')
         file_path = self.fs.getEncodedPath(file_path)
-        tmp_file_path = file_path + '.tmp'
         write_file = open(tmp_file_path, 'wb')
         read_file = open(file_path, 'rU')
         for line in read_file:
@@ -371,7 +376,7 @@ class BrinkPaver(object):
         exit_code, result = self.execute(
             command=command, output=sys.stdout)
         if exit_code:
-            print "Failed to execute rsync."
+            print("Failed to execute rsync.")
             sys.exit(exit_code)
 
     def importAsString(self, module_name):
@@ -437,7 +442,7 @@ class BrinkPaver(object):
             destination=download_page,
             )
 
-        print "Creating download page..."
+        print("Creating download page...")
         content = self.renderJinja(
             package=website_package,
             folder='jinja',
@@ -593,18 +598,18 @@ class BrinkPaver(object):
             folders = []
 
         if dry:
-            print "\n---\nFiles\n---"
+            print("\n---\nFiles\n---")
             for name in files:
-                print name
-            print "\n---\nFolders\n---"
+                print(name)
+            print("\n---\nFolders\n---")
             for name in folders:
-                print name
-            print "\n---\nExcluded files\n---"
+                print(name)
+            print("\n---\nExcluded files\n---")
             for name in excluded_files:
-                print name
-            print "\n---\nExcluded folders\n---"
+                print(name)
+            print("\n---\nExcluded folders\n---")
             for name in excluded_folders:
-                print name
+                print(name)
             return 0
 
         sources = []
@@ -722,7 +727,7 @@ class BrinkPaver(object):
         command_path = self.fs.which(command, extra_paths=[
             prefix_path, self.fs.join([prefix_path, 'bin'])])
         if not command_path:
-            print "Could not find node command %s" % (command)
+            print("Could not find node command %s" % (command))
             return 1
 
         node_command = [command_path]
@@ -760,7 +765,7 @@ class BrinkPaver(object):
 
         npm_path = self.fs.which('npm')
         if not npm_path:
-            print "npm not found. Are nodejs and npm installed."
+            print("npm not found. Are nodejs and npm installed.")
             sys.exit(1)
 
         npm_command = [npm_path]

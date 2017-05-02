@@ -3,6 +3,13 @@
 """
 PQM related targets for paver.
 """
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
+
 import os
 import re
 import sys
@@ -31,11 +38,11 @@ def github(args):
     * token PASSWORD - Get a new token to be used by PQM."
     """
     def github_help():
-        print "Usage: github COMMNAND ARGUMENTS."
-        print ""
-        print "List of commands:"
-        print "    open - Open the repository in githuh."
-        print "    review  - Open the page for creating a new pull request"
+        print("Usage: github COMMNAND ARGUMENTS.")
+        print("")
+        print("List of commands:")
+        print("    open - Open the repository in githuh.")
+        print("    review  - Open the page for creating a new pull request")
 
     if not len(args):
         github_help()
@@ -55,7 +62,7 @@ def github(args):
         sys.exit(0)
 
     if args[0] == 'token':
-        print _github_token(username='chevah-robot', password=args[1])
+        print(_github_token(username='chevah-robot', password=args[1]))
         sys.exit(0)
 
 
@@ -94,8 +101,8 @@ def _get_pull(repo, pull_id):
         return repo.get_pull(pull_id)
 
     except GithubException, error:
-        print "Failed to get GitHub details"
-        print str(error)
+        print("Failed to get GitHub details")
+        print(str(error))
         sys.exit(1)
 
 
@@ -115,8 +122,8 @@ def _review_properties(token, pull_id):
                 comment.user.login, comment.body, comment.updated_at))
 
     except GithubException, error:
-        print "Failed to get GitHub details"
-        print str(error)
+        print("Failed to get GitHub details")
+        print(str(error))
         sys.exit(1)
 
     def getReviewTitle(content, ticket_id=None):
@@ -126,7 +133,7 @@ def _review_properties(token, pull_id):
         result = content.strip()
 
         if len(result.split('\n')) > 1:
-            print "Commit merge message should be single line."
+            print("Commit merge message should be single line.")
             sys.exit(1)
 
         # Make sure the title does not starts  with ticket id as it will
@@ -164,9 +171,9 @@ def _review_properties(token, pull_id):
             pending_approval.append((reviewer, 'Not approved yet.'))
 
         if pending_approval:
-            print "Review not approved. See list below"
+            print("Review not approved. See list below")
             for reason in pending_approval:
-                print reason
+                print(reason)
             sys.exit(1)
 
     branch_name = pull_request.head.ref
@@ -261,7 +268,7 @@ def _get_github_environment():
     try:
         pull_id = int(pull_id)
     except:
-        print "Invalid pull_id: %s" % str(pull_id)
+        print("Invalid pull_id: %s" % str(pull_id))
         sys.exit(1)
 
     return {
@@ -287,14 +294,14 @@ def merge_init():
 
     branch_name = _get_environment('BRANCH', repo.head.ref.name)
     if branch_name in 'master' or branch_name.startswith('series-'):
-        print "You can not merge the main branches."
+        print("You can not merge the main branches.")
         sys.exit(1)
 
     try:
         int(pave.getTicketIDFromBranchName(branch_name))
     except:
-        print "Branch name '%s' does not start with ticket id." % (
-            branch_name)
+        print("Branch name '%s' does not start with ticket id." % (
+            branch_name))
         sys.exit(1)
 
     # Check pull request details on Github.
@@ -306,21 +313,21 @@ def merge_init():
     local_sha = repo.head.commit.hexsha
 
     if remote_sha != local_sha:
-        print "Local branch and review branch are at different revision."
-        print "Local sha:  %s %s" % (local_sha, branch_name)
-        print "Review sha: %s %s" % (remote_sha, pr_branch_name)
+        print("Local branch and review branch are at different revision.")
+        print("Local sha:  %s %s" % (local_sha, branch_name))
+        print("Review sha: %s %s" % (remote_sha, pr_branch_name))
         sys.exit(1)
 
     # Fail early if branch can not be merged.
     if not pull_request.mergeable:
-        print "GitHub said that branch can not be merged."
-        print "Please resole conflict and pull the changes."
+        print("GitHub said that branch can not be merged.")
+        print("Please resole conflict and pull the changes.")
         sys.exit(1)
 
     # Clear any unused files from this repo as this might be done
     # before a release.
-    print 'Clean repo'
-    print git.clean(force=True, quiet=True)
+    print('Clean repo')
+    print(git.clean(force=True, quiet=True))
 
 
 @task
@@ -358,14 +365,14 @@ def merge_commit(args):
 
     # Fail early if branch can not be merged or at wrong commit.
     if remote_sha != local_sha:
-        print "Local branch and review branch are at different revision."
-        print "Local sha:  %s %s" % (local_sha, branch_name)
-        print "Review sha: %s" % (remote_sha,)
+        print("Local branch and review branch are at different revision.")
+        print("Local sha:  %s %s" % (local_sha, branch_name))
+        print("Review sha: %s" % (remote_sha,))
         sys.exit(1)
 
     if not pull_request.mergeable:
-        print "GitHub said that branch can not be merged."
-        print "Please resole conflict and pull the changes."
+        print("GitHub said that branch can not be merged.")
+        print("Please resole conflict and pull the changes.")
         sys.exit(1)
 
     landing_branch = pull_request.base.ref
@@ -383,10 +390,10 @@ def merge_commit(args):
             # Remote does not exists.
             pass
         except GitCommandError as error:
-            print error
+            print(error)
 
-        print 'Set `origin` remote to %s' % (origin,)
-        print repo.create_remote('origin', origin)
+        print('Set `origin` remote to %s' % (origin,))
+        print(repo.create_remote('origin', origin))
 
         update_tags = False
         if _get_environment('RQM', 'no') == 'yes':
@@ -397,32 +404,32 @@ def merge_commit(args):
         # Merge branch into the landing branch.
 
         try:
-            print "Switch to %s branch" % (landing_branch,)
-            print repo.heads[landing_branch].checkout()
-            print "Update %s" % (landing_branch,)
-            print repo.remote('origin').pull('+' + landing_branch)
+            print("Switch to %s branch" % (landing_branch,))
+            print(repo.heads[landing_branch].checkout())
+            print("Update %s" % (landing_branch,))
+            print(repo.remote('origin').pull('+' + landing_branch))
         except IndexError:
-            print "We don't have a %s branch." % (landing_branch,)
-            print "Let's get it."
-            print repo.remote('origin').fetch()
-            print git.checkout('origin/master', b=landing_branch)
+            print("We don't have a %s branch." % (landing_branch,))
+            print("Let's get it.")
+            print(repo.remote('origin').fetch())
+            print(git.checkout('origin/master', b=landing_branch))
 
-        print "Merge branch"
-        print git.merge(local_sha, squash=True, no_commit=True)
-        print "Commit message"
-        print git.commit(author=author, message=message)
+        print("Merge branch")
+        print(git.merge(local_sha, squash=True, no_commit=True))
+        print("Commit message")
+        print(git.commit(author=author, message=message))
         # Push merged changes to landing branch.
         for state in repo.remotes.origin.push(
                 landing_branch, tags=update_tags):
-            print state.summary
+            print(state.summary)
             if '[rejected]' in state.summary:
-                print 'Failed to push changes.'
+                print('Failed to push changes.')
                 sys.exit(1)
         # Delete original branch.
-        print repo.remotes.origin.push(branch_name, delete=True)
+        print(repo.remotes.origin.push(branch_name, delete=True))
     except GitCommandError, error:
-        print "Failed to run git commit."
-        print str(error)
+        print("Failed to run git commit.")
+        print(str(error))
         sys.exit(1)
 
 
@@ -436,19 +443,19 @@ def pqm():
     args = sys.argv[2:]
 
     if len(args) < 1:
-        print 'Please specify the pull request id for this branch.'
+        print('Please specify the pull request id for this branch.')
         sys.exit(1)
 
     result = pave.git.status()
     if result:
-        print 'Please commit all files and get review approval.'
-        print 'PQM canceled.'
+        print('Please commit all files and get review approval.')
+        print('PQM canceled.')
         sys.exit(1)
 
     try:
         pull_id = int(args[0])
     except:
-        print "Pull id in bad format. It must be an integer."
+        print("Pull id in bad format. It must be an integer.")
         sys.exit(1)
 
     pull_id_property = '--properties=github_pull_id=%s' % (pull_id)
@@ -478,8 +485,8 @@ def rqm(options):
     """
     result = pave.git.status()
     if result:
-        print 'Please commit all files before requesting the release.'
-        print 'RQM cancelled.'
+        print('Please commit all files before requesting the release.')
+        print('RQM cancelled.')
         sys.exit(1)
 
     target = pave.getOption(options, 'rqm', 'target', default_value=None)

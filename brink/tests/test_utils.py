@@ -3,6 +3,12 @@
 """
 Tests for brink utilities.
 """
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
 import hashlib
 from brink.testing import BrinkTestCase, mk
 

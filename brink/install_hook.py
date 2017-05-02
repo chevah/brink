@@ -3,6 +3,13 @@
 """
 Module executed after a package was installed.
 """
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
+
 import os
 import shutil
 

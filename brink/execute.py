@@ -1,5 +1,11 @@
 # Copyright (c) 2012 Adi Roiban.
 # See LICENSE for details.
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
 import os
 import subprocess
 import sys
@@ -14,7 +20,7 @@ def execute(
     Returns (exit_code, stdoutdata)
     """
     if verbose:
-        print 'Calling: %s' % command
+        print('Calling: %s' % command)
 
     if output is None:
         output = subprocess.PIPE
@@ -34,8 +40,8 @@ def execute(
             )
     except OSError, error:
         if error.errno == 2:
-            print 'Failed to execute: %s' % ' '.join(command)
-            print 'Missing command: %s' % command[0]
+            print('Failed to execute: %s' % ' '.join(command))
+            print('Missing command: %s' % command[0])
             sys.exit(1)
         else:
             raise
@@ -50,7 +56,7 @@ def execute(
     exit_code = process.returncode
     if exit_code != 0:
         if verbose:
-            print u'Failed to execute %s\n%s' % (command, stderrdata)
+            print('Failed to execute %s\n%s' % (command, stderrdata))
         if not ignore_errors:
             sys.exit(exit_code)
 

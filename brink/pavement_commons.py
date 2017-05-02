@@ -16,7 +16,12 @@ A `project` is a collection of products.
 This scripts assume that you have dedicated folder for the project, and
 inside the project folder, there is one folder for each products.
 """
-from __future__ import with_statement
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
 
 import getpass
 import os
@@ -254,8 +259,8 @@ def test_review(args):
     """
     result = pave.git.status()
     if result:
-        print 'Please commit all files before requesting the release.'
-        print 'Aborted.'
+        print('Please commit all files before requesting the release.')
+        print('Aborted.')
         sys.exit(1)
 
     arguments = ['gk-review']
@@ -336,10 +341,10 @@ def test_remote(args):
 
     # There is no point in waiting for pqm, all or other long builds.
     if '--wait' not in arguments:
-        print 'Builder execute in non-interactive mode.'
-        print 'Check Buildbot page for status or wait for email.'
-        print 'Use --wait if you want to wait to test result.'
-        print '-------------------------------------------------'
+        print('Builder execute in non-interactive mode.')
+        print('Check Buildbot page for status or wait for email.')
+        print('Use --wait if you want to wait to test result.')
+        print('-------------------------------------------------')
 
     environment.args = arguments
     buildbot_try(arguments)
@@ -385,9 +390,9 @@ def run_test(python_command, switch_user, arguments):
 
     test_command.extend(test_args)
     with pushd(pave.path.build):
-        print test_command
+        print(test_command)
         exit_code = subprocess.call(test_command)
-        print 'Exit code is: %d' % (exit_code)
+        print('Exit code is: %d' % (exit_code))
         return exit_code
 
 
@@ -516,15 +521,15 @@ def buildbot_try(args):
             break
 
     if not builder:
-        print 'No builder was specified. Use "-b" to send tests to a builder.'
+        print('No builder was specified. Use "-b" to send tests to a builder.')
         sys.exit(1)
 
     who = unidecode(pave.git.account)
     if not who:
-        print 'Git user info not configured.'
-        print 'Use:'
-        print 'git config --global user.name Your Name'
-        print 'git config --global user.email your@email.tld'
+        print('Git user info not configured.')
+        print('Use:')
+        print('git config --global user.name Your Name')
+        print('git config --global user.email your@email.tld')
         sys.exit(1)
 
     new_args = [
@@ -549,7 +554,7 @@ def buildbot_try(args):
     # not be valid.
     pave.git.push()
 
-    print 'Running %s' % new_args
+    print('Running %s' % new_args)
     runner.run()
 
 
@@ -576,7 +581,7 @@ def buildbot_list(args):
         ]
     sys.argv = new_args
 
-    print 'Running %s' % new_args
+    print('Running %s' % new_args)
 
     new_out = None
     if 'all' not in args:
@@ -598,7 +603,7 @@ def buildbot_list(args):
                 selector = ''
             for line in new_out.getvalue().split('\n'):
                 if selector in line:
-                    print line
+                    print(line)
 
 
 @task
@@ -693,7 +698,7 @@ def publish_distributables(args):
                 pave.path.publish, 'website', 'downloads', 'index.html'],
             )
 
-    print "Publishing distributable(s) to %s ..." % (download_hostname)
+    print("Publishing distributable(s) to %s ..." % (download_hostname))
     pave.rsync(
         username=download_username,
         hostname=download_hostname,
@@ -702,7 +707,7 @@ def publish_distributables(args):
         verbose=True,
         )
 
-    print "Publishing download pages to %s..." % (documentation_hostname)
+    print("Publishing download pages to %s..." % (documentation_hostname))
     pave.rsync(
         username=documentation_username,
         hostname=documentation_hostname,
@@ -711,7 +716,7 @@ def publish_distributables(args):
         verbose=True,
         )
 
-    print "Distributable(s) published."
+    print("Distributable(s) published.")
 
 
 @task
@@ -800,7 +805,7 @@ def publish_documentation(args):
         destination_root = (
             documentation_hostname + '/documentation/' + product_name)
 
-    print "Publishing documentation to %s..." % (documentation_hostname)
+    print("Publishing documentation to %s..." % (documentation_hostname))
     pave.rsync(
         username=documentation_username,
         hostname=documentation_hostname,
@@ -809,7 +814,7 @@ def publish_documentation(args):
         verbose=True,
         )
 
-    print "Documentation published."
+    print("Documentation published.")
 
 
 @task

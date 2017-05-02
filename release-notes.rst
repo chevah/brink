@@ -4,7 +4,7 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
-Version 0.59.0, unreleased
+Version 0.59.0, 2017-04-28
 --------------------------
 
 * Use pip and setuptools directly from the python package.

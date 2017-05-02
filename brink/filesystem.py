@@ -1,6 +1,13 @@
 # Copyright (c) 2012 Adi Roiban.
 # See LICENSE for details.
-from __future__ import with_statement
+# We don't want to depende on six/future so we have our own unicode handling.
+# pylint: disable=unicode-builtin
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
 
 from contextlib import contextmanager
 import os
@@ -9,6 +16,11 @@ import shutil
 import stat
 import sys
 import unicodedata
+
+try:
+    bool(type(unicode))
+except NameError:
+    unicode = str
 
 
 class BrinkFilesystem(object):
@@ -47,7 +59,10 @@ class BrinkFilesystem(object):
                 paths = [paths[1] + u':', os.sep] + paths[2:]
 
         result = os.path.join(*paths)
-        return result.replace('\\', '/')
+        if isinstance(result, unicode):
+            return result.replace('\\', '/')
+        else:
+            return result.replace(b'\\', b'/')
 
     def readFile(self, destination):
         content = []
@@ -101,7 +116,7 @@ class BrinkFilesystem(object):
         Create empty file.
         """
         path = self.join(target)
-        with file(path, 'w'):
+        with open(path, 'w'):
             os.utime(path, None)
 
     def createFolder(self, destination, recursive=False):

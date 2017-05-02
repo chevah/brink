@@ -1,6 +1,11 @@
 # Copyright (c) 2012 Adi Roiban.
 # See LICENSE for details.
-from __future__ import absolute_import, with_statement
+from __future__ import (
+    absolute_import,
+    print_function,
+    with_statement,
+    unicode_literals,
+    )
 from optparse import make_option
 import sys
 

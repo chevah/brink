@@ -116,7 +116,7 @@ TEST_PACKAGES = [
 
     # Never version of nose, hangs on closing some tests
     # due to some thread handling.
-    'nose==1.3.6',
+    'nose==1.3.7',
     'mock',
 
     'coverage==4.0.3',
