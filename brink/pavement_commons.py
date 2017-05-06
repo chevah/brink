@@ -607,7 +607,7 @@ def buildbot_list(args):
 
 
 @task
-@needs('update_setup', 'dist')
+@needs('update_setup')
 @consume_args
 def publish_distributables(args):
     """
@@ -697,6 +697,9 @@ def publish_distributables(args):
             destination=[
                 pave.path.publish, 'website', 'downloads', 'index.html'],
             )
+
+    # Create distributables.
+    call_task('dist')
 
     print("Publishing distributable(s) to %s ..." % (download_hostname))
     pave.rsync(
