@@ -607,7 +607,7 @@ def buildbot_list(args):
 
 
 @task
-@needs('update_setup')
+@needs('deps', 'update_setup')
 @consume_args
 def publish_distributables(args):
     """
@@ -643,8 +643,15 @@ def publish_distributables(args):
     else:
         server = SETUP['publish']['download_staging_hostname']
 
-    call_task('create_download_page', args=[server])
+    # Start with a clean base.
+    pave.fs.deleteFolder(target=[pave.path.dist])
+    pave.fs.createFolder(destination=[pave.path.dist])
 
+    # Create the things.
+    call_task('create_download_page', args=[server])
+    call_task('dist')
+
+    # Copy to the to be outbox folder for publishing.
     publish_downloads_folder = [pave.path.publish, 'downloads']
     publish_website_folder = [pave.path.publish, 'website']
     product_folder = [pave.fs.join(publish_downloads_folder), url_fragment]
@@ -656,12 +663,13 @@ def publish_distributables(args):
     pave.fs.deleteFolder(publish_downloads_folder)
     pave.fs.createFolder(release_publish_folder, recursive=True)
 
+    # Copy the download files.
     pave.fs.copyFolderContent(
         source=[pave.path.dist],
         destination=release_publish_folder,
         )
 
-    # Create publishing content for presentation site.
+    # Copy publishing content for presentation site.
     pave.fs.deleteFolder(publish_website_folder)
     pave.fs.createFolder(publish_website_folder)
     pave.fs.createFolder([pave.fs.join(publish_website_folder), 'downloads'])
@@ -697,9 +705,6 @@ def publish_distributables(args):
             destination=[
                 pave.path.publish, 'website', 'downloads', 'index.html'],
             )
-
-    # Create distributables.
-    call_task('dist')
 
     print("Publishing distributable(s) to %s ..." % (download_hostname))
     pave.rsync(
