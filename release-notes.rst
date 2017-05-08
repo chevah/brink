@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.60.4, 2017-05-08
+--------------------------
+
+* Fix pip build folder path Unicode handling for Unix/Linux.
+
+
 Version 0.60.2, 2017-05-08
 --------------------------
 

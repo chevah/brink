@@ -131,8 +131,12 @@ class BrinkPaver(object):
             pip_arguments.extend(
                 ['--cache-dir=' + self.path.cache])
 
-            pip_arguments.extend(
-                ['--build=' + self.fs.join(pip_build_path)])
+            pip_build = self.fs.join(pip_build_path)
+            if self.os_name != 'windows':
+                # On Non Windows, pip will fail if we pass an Unicode
+                # build path.
+                pip_build = pip_build.encode('utf-8')
+            pip_arguments.extend(['--build', pip_build])
 
             pip_arguments.extend([
                 '--find-links=file://' + self.path.cache,

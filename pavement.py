@@ -97,7 +97,8 @@ LINT_PACKAGES = [
     'closure-linter==2.3.13',
     'pep8>=1.6.2',
     # Used for py3 porting and other checks.
-    'pylint==1.4.3',
+    'pylint==1.4.5',
+    'astroid==1.3.6',
 
     # These are build packages, but are used for testing the documentation.
     'sphinx==1.1.3-chevah1',
