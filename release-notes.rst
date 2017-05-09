@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.60.5, 2017-05-08
+--------------------------
+
+* No longer use --find-links as pip is no longer making a compatible cache.
+  pip is now caching wheel files in its own hashed cache.
+
+
 Version 0.60.4, 2017-05-08
 --------------------------
 

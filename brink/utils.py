@@ -139,7 +139,6 @@ class BrinkPaver(object):
             pip_arguments.extend(['--build', pip_build])
 
             pip_arguments.extend([
-                '--find-links=file://' + self.path.cache,
                 '--use-wheel',
                 ])
 
