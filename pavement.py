@@ -87,7 +87,7 @@ BUILD_PACKAGES = [
     'async==0.6.1',
     'gitdb==0.6.4',
     'gitpython==1.0.0',
-    'pygithub==1.10.0',
+    'pygithub==1.34',
     ]
 
 # Packages required by the static analysis tests.
@@ -185,6 +185,9 @@ def deps():
         if 'os-independent' in builder or '-py3' in builder:
             packages += LINT_PACKAGES
             print('Installing only lint and test dependencies.')
+        elif '-gk-' in builder:
+            packages += BUILD_PACKAGES + LINT_PACKAGES
+            print('Installing only build, lint and test dependencies.')
         else:
             print('Installing only test dependencies.')
 

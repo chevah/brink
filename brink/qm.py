@@ -26,6 +26,8 @@ RE_REVIEWERS = '.*reviewers{0,1}:{0,1} @.*'
 RE_NEEDS_CHANGES = '.*needs{0,1}[\-_]changes{0,1}.*'
 RE_CHANGES_APPROVED = '.*changes{0,1}[\-_]approved{0,1}.*'
 
+_REQUIRED = object()
+
 
 @task
 @consume_args
@@ -101,12 +103,26 @@ def _get_pull(repo, pull_id):
         return repo.get_pull(pull_id)
 
     except GithubException, error:
-        print("Failed to get GitHub details")
+        print("Failed to get PR details")
         print(str(error))
         sys.exit(1)
 
 
-def _review_properties(token, pull_id):
+def _get_protected_branch(repo, branch):
+    """
+    Return the branch details.
+    """
+    from github import GithubException
+    try:
+        return repo.get_protected_branch(branch)
+
+    except GithubException, error:
+        print("Failed to get protected branch details")
+        print(str(error))
+        sys.exit(1)
+
+
+def _check_review_properties(token, pull_id):
     """
     Helper for calling this task from multiple places, without messing
     with paver arguments.
@@ -116,10 +132,42 @@ def _review_properties(token, pull_id):
         repo = _get_repo(token=token)
         pull_request = _get_pull(repo, pull_id=pull_id)
 
+        branch_name = pull_request.head.ref
+        branch_sha = pull_request.head.sha.lower()
+
+        # Fail early if branch can not be merged.
+        if not pull_request.mergeable:
+            print("GitHub said that branch can not be merged.")
+            print("Please resolve the conflicts and push the changes.")
+            sys.exit(1)
+
+        master = _get_protected_branch(repo, 'master')
+        if master.protected and pull_request.mergeable_state == u'blocked':
+
+            branch_commit = repo.get_commit(branch_sha)
+            combined_status = branch_commit.get_combined_status().statuses
+            if not combined_status:
+                print('No branch status recorded by GitHub.')
+            else:
+                print('GitHub said that branch status is:')
+                for status in combined_status:
+                    print(" %s: %s (%s)" % (
+                        status.context, status.state, status.description))
+
+            print('The branch merge is blocked.')
+            print('Check GitHub PR page for more details.')
+            sys.exit(1)
+
         comments = []
         for comment in pull_request.get_issue_comments():
             comments.append((
                 comment.user.login, comment.body, comment.updated_at))
+
+        reviews = []
+        for review in pull_request.get_reviews():
+            # For now the GitHub review has no modified/update date.
+            # We hope they are listed as they are made.
+            reviews.append((review.user.login, review.state))
 
     except GithubException, error:
         print("Failed to get GitHub details")
@@ -152,7 +200,7 @@ def _review_properties(token, pull_id):
 
         return result
 
-    def checkReviewApproval(comments, reviewers, sha):
+    def checkReviewApproval(comments, reviews, reviewers, sha):
         """
         Check comments to see if review was approved by all reviewers.
         """
@@ -160,11 +208,14 @@ def _review_properties(token, pull_id):
         comments = sorted(
             comments, key=lambda comment: comment[2], reverse=True)
 
+        # This is iterated multiple times.
+        reviews = list(reversed(reviews))
+
         # Get last comment of each review and check that the review was
         # approved.
         pending_approval = []
         for reviewer in reviewers:
-            if _approvedByReviewer(reviewer, comments):
+            if _approvedByReviewer(reviewer, comments, reviews):
                 # All good.
                 continue
 
@@ -176,13 +227,15 @@ def _review_properties(token, pull_id):
                 print(reason)
             sys.exit(1)
 
-    branch_name = pull_request.head.ref
-    branch_sha = pull_request.head.sha.lower()
     ticket_id = pave.getTicketIDFromBranchName(branch_name)
 
     reviewers = _getGitHubReviewers(pull_request.body)
     checkReviewApproval(
-        comments=comments, reviewers=reviewers, sha=branch_sha)
+        comments=comments,
+        reviews=reviews,
+        reviewers=reviewers,
+        sha=branch_sha,
+        )
 
     review_title = getReviewTitle(pull_request.title, ticket_id)
     commit_message = "[#%s] %s" % (ticket_id, review_title)
@@ -205,10 +258,12 @@ def _getGitHubReviewers(description):
     return results
 
 
-def _approvedByReviewer(reviewer, comments):
+def _approvedByReviewer(reviewer, comments, reviews):
     """
     Return `True` if reviewer has approved the changes.
     """
+
+    # First try to see if the marker is in the comments.
     for author, content, updated_at in comments:
         action = _getActionFromComment(content)
 
@@ -223,6 +278,26 @@ def _approvedByReviewer(reviewer, comments):
             continue
 
         if action != 'changes-approved':
+            # Maybe just a comment.
+            continue
+
+        return True
+
+    for author, state in reviews:
+        if state == u'COMMENTED':
+            # Just a comment. Can be ignored.
+            continue
+
+        if state == u'CHANGES_REQUESTED':
+            # Change requested before an approval.
+            # Not approved, even if the reviewer has approved it.
+            return False
+        if reviewer != author:
+            # Not a review from our targeted author.
+            continue
+
+        if state != u'APPROVED':
+            # Maybe just a comment.
             continue
 
         return True
@@ -248,12 +323,12 @@ def _getActionFromComment(comment):
     return 'no-action'
 
 
-def _get_environment(name, default=None):
+def _get_environment(name, default=_REQUIRED):
     """
     Get environment variable.
     """
     value = os.environ.get(name, default)
-    if value is None:
+    if value is _REQUIRED:
         raise AssertionError(
             'Variable %s not found in environment !' % (name))
     return value
@@ -271,8 +346,12 @@ def _get_github_environment():
         print("Invalid pull_id: %s" % str(pull_id))
         sys.exit(1)
 
+    token = _get_environment('GITHUB_TOKEN', default='')
+    if token is '':
+        token = None
+
     return {
-        'token': _get_environment('GITHUB_TOKEN'),
+        'token': token,
         'pull_id': pull_id,
         }
 
@@ -305,7 +384,7 @@ def merge_init():
         sys.exit(1)
 
     # Check pull request details on Github.
-    (pull_request, message) = _review_properties(
+    (pull_request, message) = _check_review_properties(
         token=github_env['token'], pull_id=github_env['pull_id'])
 
     pr_branch_name = pull_request.head.ref
@@ -316,12 +395,6 @@ def merge_init():
         print("Local branch and review branch are at different revision.")
         print("Local sha:  %s %s" % (local_sha, branch_name))
         print("Review sha: %s %s" % (remote_sha, pr_branch_name))
-        sys.exit(1)
-
-    # Fail early if branch can not be merged.
-    if not pull_request.mergeable:
-        print("GitHub said that branch can not be merged.")
-        print("Please resole conflict and pull the changes.")
         sys.exit(1)
 
     # Clear any unused files from this repo as this might be done
@@ -356,7 +429,7 @@ def merge_commit(args):
     repo = Repo(os.getcwd())
     git = repo.git
 
-    (pull_request, message) = _review_properties(
+    (pull_request, message) = _check_review_properties(
         token=github_env['token'], pull_id=github_env['pull_id'])
 
     branch_name = _get_environment('BRANCH', repo.head.ref.name)
@@ -368,11 +441,6 @@ def merge_commit(args):
         print("Local branch and review branch are at different revision.")
         print("Local sha:  %s %s" % (local_sha, branch_name))
         print("Review sha: %s" % (remote_sha,))
-        sys.exit(1)
-
-    if not pull_request.mergeable:
-        print("GitHub said that branch can not be merged.")
-        print("Please resole conflict and pull the changes.")
         sys.exit(1)
 
     landing_branch = pull_request.base.ref

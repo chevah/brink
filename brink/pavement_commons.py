@@ -315,9 +315,9 @@ def test_remote(args):
     # Check if we need to extend the builder name.
     repo_name = SETUP['repository']['name'].lower()
     if args[0].startswith(repo_name):
-        builder = '--builder=' + args[0]
+        builder = b'--builder=' + args[0]
     else:
-        builder = '--builder=' + repo_name + '-' + args[0]
+        builder = b'--builder=' + repo_name + b'-' + args[0]
 
     arguments = [builder]
     test_arguments = []
@@ -532,20 +532,24 @@ def buildbot_try(args):
         print('git config --global user.email your@email.tld')
         sys.exit(1)
 
+    buildbot_who = b'--who="' + who.encode('utf-8') + b'"'
+    buildbot_master = (
+        b'--master=' +
+        SETUP['buildbot']['server'].encode('utf-8') + ':' +
+        str(SETUP['buildbot']['port'])
+        )
+
     new_args = [
-        'buildbot', 'try',
-        '--connect=pb',
-        '--master=%s:%d' % (
-            SETUP['buildbot']['server'],
-            SETUP['buildbot']['port']
-            ),
-        '--web-status=%s' % (SETUP['buildbot']['web_url'],),
-        '--username=%s' % (SETUP['buildbot']['username']),
-        '--passwd=%s' % (SETUP['buildbot']['password']),
-        '--vc=%s' % (SETUP['buildbot']['vcs']),
-        '--who="%s"' % (who),
-        '--branch=%s' % (pave.git.branch_name),
-        '--properties=author=%s' % (who),
+        b'buildbot', b'try',
+        b'--connect=pb',
+        buildbot_master,
+        b'--web-status=%s' % (SETUP['buildbot']['web_url'],),
+        b'--username=%s' % (SETUP['buildbot']['username']),
+        b'--passwd=%s' % (SETUP['buildbot']['password']),
+        b'--vc=%s' % (SETUP['buildbot']['vcs']),
+        buildbot_who,
+        b'--branch=%s' % (pave.git.branch_name),
+        b'--properties=author=%s' % (who.encode('utf-8'),),
         ]
     new_args.extend(args)
     sys.argv = new_args

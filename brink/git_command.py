@@ -89,10 +89,10 @@ class BrinkGit(object):
     def account(self):
         '''Return the name and email of the current git user.'''
         exit_code, output = execute([self.git, 'config', 'user.name'])
-        name = output.strip()
+        name = output.strip().decode('utf-8')
 
         exit_code, output = execute([self.git, 'config', 'user.email'])
-        email = output.strip()
+        email = output.strip().decode('utf-8')
 
         return '%s <%s>' % (name, email)
 

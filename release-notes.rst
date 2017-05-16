@@ -4,6 +4,25 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.61.2, 2017-05-11
+--------------------------
+
+* Revert Unicode names in test_remote.
+
+
+Version 0.61.1, 2017-05-11
+--------------------------
+
+* Fix Unicode error in test_remote.
+
+
+Version 0.61.0, 2017-05-09
+--------------------------
+
+* Update PQM to use the GitHub latest API to check reviews and
+  branch protection.
+
+
 Version 0.60.5, 2017-05-08
 --------------------------
 
