@@ -4,6 +4,22 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.62.0, 2017-06-12
+--------------------------
+
+* PQM merge_commit task will not check that it has the right dependencies
+  before running the command.
+* Support Raspbian 8 specifically.
+* Iterate smarter through version_configuration.
+* paver.conf now has a simplified method for installing the base requirements.
+
+
+Version 0.61.3, 2017-05-18
+--------------------------
+
+ Fix PQM when reviews are done using both comments and actions.
+
+
 Version 0.61.2, 2017-05-11
 --------------------------
 

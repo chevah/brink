@@ -27,6 +27,15 @@ Each change needs a dedicated ticket and a dedicated branch::
 
     $ git checkout -b TICKET_ID-short-name
 
+Create a PR and request a review.
+
+Run `./paver.sh test_review` to trigger the tests required before merge.
+
+Once all the required tests are green and you have a review,
+you can merge from GitHub's merge button.
+
+The merge button will tell you if something is not right.
+
 
 Release Notes
 =============

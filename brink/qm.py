@@ -261,48 +261,49 @@ def _getGitHubReviewers(description):
 def _approvedByReviewer(reviewer, comments, reviews):
     """
     Return `True` if reviewer has approved the changes.
+
+    Approvals can come from multiple sources
+    * GitHub comment
+    * GitHub review actions
     """
+    reviewer_approval = False
 
     # First try to see if the marker is in the comments.
     for author, content, updated_at in comments:
         action = _getActionFromComment(content)
 
-        if action in ['needs-changes']:
-            # We have a needs-changes, before an approval.
-            # This is not approved even if the comment is from another
-            # reviewer.
-            return False
-
         if reviewer != author:
             # Not a comment from reviewer.
             continue
 
-        if action != 'changes-approved':
-            # Maybe just a comment.
-            continue
+        if action in ['needs-changes']:
+            # We have a needs-changes, before an approval.
+            reviewer_approval = False
+            break
 
-        return True
+        if action == 'changes-approved':
+            reviewer_approval = True
+            break
 
     for author, state in reviews:
         if state == u'COMMENTED':
             # Just a comment. Can be ignored.
             continue
 
+        if reviewer != author:
+            # Not a review from reviewer.
+            continue
+
         if state == u'CHANGES_REQUESTED':
             # Change requested before an approval.
-            # Not approved, even if the reviewer has approved it.
             return False
-        if reviewer != author:
-            # Not a review from our targeted author.
-            continue
 
-        if state != u'APPROVED':
-            # Maybe just a comment.
-            continue
+        if state == u'APPROVED':
+            return True
 
-        return True
-
-    return False
+    # If we are hear, it means that we don't a review action from the author,
+    # so we return the value from the comment action.
+    return reviewer_approval
 
 
 def _getActionFromComment(comment):
@@ -404,7 +405,7 @@ def merge_init():
 
 
 @task
-@needs('update_setup')
+@needs('update_setup', 'deps')
 @consume_args
 def merge_commit(args):
     """
@@ -443,7 +444,7 @@ def merge_commit(args):
         print("Review sha: %s" % (remote_sha,))
         sys.exit(1)
 
-    landing_branch = pull_request.base.ref
+    landing_ref = pull_request.base.ref
 
     try:
         # Buildbot repos don't have a remote configured.
@@ -460,8 +461,10 @@ def merge_commit(args):
         except GitCommandError as error:
             print(error)
 
-        print('Set `origin` remote to %s' % (origin,))
-        print(repo.create_remote('origin', origin))
+        print('Set `origin` remote to %s and fetch' % (origin,))
+        origin = repo.create_remote('origin', origin)
+        print(origin)
+        print(origin.fetch())
 
         update_tags = False
         if _get_environment('RQM', 'no') == 'yes':
@@ -472,23 +475,22 @@ def merge_commit(args):
         # Merge branch into the landing branch.
 
         try:
-            print("Switch to %s branch" % (landing_branch,))
-            print(repo.heads[landing_branch].checkout())
-            print("Update %s" % (landing_branch,))
-            print(repo.remote('origin').pull('+' + landing_branch))
+            print("Switch and reseting master.")
+            print(repo.heads['master'].checkout())
+            print(repo.head.reset('origin/master', hard=True))
         except IndexError:
-            print("We don't have a %s branch." % (landing_branch,))
-            print("Let's get it.")
-            print(repo.remote('origin').fetch())
-            print(git.checkout('origin/master', b=landing_branch))
+            print("We don't have a master branch. Create it.")
+            master = repo.create_head('master', origin.refs.master)
+            print(master)
+            repo.head.set_reference(master)
 
-        print("Merge branch")
+        print("Merge branch at %s " % (local_sha,))
         print(git.merge(local_sha, squash=True, no_commit=True))
         print("Commit message")
         print(git.commit(author=author, message=message))
         # Push merged changes to landing branch.
         for state in repo.remotes.origin.push(
-                landing_branch, tags=update_tags):
+                landing_ref, tags=update_tags):
             print(state.summary)
             if '[rejected]' in state.summary:
                 print('Failed to push changes.')
