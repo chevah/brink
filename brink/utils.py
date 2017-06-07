@@ -14,7 +14,6 @@ from contextlib import closing
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 from hashlib import md5
 import os
-import re
 import socket
 import subprocess
 import sys
@@ -507,60 +506,11 @@ class BrinkPaver(object):
         content = template.render(data=data)
         return content
 
-    def pocketLint(
-            self,
-            folders=None, excluded_folders=None,
-            files=None, excluded_files=None,
-            quick=False, dry=False,
-            branch_name=None,
-            options=None,
-            ):
+    def scame(self, options, quick=False, branch_name=None):
         """
-        Run pocketlint on `folders` and `files`.
-
-        Files from `excluded_folders` and `excluded_files` list will be
-        ignored.
-
-        `excluded_folders` and `excluded` files contains regular expression
-        which will match full folder names or file names.
+        Run scame woth options.
         """
-        from pocketlint.formatcheck import check_sources, PocketLintOptions
-        from pocketlint.contrib import cssccc
-        import mimetypes
-
-        # These types are not recognized by various OS.
-        mimetypes.add_type('text/plain', '.bat')
-        mimetypes.add_type('application/json', '.json')
-        mimetypes.add_type('image/x-icon', '.ico')
-
-        if files is None:
-            files = []
-
-        if folders is None:
-            folders = []
-
-        if excluded_files is None:
-            excluded_files = []
-
-        if excluded_folders is None:
-            excluded_folders = []
-
-        regex_files = [
-            re.compile(expression) for expression in excluded_files]
-        regex_folders = [
-            re.compile(expression) for expression in excluded_folders]
-
-        def is_excepted_folder(folder_name):
-            for expresion in regex_folders:
-                if expresion.match(folder_name):
-                    return True
-            return False
-
-        def is_excepted_file(file_name):
-            for expresion in regex_files:
-                if expresion.match(file_name):
-                    return True
-            return False
+        from scame.__main__ import check_sources
 
         if quick:
             changes = self.git.diffFileNames()
@@ -571,96 +521,28 @@ class BrinkPaver(object):
                 if change[0] == 'd':
                     continue
 
-                # Add files which are explicitly requested.
-                if change[1] in files:
-                    quick_files.append(change[1])
-                    continue
-
-                # Filter files in excluded folders.
-                folder_name = os.path.dirname(change[1])
-                if is_excepted_folder(folder_name):
-                    continue
-
-                # Filter files is in excluded files.
-                file_name = os.path.basename(change[1])
-                if is_excepted_file(file_name):
-                    continue
-
-                # Filter files outside of requested folders.
-                excluded_file = True
-                for folder in folders:
-                    if change[1].startswith(folder):
-                        excluded_file = False
-
-                if not excluded_file:
-                    quick_files.append(change[1])
-                    continue
+                quick_files.append(change[1])
 
             # We only lint specific files in quick mode.
-            files = quick_files
-            folders = []
-
-        if dry:
-            print("\n---\nFiles\n---")
-            for name in files:
-                print(name)
-            print("\n---\nFolders\n---")
-            for name in folders:
-                print(name)
-            print("\n---\nExcluded files\n---")
-            for name in excluded_files:
-                print(name)
-            print("\n---\nExcluded folders\n---")
-            for name in excluded_folders:
-                print(name)
-            return 0
-
-        sources = []
-        for folder in folders:
-            for root, member_folders, member_files in os.walk(folder):
-                if is_excepted_folder(root):
-                    continue
-                for file_name in member_files:
-                    if not is_excepted_file(file_name):
-                        sources.append(self.fs.join([root, file_name]))
-
-        for file_name in files:
-            sources.append(file_name)
-
-        count = -1
-        initial_ignore = cssccc.IGNORED_MESSAGES
-
-        if options is None:
-            options = PocketLintOptions()
-            options.max_line_length = 80
-            options.jslint['enabled'] = False
-            options.closure_linter['enabled'] = True
-            options.closure_linter['ignore'] = [1, 10, 11, 110, 220]
-
-        ticket = branch_name.split('-', 1)[0]
+            options.scope['include'] = quick_files
 
         # Strings are broken to not match the own rules.
+        ticket = branch_name.split('-', 1)[0]
         options.regex_line = [
             ('FIX' + 'ME:%s:' % (ticket), 'FIX' + 'ME for current branch.'),
             ('(?i)FIX' + 'ME$', 'FIXME:123: is the required format.'),
             ('(?i)FIX' + 'ME:$', 'FIXME:123: is the required format.'),
             ('FIX' + 'ME[^:]', 'FIXME:123: is the required format.'),
             ('(?i)FIX' + 'ME:[^0-9]', 'FIXME:123: is the required format.'),
-            ('(?i)FIX' + 'ME:[0-9]+[^:]$',
-                'FIXME:123: is the required format.'),
+            (
+                '(?i)FIX' + 'ME:[0-9]+[^:]$',
+                'FIXME:123: is the required format.'
+                ),
             ('(?i)TO' + 'DO ', 'No TO' + 'DO markers are allowed.'),
             ('(?i)TO' + 'DO$', 'No TO' + 'DO markers are allowed.'),
             ('\[#' + '%s\] ' % (ticket), 'Branch should fix this issue.'),
             ]
-        options.pep8['hang_closing'] = True
-
-        try:
-            cssccc.IGNORED_MESSAGES = ['I005', 'I006']
-            count = check_sources(sources, options=options)
-        finally:
-            cssccc.IGNORED_MESSAGES = initial_ignore
-
-        return count
+        return check_sources(options)
 
     def getPythonLibPath(self, platform=None, python_version=None):
         """

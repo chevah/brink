@@ -49,14 +49,14 @@ class BrinkGit(object):
 
     def push(self, remote='origin'):
         '''Push current changes.'''
-        exit_code, output = execute([self.git, 'push', remote])
+        _, output = execute([self.git, 'push', remote])
         return output.strip()
 
     def publish(self, remote='origin'):
         """
         Publish new branch to remote repo.
         """
-        exit_code, output = execute([
+        _, output = execute([
             self.git, 'push', '--set-upstream', remote, self.branch_name])
         return output.strip()
 
@@ -64,14 +64,14 @@ class BrinkGit(object):
         """
         Publish new branch to remote repo.
         """
-        exit_code, output = execute([self.git, 'status', '-s'])
+        _, output = execute([self.git, 'status', '-s'])
         return output.strip()
 
     @property
     def revision(self):
         '''Return the revision of the current git branch.'''
         command = [self.git, 'show', '-s', '--pretty=format:%t']
-        exit_code, output = execute(command)
+        _, output = execute(command)
         return output.strip()
 
     @property
@@ -82,16 +82,16 @@ class BrinkGit(object):
         $ git symbolic-ref HEAD
         refs/heads/production
         """
-        exit_code, output = execute([self.git, 'symbolic-ref', 'HEAD'])
+        _, output = execute([self.git, 'symbolic-ref', 'HEAD'])
         return output.strip().split('/')[-1]
 
     @property
     def account(self):
         '''Return the name and email of the current git user.'''
-        exit_code, output = execute([self.git, 'config', 'user.name'])
+        _, output = execute([self.git, 'config', 'user.name'])
         name = output.strip().decode('utf-8')
 
-        exit_code, output = execute([self.git, 'config', 'user.email'])
+        _, output = execute([self.git, 'config', 'user.email'])
         email = output.strip().decode('utf-8')
 
         return '%s <%s>' % (name, email)
@@ -103,13 +103,13 @@ class BrinkGit(object):
             self.git, 'log', "--pretty=format:'%h - %s'",
             '--date=short', '-1',
             ]
-        exit_code, output = execute(command)
+        _, output = execute(command)
         return output.strip()
 
     def clone(self, repo_uri, project_name):
         '''Clone the repository if it does not already exists.'''
         command = [self.git, 'clone', repo_uri, project_name]
-        exit_code, output = execute(command)
+        exit_code, _ = execute(command)
         if exit_code != 0:
             print('Failed to clone "%s".' % repo_uri)
             sys.exit(1)
@@ -118,17 +118,21 @@ class BrinkGit(object):
         '''Run git pull on the branch.'''
         command = [self.git, 'pull', repo_uri, branch]
 
-        exit_code, output = execute(command)
+        exit_code, _ = execute(command)
         if exit_code != 0:
             print('Failed to update repo "%s".' % repo_uri)
             sys.exit(1)
 
     def copyFile(self, source, destination, branch='master'):
+        """
+        Copy file from branch.
+        """
         command = ['git', 'show', '%s:%s' % (branch, self.fs.join(source))]
         with open(self.fs.join(destination), 'w') as output_file:
             execute(command, output=output_file)
 
-    def diffFileNames(self, ref='master'):
+    @staticmethod
+    def diffFileNames(ref='master'):
         """
         Return a list of (action, filename) that have changed in
         comparison with `ref`.

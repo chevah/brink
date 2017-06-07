@@ -4,7 +4,21 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
-Version 0.62.0, 2017-06-12
+Version 0.63.1, 2017-06-06
+--------------------------
+
+* coverage_publish will not use the BRANCH env var to advertise the branch,
+  as on CI system we can run on a bare repo and the branch names might be
+  messed.
+
+
+Version 0.63.0, 2017-06-06
+--------------------------
+
+* Update lint target to latest pocket-lint.
+
+
+Version 0.62.0, 2017-06-06
 --------------------------
 
 * PQM merge_commit task will not check that it has the right dependencies

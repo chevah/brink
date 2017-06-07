@@ -12,14 +12,6 @@ paver.sh will also update the chevah-brink package each time `paver deps` is
 called.
 
 
-TODO
-====
-
-* Update python, pip and setuptool. Right now we need to clean the build
-  folder to update python pip or setuptools.
-* Add support to install binary packages.
-
-
 Development
 ===========
 
@@ -49,6 +41,7 @@ format as earlier releases (see the file contents).
 
 Note: The release-notes fragment files are only used on chevah/server, so the
 fragments folder was moved to brink/tests/release-notes on this package.
+
 
 Paver Script
 ============

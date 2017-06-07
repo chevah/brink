@@ -343,7 +343,7 @@ def _get_github_environment():
     pull_id = _get_environment('GITHUB_PULL_ID')
     try:
         pull_id = int(pull_id)
-    except:
+    except Exception:
         print("Invalid pull_id: %s" % str(pull_id))
         sys.exit(1)
 
@@ -379,7 +379,7 @@ def merge_init():
 
     try:
         int(pave.getTicketIDFromBranchName(branch_name))
-    except:
+    except Exception:
         print("Branch name '%s' does not start with ticket id." % (
             branch_name))
         sys.exit(1)
@@ -524,7 +524,7 @@ def pqm():
 
     try:
         pull_id = int(args[0])
-    except:
+    except Exception:
         print("Pull id in bad format. It must be an integer.")
         sys.exit(1)
 

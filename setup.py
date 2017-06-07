@@ -5,10 +5,11 @@ Package for chevah-brink.
 
 These are the extensions build around paver.
 """
-from setuptools import setup, find_packages, Command
 import os
+from setuptools import setup, find_packages, Command
 
-VERSION = u'0.62.0'
+
+VERSION = u'0.63.1'
 
 
 class PublishCommand(Command):
@@ -19,9 +20,12 @@ class PublishCommand(Command):
 
     description = "copy distributable to Chevah cache folder"
     user_options = []
+    cwd = None
 
     def initialize_options(self):
-        self.cwd = None
+        """
+        Does nothing. Here to comply with the interface.
+        """
 
     def finalize_options(self):
         self.cwd = os.getcwd()
@@ -39,7 +43,7 @@ class PublishCommand(Command):
         self.run_command('upload')
 
 
-distribution = setup(
+DISTRIBUTION = setup(
     name='chevah-brink',
     version=VERSION,
     maintainer="Adi Roiban",
@@ -54,4 +58,4 @@ distribution = setup(
         'static/requirements/*',
         ]},
     cmdclass={'publish': PublishCommand},
-)
+    )

@@ -13,7 +13,7 @@ from contextlib import contextmanager
 import os
 import re
 import shutil
-import stat
+import stat  # pylint: disable=bad-python3-import
 import sys
 import unicodedata
 

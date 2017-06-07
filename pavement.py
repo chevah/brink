@@ -92,13 +92,14 @@ BUILD_PACKAGES = [
 
 # Packages required by the static analysis tests.
 LINT_PACKAGES = [
-    'pocketlint==1.4.4.c12',
-    'pyflakes>=1.0.0',
+    'scame==0.1.0',
+    'pyflakes>=1.5.0',
     'closure-linter==2.3.13',
-    'pep8>=1.6.2',
-    # Used for py3 porting and other checks.
-    'pylint==1.4.5',
-    'astroid==1.3.6',
+    'pycodestyle==2.3.1',
+    'bandit==1.4.0',
+    'pylint==1.7.1',
+    'astroid==1.5.3',
+    'enum34>=1.1.6',
 
     # These are build packages, but are used for testing the documentation.
     'sphinx==1.1.3-chevah1',
@@ -111,8 +112,8 @@ LINT_PACKAGES = [
 TEST_PACKAGES = [
     'chevah-compat==0.43.2',
 
-    # Required by compat.
-    'future',
+    # We need a newer future to work with pylint/astoid.
+    'future>=0.16.0',
     'wmi==1.4.9',
 
     # Never version of nose, hangs on closing some tests
@@ -133,25 +134,51 @@ TEST_PACKAGES = [
     ]
 
 
+try:
+    from scame.formatcheck import ScameOptions
+    options = ScameOptions()
+    options.max_line_length = 80
+
+    options.scope = {
+        'include': [
+            'msys-console.js',
+            'pavement.py',
+            'release-notes.rst',
+            'paver.sh',
+            'brink/',
+            'documentation/',
+            ],
+        'exclude': [],
+        }
+
+    # We don't use the managed release notes for this project.
+    options.towncrier = {'enabled': False}
+
+    options.pyflakes['enabled'] = True
+
+    options.pycodestyle['enabled'] = True
+    options.pycodestyle['hang_closing'] = True
+
+    options.closure_linter['enabled'] = True
+    options.closure_linter['ignore'] = [1, 10, 11, 110, 220]
+
+    # For now these are disabled, as there are to many errors.
+    options.bandit['enabled'] = False
+    options.pylint['enabled'] = False
+    options.pylint['disable'] = ['C0103', 'C0330', 'R0902', 'W0212']
+
+except ImportError:
+    # This will fail before we run `paver deps`
+    options = None
+
+
 SETUP['product']['version'] = None
 SETUP['product']['version_major'] = None
 SETUP['product']['version_minor'] = None
 
 SETUP['repository']['name'] = u'brink'
 SETUP['repository']['github'] = 'https://github.com/chevah/brink'
-SETUP['pocket-lint']['include_files'] = [
-    'msys-console.js',
-    'pavement.py',
-    'release-notes.rst',
-    'paver.sh',
-    ]
-SETUP['pocket-lint']['include_folders'] = [
-    'brink',
-    'documentation',
-    'release-notes',
-    ]
-# We don't use the managed release notes for this project.
-SETUP['pocket-lint']['release_notes_folder'] = None
+SETUP['scame'] = options
 SETUP['folders']['source'] = u'brink'
 SETUP['test']['package'] = 'brink.tests'
 SETUP['test']['elevated'] = 'brink.tests.elevated'
@@ -225,7 +252,7 @@ def build():
     pave.fs.createFolder([pave.path.build, 'doc_source', '_static'])
 
     import setup
-    setup.distribution.run_command('install')
+    setup.DISTRIBUTION.run_command('install')
 
 
 @task

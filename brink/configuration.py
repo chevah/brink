@@ -1,6 +1,7 @@
-#
-# Configuration of a brink project.
-#
+"""
+Configuration of a brink project.
+"""
+
 SETUP = {
     'product': {
         'name': 'ChevahProduct',
@@ -46,15 +47,15 @@ SETUP = {
     'pypi': {
         'index_url': 'http://172.20.0.1:10042/simple',
         },
-    'pocket-lint': {
-        'exclude_files': [],
-        'exclude_folders': [],
-        'include_files': ['pavement.py'],
-        'include_folders': [],
-        # Leaver it empty if project has no managed release notes.
-        'release_notes_folder': '',
-        # All in lowercase.
-        'ignored_release_fragments': ['readme', 'readme.rst'],
+    'scame': {
+        'scope': {
+            'include': [],
+            'exclude': [],
+            },
+        'towncrier': {
+            'fragments_directory': '',
+            'excluded_fragments': ['readme', 'readme.rst'],
+            },
         },
     'website_package': 'chevah.website',
     'test': {

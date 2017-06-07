@@ -42,15 +42,6 @@ from brink.qm import (
     publish,
     )
 
-# Silence lint.
-DIST_EXTENSION
-DIST_TYPE
-github
-merge_init
-merge_commit
-pqm
-rqm
-publish
 
 pave = BrinkPaver(setup=SETUP)
 
@@ -79,7 +70,6 @@ class MD5SumFile(object):
 @task
 @cmdopts([
     ('all', 'a', 'Run linter for all changed files.'),
-    ('dry', 'd', 'Don\'t run the linter and only show linted files.'),
     ('branch=', 'b', 'Name of the branch for which test is executed.'),
     ])
 def lint(options):
@@ -87,14 +77,10 @@ def lint(options):
     Run static code checks for files that were changed.
     """
     all = pave.getOption(options, 'lint', 'all', default_value=False)
-    dry = pave.getOption(options, 'lint', 'dry', default_value=False)
     branch_name = pave.getOption(
         options, 'lint', 'branch', default_value=None)
-    folders = SETUP['pocket-lint']['include_folders'][:]
-    files = SETUP['pocket-lint']['include_files'][:]
-    excluded_folders = SETUP['pocket-lint']['exclude_folders'][:]
-    excluded_files = SETUP['pocket-lint']['exclude_files'][:]
-    options = SETUP['pocket-lint'].get('options', None)
+
+    options = SETUP['scame']
 
     # If branch name was not specified from command line, try to get it from
     # environment or from the current branch.
@@ -103,19 +89,20 @@ def lint(options):
     if not branch_name:
         branch_name = pave.git.branch_name
 
-    pocket_lint_result = pave.pocketLint(
-        folders=folders, excluded_folders=excluded_folders,
-        files=files, excluded_files=excluded_files,
+    pocket_lint_result = pave.scame(
         quick=not all,
-        dry=dry,
         branch_name=branch_name,
         options=options,
         )
 
     if pocket_lint_result > 0:
-            raise BuildFailure('Lint failed.')
+        raise BuildFailure('Lint failed.')
 
-    release_notes = SETUP['pocket-lint']['release_notes_folder']
+    towncrier_options = options.towncrier
+    if not towncrier_options['enabled']:
+        return 0
+
+    release_notes = towncrier_options['fragments_directory']
     is_release_series_branch = (
         branch_name in ['master', 'trunk'] or
         branch_name.startswith('series-')
@@ -126,7 +113,7 @@ def lint(options):
 
         if '-release-' in branch_name:
             # Check that release notes have all fragments published.
-            ignored_files = SETUP['pocket-lint']['ignored_release_fragments']
+            ignored_files = towncrier_options['excluded_fragments']
             fragments = [m for m in members if m.lower() not in ignored_files]
             if fragments:
                 raise BuildFailure(
@@ -375,7 +362,7 @@ def run_test(python_command, switch_user, arguments):
             have_explicit_tests = True
         # Check for explicit short name arguments.
         # Add explicit test package to shorthand tests.
-        if (not item.startswith(test_module) and not item.startswith(u'-')):
+        if not item.startswith(test_module) and not item.startswith(u'-'):
             have_explicit_tests = True
             test_args[index] = test_module + '.' + item
 
@@ -426,6 +413,7 @@ def coverage_publish():
 
     builder_name = os.environ.get('BUILDER_NAME', pave.getHostname())
     github_pull_id = os.environ.get('GITHUB_PULL_ID', '')
+    branch_name = os.environ.get('BRANCH', '')
 
     with pushd(pave.path.build):
 
@@ -439,6 +427,10 @@ def coverage_publish():
             '--build', builder_name,
             '--file', 'coverage.xml',
             ]
+
+        if branch_name:
+            # We know the branch name from the env.
+            sys.argv.extend(['--branch', branch_name])
 
         if github_pull_id:
             # We are publishing for a PR.
@@ -837,3 +829,15 @@ def clean():
     This is just a placeholder, since clean is handled by the outside
     paver.sh scripts.
     """
+
+
+__all__ = [
+    'DIST_EXTENSION',
+    'DIST_TYPE',
+    'github',
+    'merge_init',
+    'merge_commit',
+    'pqm',
+    'rqm',
+    'publish',
+    ]
