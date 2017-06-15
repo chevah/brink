@@ -92,7 +92,7 @@ BUILD_PACKAGES = [
 
 # Packages required by the static analysis tests.
 LINT_PACKAGES = [
-    'scame==0.1.0',
+    'scame==0.3.3',
     'pyflakes>=1.5.0',
     'closure-linter==2.3.13',
     'pycodestyle==2.3.1',

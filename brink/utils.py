@@ -506,44 +506,6 @@ class BrinkPaver(object):
         content = template.render(data=data)
         return content
 
-    def scame(self, options, quick=False, branch_name=None):
-        """
-        Run scame woth options.
-        """
-        from scame.__main__ import check_sources
-
-        if quick:
-            changes = self.git.diffFileNames()
-
-            quick_files = []
-            for change in changes:
-                # Filter deleted changes since we can not lint then.
-                if change[0] == 'd':
-                    continue
-
-                quick_files.append(change[1])
-
-            # We only lint specific files in quick mode.
-            options.scope['include'] = quick_files
-
-        # Strings are broken to not match the own rules.
-        ticket = branch_name.split('-', 1)[0]
-        options.regex_line = [
-            ('FIX' + 'ME:%s:' % (ticket), 'FIX' + 'ME for current branch.'),
-            ('(?i)FIX' + 'ME$', 'FIXME:123: is the required format.'),
-            ('(?i)FIX' + 'ME:$', 'FIXME:123: is the required format.'),
-            ('FIX' + 'ME[^:]', 'FIXME:123: is the required format.'),
-            ('(?i)FIX' + 'ME:[^0-9]', 'FIXME:123: is the required format.'),
-            (
-                '(?i)FIX' + 'ME:[0-9]+[^:]$',
-                'FIXME:123: is the required format.'
-                ),
-            ('(?i)TO' + 'DO ', 'No TO' + 'DO markers are allowed.'),
-            ('(?i)TO' + 'DO$', 'No TO' + 'DO markers are allowed.'),
-            ('\[#' + '%s\] ' % (ticket), 'Branch should fix this issue.'),
-            ]
-        return check_sources(options)
-
     def getPythonLibPath(self, platform=None, python_version=None):
         """
         Return the path to python library folder relative to build folder.

@@ -76,6 +76,8 @@ def lint(options):
     """
     Run static code checks for files that were changed.
     """
+    from scame.__main__ import check_sources
+
     all = pave.getOption(options, 'lint', 'all', default_value=False)
     branch_name = pave.getOption(
         options, 'lint', 'branch', default_value=None)
@@ -89,11 +91,26 @@ def lint(options):
     if not branch_name:
         branch_name = pave.git.branch_name
 
-    pocket_lint_result = pave.scame(
-        quick=not all,
-        branch_name=branch_name,
-        options=options,
-        )
+    if not all:
+        options.diff_branch = 'master'
+
+    # Strings are broken to not match the own rules.
+    ticket = branch_name.split('-', 1)[0]
+    options.regex_line = [
+        ('FIX' + 'ME:%s:' % (ticket), 'FIX' + 'ME for current branch.'),
+        ('(?i)FIX' + 'ME$', 'FIXME:123: is the required format.'),
+        ('(?i)FIX' + 'ME:$', 'FIXME:123: is the required format.'),
+        ('FIX' + 'ME[^:]', 'FIXME:123: is the required format.'),
+        ('(?i)FIX' + 'ME:[^0-9]', 'FIXME:123: is the required format.'),
+        (
+            '(?i)FIX' + 'ME:[0-9]+[^:]$',
+            'FIXME:123: is the required format.'
+            ),
+        ('(?i)TO' + 'DO ', 'No TO' + 'DO markers are allowed.'),
+        ('(?i)TO' + 'DO$', 'No TO' + 'DO markers are allowed.'),
+        ('\[#' + '%s\] ' % (ticket), 'Branch should fix this issue.'),
+        ]
+    pocket_lint_result = check_sources(options)
 
     if pocket_lint_result > 0:
         raise BuildFailure('Lint failed.')
@@ -419,7 +436,6 @@ def coverage_publish():
 
         cov = coverage.Coverage()
         cov.load()
-        cov.report(show_missing=False)
         cov.xml_report(outfile='coverage.xml')
 
         sys.argv = [
@@ -455,9 +471,8 @@ def test_coverage(args):
     with pushd(pave.path.build):
         cov = coverage.Coverage(auto_data=True, config_file='.coveragerc')
         cov.load()
-        cov.report()
-        cov.xml_report()
         cov.html_report()
+        print('HTML report file://%s/htmlcov/index.html' % (pave.path.build,))
 
 
 @task

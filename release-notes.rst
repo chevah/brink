@@ -4,6 +4,18 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.63.2, 2017-06-15
+--------------------------
+
+* Make coverage publish less verbose.
+
+
+Version 0.63.2, 2017-06-13
+--------------------------
+
+* Fix `paver lint` when using branch diff.
+
+
 Version 0.63.1, 2017-06-06
 --------------------------
 
