@@ -4,7 +4,14 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
-Version 0.63.2, 2017-06-15
+Version 0.63.4, 2017-07-26
+--------------------------
+
+* Exclude *.include.rst include files located in the root folder of the
+  documentation.
+
+
+Version 0.63.3, 2017-06-15
 --------------------------
 
 * Make coverage publish less verbose.

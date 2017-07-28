@@ -114,7 +114,9 @@ extensions = [
     'sphinx.ext.intersphinx',
     ]
 source_suffix = '.rst'
-exclude_patterns = ['**/*.include.rst']
+# Ignore included files in root and in child folders from being reported
+# as not part of the toctree.
+exclude_patterns = ['**.include.rst', '**/*.include.rst']
 master_doc = 'index'
 pygments_style = 'sphinx'
 intersphinx_mapping = %(intersphinx_mapping)s
