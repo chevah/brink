@@ -185,18 +185,18 @@ update_path_variables() {
 #
 resolve_python_version() {
     local version_configuration=$PYTHON_CONFIGURATION
+    local version_configuration_array
     local candidate
     local candidate_platform
     local candidate_version
 
     PYTHON_PLATFORM="$OS-$ARCH"
 
-    versions=$(echo "$version_configuration" | grep -c ":")
-    counter=0
-    while [ $counter -le $versions ]; do
-        # Number of delimiters is one less than the number of versions.
-        let counter=counter+1
-        candidate=$(echo "$version_configuration" | cut -d ":" -f $counter)
+    # Using ':' as a delimiter, populate a dedicated array.
+    IFS=: read -a version_configuration_array <<< "$version_configuration"
+    # Iterate through all the elements of the array to find the best candidate.
+    for (( i=0 ; i < ${#version_configuration_array[@]}; i++ )); do
+        candidate="${version_configuration_array[$i]}"
         candidate_platform=$(echo "$candidate" | cut -d "@" -f 1)
         candidate_version=$(echo "$candidate" | cut -d "@" -f 2)
         if [ "$candidate_platform" = "default" ]; then
@@ -656,20 +656,27 @@ detect_os() {
         exit 14
     fi
 
-    # Fix arch names.
-    if [ "$ARCH" = "i686" -o "$ARCH" = "i386" ]; then
-        ARCH='x86'
-    elif [ "$ARCH" = "x86_64" -o "$ARCH" = "amd64" ]; then
-        ARCH='x64'
-    elif [ "$ARCH" = "sparcv9" ]; then
-        ARCH='sparc64'
-    elif [ "$ARCH" = "ppc64" ]; then
-        # Python has not been fully tested on AIX when compiled as a 64 bit
-        # binary, and has math rounding error problems (at least with XL C).
-        ARCH='ppc'
-    elif [ "$ARCH" = "aarch64" ]; then
-        ARCH='arm64'
-    fi
+    # Normalize arch names. Force 32bit builds on some OS'es.
+    case "$ARCH" in
+        "i386"|"i686")
+            ARCH="x86"
+            ;;
+        "amd64"|"x86_64")
+            ARCH="x64"
+            ;;
+        "aarch64")
+            ARCH="arm64"
+            ;;
+        "ppc64")
+            # Python has not been fully tested on AIX when compiled as a 64bit
+            # binary, and has math rounding error problems (at least with XL C).
+            ARCH="ppc"
+            ;;
+        "sparcv9")
+            # We build 32bit binaries on SPARC too. Use "sparc64" for 64bit.
+            ARCH="sparc"
+            ;;
+    esac
 }
 
 detect_os
