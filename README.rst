@@ -50,3 +50,9 @@ The paver.sh script we use is taken from chevah/python-package repository.
 
 If modifications to paver.sh file are required, they should be done on a
 branch on that repository.
+
+
+Uploading the brink package
+===========================
+
+Follow the instructions in the wiki under ``Development/Python``.
