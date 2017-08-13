@@ -49,5 +49,5 @@ Paver Script
 The paver.sh script should be kept in sync with the version from the
 chevah/python-package repository.
 
-Changes to paver.sh don't need an update in version as they are not
-versioned (yet).
+Changes to paver.sh do not need an update in version as they are not
+versioned yet.
