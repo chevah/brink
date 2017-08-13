@@ -459,11 +459,11 @@ def merge_commit(args):
             commit_title=pull_request.title,
             merge_method='squash',
             ))
-        print(repo.create_git_tag(
-            tag=SETUP['product']['version'],
-            message='Tag created by RQM',
-            object=remote_sha,
-            type='commit',
+        # We create the simple tag, without annotation as a ref.
+        # Low level git ftw.
+        print(repo.create_git_ref(
+            ref='refs/tags/' + SETUP['product']['version'],
+            sha=remote_sha,
             ))
         print("\n> PR Merged for %s. Tag created at %s.\n" % (
             branch_name, remote_sha,))
