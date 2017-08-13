@@ -461,7 +461,7 @@ def merge_commit(args):
         except GitCommandError as error:
             print(error)
 
-        print('Set `origin` remote to %s and fetch' % (origin,))
+        print('\n> Set `origin` remote to %s and fetch\n' % (origin,))
         origin = repo.create_remote('origin', origin)
         print(origin)
         print(origin.fetch())
@@ -475,25 +475,25 @@ def merge_commit(args):
         # Merge branch into the landing branch.
 
         try:
-            print("Switch and reseting master.")
+            print("\n> Switch and reseting master.\n")
             print(repo.heads['master'].checkout())
             print(repo.head.reset('origin/master', hard=True))
         except IndexError:
-            print("We don't have a master branch. Create it.")
+            print("\n> We don't have a master branch. Create it.\n")
             master = repo.create_head('master', origin.refs.master)
             print(master)
             repo.head.set_reference(master)
 
-        print("Merge branch at %s " % (local_sha,))
+        print("\n> Merge branch at %s\n" % (local_sha,))
         print(git.merge(local_sha, squash=True, no_commit=True))
-        print("Commit message")
+        print("\n> Commit message\n")
         print(git.commit(author=author, message=message))
         # Push merged changes to landing branch.
         for state in repo.remotes.origin.push(
                 landing_ref, tags=update_tags):
             print(state.summary)
-            if '[rejected]' in state.summary:
-                print('Failed to push changes.')
+            if '[remote rejected]' in state.summary:
+                print('\n> Failed to push changes.')
                 sys.exit(1)
         # Delete original branch.
         print(repo.remotes.origin.push(branch_name, delete=True))
