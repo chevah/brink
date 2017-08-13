@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.64.0, 2017-08-13
+--------------------------
+
+* For RQM use GitHub API to do the merge.
+
+
 Version 0.63.4, 2017-07-26
 --------------------------
 

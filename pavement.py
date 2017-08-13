@@ -279,9 +279,9 @@ def update_setup():
     """
     Updating of version at runtime for testing.
     """
-    SETUP['product']['version'] = '0.55.13'
+    SETUP['product']['version'] = '0.63.4'
     SETUP['product']['version_major'] = '0'
-    SETUP['product']['version_minor'] = '55'
+    SETUP['product']['version_minor'] = '63'
 
 
 @task
@@ -405,6 +405,11 @@ def publish(args):
     Placeholder to test the whole publish process.
     """
     print("Publishing: %s" % (args,))
+    # We remove all the packages as this is what is usually done in publish.
+    pave.pip(
+        command='uninstall',
+        arguments=['--yes'] + BUILD_PACKAGES + TEST_PACKAGES + LINT_PACKAGES,
+        )
 
 
 @task
