@@ -469,7 +469,7 @@ def merge_commit(args):
             branch_name, remote_sha,))
 
     except GithubException as error:
-        print("\n> Failed to merge PR and create tag.\n")
+        print("\n> Failed to merge PR and create the tag.\n")
         print(str(error))
         sys.exit(1)
 
