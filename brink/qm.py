@@ -443,13 +443,14 @@ def merge_commit(args):
     * GITHUB_PULL_ID
     * GITHUB_TOKEN
     """
-    github_env = _get_github_environment()
-
     from github import GithubException
+
+    github_env = _get_github_environment()
 
     (repo, pull_request, message) = _check_review_properties(
         token=github_env['token'], pull_id=github_env['pull_id'])
 
+    branch_name = pull_request.head.ref
     remote_sha = pull_request.head.sha.lower()
 
     try:
@@ -464,7 +465,8 @@ def merge_commit(args):
             object=remote_sha,
             type='commit',
             )
-        print("\n> PR Merged\n")
+        print("\n> PR Merged for %s. Tag created at %s.\n" % (
+            branch_name, remote_sha,))
 
     except GithubException as error:
         print("\n> Failed to merge PR and create tag.\n")
