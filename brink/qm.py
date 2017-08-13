@@ -451,14 +451,6 @@ def merge_commit(args):
         token=github_env['token'], pull_id=github_env['pull_id'])
 
     remote_sha = pull_request.head.sha.lower()
-    local_sha = repo.head.commit.hexsha
-
-    # Fail early if branch can not be merged or at wrong commit.
-    if remote_sha != local_sha:
-        print("Local branch and review branch are at different revision.")
-        print("Local sha:  %s" % (local_sha,))
-        print("Review sha: %s" % (remote_sha,))
-        sys.exit(1)
 
     try:
         _pr_merge(
