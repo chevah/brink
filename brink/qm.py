@@ -137,8 +137,8 @@ def _check_review_properties(token, pull_id):
 
         # Fail early if branch can not be merged.
         if not pull_request.mergeable:
-            print("GitHub said that branch can not be merged.")
-            print("Please resolve the conflicts and push the changes.")
+            print("\n> GitHub said that branch can not be merged.")
+            print("Check PR %s for %s.\n" % (pull_id, branch_name))
             sys.exit(1)
 
         master = _get_protected_branch(repo, 'master')
@@ -454,17 +454,17 @@ def merge_commit(args):
     remote_sha = pull_request.head.sha.lower()
 
     try:
-        _pr_merge(
+        print(_pr_merge(
             pr=pull_request,
             commit_title=pull_request.title,
             merge_method='squash',
-            )
-        repo.create_git_tag(
+            ))
+        print(repo.create_git_tag(
             tag=SETUP['product']['version'],
             message='Tag created by RQM',
             object=remote_sha,
             type='commit',
-            )
+            ))
         print("\n> PR Merged for %s. Tag created at %s.\n" % (
             branch_name, remote_sha,))
 

@@ -405,6 +405,11 @@ def publish(args):
     Placeholder to test the whole publish process.
     """
     print("Publishing: %s" % (args,))
+    # We remove all the packages as this is what is usually done in publish.
+    pave.pip(
+        command='uninstall',
+        arguments=['--yes'] + BUILD_PACKAGES + TEST_PACKAGES + LINT_PACKAGES,
+        )
 
 
 @task
