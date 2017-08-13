@@ -116,7 +116,7 @@ def _get_protected_branch(repo, branch):
     try:
         return repo.get_protected_branch(branch)
 
-    except GithubException, error:
+    except GithubException as error:
         print("Failed to get protected branch details")
         print(str(error))
         sys.exit(1)
@@ -169,7 +169,7 @@ def _check_review_properties(token, pull_id):
             # We hope they are listed as they are made.
             reviews.append((review.user.login, review.state))
 
-    except GithubException, error:
+    except GithubException as error:
         print("Failed to get GitHub details")
         print(str(error))
         sys.exit(1)
@@ -404,6 +404,29 @@ def merge_init():
     print(git.clean(force=True, quiet=True))
 
 
+def _pr_merge(pr, commit_title, commit_message=None, merge_method=None):
+    """
+    Merge the PR.
+    """
+    from github import PullRequestMergeStatus
+    post_parameters = dict()
+    post_parameters["commit_title"] = commit_title
+
+    if commit_message:
+        post_parameters["commit_message"] = commit_message
+
+    if merge_method:
+        post_parameters["merge_method"] = merge_method
+
+    headers, data = pr._requester.requestJsonAndCheck(
+        "PUT",
+        pr.url + "/merge",
+        input=post_parameters,
+        )
+    return PullRequestMergeStatus.PullRequestMergeStatus(
+        pr._requester, headers, data, completed=True)
+
+
 @task
 @needs('update_setup', 'deps')
 @consume_args
@@ -427,6 +450,7 @@ def merge_commit(args):
     author = _get_environment('TEST_AUTHOR')
 
     from git import GitCommandError, Repo
+    from github import GithubException
     repo = Repo(os.getcwd())
     git = repo.git
 
@@ -444,61 +468,16 @@ def merge_commit(args):
         print("Review sha: %s" % (remote_sha,))
         sys.exit(1)
 
-    landing_ref = pull_request.base.ref
-
     try:
-        # Buildbot repos don't have a remote configured.
-        origin = SETUP['repository']['github']
-        if origin.startswith('https://'):
-            origin = 'https://%s@%s' % (github_env['token'], origin[8:])
-
-        try:
-            repo.remote('origin')
-            repo.delete_remote('origin')
-        except ValueError:
-            # Remote does not exists.
-            pass
-        except GitCommandError as error:
-            print(error)
-
-        print('\n> Set `origin` remote to %s and fetch\n' % (origin,))
-        origin = repo.create_remote('origin', origin)
-        print(origin)
-        print(origin.fetch())
-
-        update_tags = False
-        if _get_environment('RQM', 'no') == 'yes':
-            update_tags = True
-            # Create tag as this un-merged branch.
-            repo.create_tag(SETUP['product']['version'])
-
-        # Merge branch into the landing branch.
-
-        try:
-            print("\n> Switch and reseting master.\n")
-            print(repo.heads['master'].checkout())
-            print(repo.head.reset('origin/master', hard=True))
-        except IndexError:
-            print("\n> We don't have a master branch. Create it.\n")
-            master = repo.create_head('master', origin.refs.master)
-            print(master)
-            repo.head.set_reference(master)
-
-        print("\n> Merge branch at %s\n" % (local_sha,))
-        print(git.merge(local_sha, squash=True, no_commit=True))
-        print("\n> Commit message\n")
-        print(git.commit(author=author, message=message))
-        # Push merged changes to landing branch.
-        for state in repo.remotes.origin.push(
-                landing_ref, tags=update_tags):
-            print(state.summary)
-            if '[remote rejected]' in state.summary:
-                print('\n> Failed to push changes.')
-                sys.exit(1)
-        # Delete original branch.
-        print(repo.remotes.origin.push(branch_name, delete=True))
-    except GitCommandError, error:
-        print("Failed to run git commit.")
+        _pr_merge(
+            pr=pull_request,
+            commit_title=pull_request.title,
+            merge_method='squash',
+            )
+        SETUP['product']['version']
+        print("\n> PR Merged\n")
+    except GithubException as error:
+        print("\n> Failed to merge PR and create tag.\n")
         print(str(error))
         sys.exit(1)
 
