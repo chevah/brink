@@ -279,9 +279,9 @@ def update_setup():
     """
     Updating of version at runtime for testing.
     """
-    SETUP['product']['version'] = '0.55.13'
+    SETUP['product']['version'] = '0.63.4'
     SETUP['product']['version_major'] = '0'
-    SETUP['product']['version_minor'] = '55'
+    SETUP['product']['version_minor'] = '63'
 
 
 @task

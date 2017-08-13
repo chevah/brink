@@ -240,7 +240,7 @@ def _check_review_properties(token, pull_id):
     review_title = getReviewTitle(pull_request.title, ticket_id)
     commit_message = "[#%s] %s" % (ticket_id, review_title)
 
-    return (pull_request, commit_message)
+    return (repo, pull_request, commit_message)
 
 
 def _getGitHubReviewers(description):
@@ -385,7 +385,7 @@ def merge_init():
         sys.exit(1)
 
     # Check pull request details on Github.
-    (pull_request, message) = _check_review_properties(
+    (_, pull_request, message) = _check_review_properties(
         token=github_env['token'], pull_id=github_env['pull_id'])
 
     pr_branch_name = pull_request.head.ref
@@ -442,19 +442,12 @@ def merge_commit(args):
     Environment variables:
     * GITHUB_PULL_ID
     * GITHUB_TOKEN
-    * TEST_AUTHOR
     """
     github_env = _get_github_environment()
 
-    # Paver or bash has a bug so we rejoin author name.
-    author = _get_environment('TEST_AUTHOR')
-
-    from git import GitCommandError, Repo
     from github import GithubException
-    repo = Repo(os.getcwd())
-    git = repo.git
 
-    (pull_request, message) = _check_review_properties(
+    (repo, pull_request, message) = _check_review_properties(
         token=github_env['token'], pull_id=github_env['pull_id'])
 
     branch_name = _get_environment('BRANCH', repo.head.ref.name)
@@ -474,8 +467,14 @@ def merge_commit(args):
             commit_title=pull_request.title,
             merge_method='squash',
             )
-        SETUP['product']['version']
+        repo.create_git_tag(
+            tag=SETUP['product']['version'],
+            message='Tag created by RQM',
+            object=remote_sha,
+            type='commit',
+            )
         print("\n> PR Merged\n")
+
     except GithubException as error:
         print("\n> Failed to merge PR and create tag.\n")
         print(str(error))
