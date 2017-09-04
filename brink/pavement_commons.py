@@ -776,11 +776,6 @@ def publish_documentation(args):
         pave.path.publish, 'website', 'documentation', 'v', version]
     publish_latest_folder = [
         pave.path.publish, 'website', 'documentation', 'latest']
-    publish_experimental_folder = [
-        pave.path.publish, 'website', 'documentation', 'experimental']
-    publish_experimental_release_folder = [
-        pave.path.publish, 'website', 'documentation', 'experimental',
-        version]
 
     # Create publishing content for website.
     pave.fs.createFolder([pave.path.publish])
@@ -788,21 +783,11 @@ def publish_documentation(args):
     pave.fs.createFolder(publish_website_folder)
     pave.fs.createFolder(publish_documentation_folder)
     pave.fs.createFolder(publish_documentation_versioned_folder)
-    pave.fs.createFolder(publish_experimental_folder)
 
     call_task('documentation_website')
     pave.fs.copyFolder(
         source=[pave.path.build, 'doc', 'html'],
         destination=publish_release_folder,
-        )
-
-    call_task(
-        'documentation_website',
-        options={'experimental': True},
-        )
-    pave.fs.copyFolder(
-        source=[pave.path.build, 'doc', 'html'],
-        destination=publish_experimental_release_folder,
         )
 
     # If we are releasing the latest version, also copy file to latest folder.

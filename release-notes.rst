@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.65.0, 2017-09-04
+--------------------------
+
+* Remove support for experimental documentation version.
+
+
 Version 0.64.0, 2017-08-13
 --------------------------
 
