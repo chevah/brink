@@ -4,6 +4,14 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.66.0, 2017-09-04
+--------------------------
+
+* Add test_diff helper.
+* Fix test when running with specific elevated tests or with arguments.
+* Fix test argument parsing when executed via buildbot.
+
+
 Version 0.65.0, 2017-09-04
 --------------------------
 

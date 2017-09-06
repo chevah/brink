@@ -27,3 +27,9 @@ class TestBrinkFilesystem(BrinkTestCase):
         for a failed test.
         """
         BrinkFilesystem()
+
+    def test_other_placeholder(self):
+        """
+        This is a another test which will always pass.
+        """
+        BrinkFilesystem()

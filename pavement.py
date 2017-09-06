@@ -30,6 +30,7 @@ from brink.pavement_commons import (
     rqm,
     SETUP,
     test_coverage,
+    test_diff,
     test_os_dependent,
     test_os_independent,
     test_python,
@@ -40,6 +41,7 @@ from brink.pavement_commons import (
     )
 from brink.sphinx import test_documentation
 from paver.easy import call_task, consume_args, needs, no_help, pushd, task
+from paver.tasks import environment
 
 # Make pylint shut up.
 buildbot_list
@@ -59,6 +61,7 @@ publish_documentation
 publish
 rqm
 test_coverage
+test_diff
 test_documentation
 test_os_dependent
 test_os_independent
@@ -181,7 +184,7 @@ SETUP['repository']['github'] = 'https://github.com/chevah/brink'
 SETUP['scame'] = options
 SETUP['folders']['source'] = u'brink'
 SETUP['test']['package'] = 'brink.tests'
-SETUP['test']['elevated'] = 'brink.tests.elevated'
+SETUP['test']['elevated'] = 'elevated'
 SETUP['test']['cover_package'] = 'brink'
 SETUP['test']['nose_options'] = ['--with-run-reporter', '--with-timer']
 SETUP['website_package'] = 'brink.website'
@@ -303,13 +306,28 @@ def test_ci(args):
     from OpenSSL import SSL, __version__ as pyopenssl_version
     from coverage.cmdline import main as coverage_main
 
-    print('PYTHON %s' % (sys.version,))
+    print('PYTHON >%s< on paver detection >%s< with >%s<' % (
+        sys.version, pave.os_name, pave.cpu))
     print('%s (%s)' % (
         SSL.SSLeay_version(SSL.SSLEAY_VERSION), SSL.OPENSSL_VERSION_NUMBER))
     print('pyOpenSSL %s' % (pyopenssl_version,))
     coverage_main(argv=['--version'])
 
     env = os.environ.copy()
+    args = [env.get('TEST_ARGUMENTS', '')]
+    environment.args = args
+
+    skip_coverage = False
+    if pave.os_name.startswith('alpine'):
+        # On alpine coverage reporting segfaults.
+        skip_coverage = True
+
+    if skip_coverage:
+        os.environ[b'CODECOV_TOKEN'] = ''
+    if os.environ.get(b'CODECOV_TOKEN', ''):
+        print('Running tests with coverage')
+    else:
+        print('Running tests WITHOUT coverage.')
 
     test_type = env.get('TEST_TYPE', 'normal')
     if test_type == 'os-independent':
@@ -322,6 +340,7 @@ def test_ci(args):
 
 
 @task
+@consume_args
 def test_py3():
     """
     Run checks for py3 compatibility.
