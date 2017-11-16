@@ -70,7 +70,14 @@ class BrinkGit(object):
     @property
     def revision(self):
         '''Return the revision of the current git branch.'''
-        command = [self.git, 'show', '-s', '--pretty=format:%t']
+        command = [self.git, 'show', '-s', '--pretty=format:%H']
+        _, output = execute(command)
+        return output.strip()
+
+    @property
+    def origin(self):
+        '''Return the origin of the current git branch.'''
+        command = [self.git, 'config', '--get', 'remote.origin.url']
         _, output = execute(command)
         return output.strip()
 

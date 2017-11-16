@@ -1,0 +1,2 @@
+Coverage reports are now published to our own coverator. It is still
+possible to publish to codecov.io by using codecov_publish.

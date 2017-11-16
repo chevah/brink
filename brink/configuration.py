@@ -64,6 +64,8 @@ SETUP = {
         'elevated': None,
         # List of nose arguments passed to all tests.
         'nose_options': [],
+        # URL for publishing the coverage reports to coverator.
+        'coverator_url': ''
         },
     }
 

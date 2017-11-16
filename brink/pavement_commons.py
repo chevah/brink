@@ -25,6 +25,7 @@ from __future__ import (
 
 import getpass
 import os
+import re
 import sys
 import subprocess
 
@@ -320,12 +321,6 @@ def test_os_dependent(args):
     """
     call_task('test_python', args=args)
 
-    # Only publish coverage for os dependent tests.
-    codecov_token = os.environ.get('CODECOV_TOKEN', '')
-    if codecov_token:
-        # Only publish if we have a token.
-        call_task('coverage_publish')
-
 
 @task
 def test_os_independent():
@@ -452,9 +447,9 @@ def coverage_prepare():
 
 
 @task
-def coverage_publish():
+def codecov_publish():
     """
-    Send the coverage report.
+    Send the coverage report to codecov.io.
 
     It expects that the GITHUB_PULL_ID environment variable is set.
     """
@@ -488,6 +483,42 @@ def coverage_publish():
             sys.argv.extend(['--pr', github_pull_id])
 
         codecov_main()
+
+
+@task
+def coverator_publish():
+    """
+    Send the coverage report to coverator.
+
+    It expects that the GITHUB_PULL_ID environment variable is set and
+    that the repository origin points to the GitHub URL.
+
+    Also expects the 'coverator_url' configuration to be set.
+    """
+    from coverator.client import upload_coverage
+
+    repository = re.split(r'github.com[/:]', SETUP['repository']['github'])[1]
+
+    builder_name = os.environ.get('BUILDER_NAME', pave.getHostname())
+    github_pull_id = os.environ.get('GITHUB_PULL_ID', '')
+    branch_name = os.environ.get('BRANCH', '')
+    revision = pave.git.revision
+
+    with pushd(pave.path.build):
+        args = ['.coverage', repository, builder_name, revision]
+
+        if branch_name:
+            # We know the branch name from the env.
+            args.append(branch_name)
+
+        if github_pull_id:
+            # We are publishing for a PR.
+            args.append(github_pull_id)
+
+        try:
+            upload_coverage(*args, url=SETUP['test']['coverator_url'])
+        except Exception:
+            print('Failed to upload coverage data:', sys.exc_info[0])
 
 
 def _generate_coverate_reports():

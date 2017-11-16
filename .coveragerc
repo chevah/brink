@@ -24,3 +24,9 @@ ignore_errors = True
 
 omit =
     setup.py
+
+[paths]
+source =
+    brink
+    */brink
+    *\brink

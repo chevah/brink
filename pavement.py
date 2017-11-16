@@ -6,15 +6,20 @@ Build script for Chevah brink repository.
 This is here to help with review, buildbot, and other tasks.
 """
 from __future__ import absolute_import, print_function, unicode_literals
+import compileall
+import imp
 import os
+import py_compile
+import struct
 import sys
 import warnings
 
 from brink.pavement_commons import (
     buildbot_list,
     buildbot_try,
+    codecov_publish,
     coverage_prepare,
-    coverage_publish,
+    coverator_publish,
     default,
     github,
     harness,
@@ -46,8 +51,9 @@ from paver.tasks import environment
 # Make pylint shut up.
 buildbot_list
 buildbot_try
+codecov_publish
 coverage_prepare
-coverage_publish
+coverator_publish
 default
 github,
 harness
@@ -124,8 +130,9 @@ TEST_PACKAGES = [
     'nose==1.3.7',
     'mock',
 
-    'coverage==4.0.3',
+    'coverage==4.4.1',
     'codecov==2.0.3',
+    'coverator==0.1.1',
 
     # Test SFTP service using a 3rd party client.
     'paramiko',
@@ -187,6 +194,7 @@ SETUP['test']['package'] = 'brink.tests'
 SETUP['test']['elevated'] = 'elevated'
 SETUP['test']['cover_package'] = 'brink'
 SETUP['test']['nose_options'] = ['--with-run-reporter', '--with-timer']
+SETUP['test']['coverator_url'] = 'http://172.20.245.1:8080'
 SETUP['website_package'] = 'brink.website'
 SETUP['buildbot']['server'] = 'buildbot.chevah.com'
 SETUP['buildbot']['web_url'] = 'https://buildbot.chevah.com:10443'
@@ -197,6 +205,64 @@ if os.name == 'nt':
     # Fix temp folder
     import tempfile
     tempfile.tempdir = "c:\\temp"
+
+
+def compile_file(fullname, ddir=None, force=0, rx=None, quiet=0):
+    """
+    <Byte-compile one file.
+
+    Arguments (only fullname is required):
+
+    fullname:  the file to byte-compile
+    ddir:      if given, the directory name compiled in to the
+               byte-code file.
+    force:     if 1, force compilation, even if timestamps are up-to-date
+    quiet:     if 1, be quiet during compilation
+    """
+    success = 1
+    name = os.path.basename(fullname)
+    if ddir is not None:
+        dfile = os.path.join(ddir, name)
+    else:
+        dfile = None
+    if rx is not None:
+        mo = rx.search(fullname)
+        if mo:
+            return success
+    if os.path.isfile(fullname):
+        tail = name[-3:]
+        if tail == '.py':
+            if not force:
+                try:
+                    mtime = int(os.stat(fullname).st_mtime)
+                    expect = struct.pack('<4sl', imp.get_magic(), mtime)
+                    cfile = fullname + (__debug__ and 'c' or 'o')
+                    with open(cfile, 'rb') as chandle:
+                        actual = chandle.read(8)
+                    if expect == actual:
+                        return success
+                except IOError:
+                    pass
+            if not quiet:
+                print (b'Compiling', fullname.encode('utf-8'), b'...')
+            try:
+                ok = py_compile.compile(fullname, None, dfile, True)
+            except py_compile.PyCompileError as err:
+                if quiet:
+                    print(b'Compiling', fullname.encode('utf-8'), b'...')
+                print(err.msg.encode('utf-8'))
+                success = 0
+            except IOError, e:
+                print('Sorry', e)
+                success = 0
+            else:
+                if ok == 0:
+                    success = 0
+    return success
+
+
+# Path the upstream code.
+compileall.compile_file = compile_file
 
 
 @task
@@ -322,6 +388,11 @@ def test_ci(args):
         # On alpine coverage reporting segfaults.
         skip_coverage = True
 
+    test_type = env.get('TEST_TYPE', 'normal')
+
+    if test_type == 'py3' or test_type == 'os-independent':
+        skip_coverage = True
+
     if skip_coverage:
         os.environ[b'CODECOV_TOKEN'] = ''
     if os.environ.get(b'CODECOV_TOKEN', ''):
@@ -329,14 +400,19 @@ def test_ci(args):
     else:
         print('Running tests WITHOUT coverage.')
 
-    test_type = env.get('TEST_TYPE', 'normal')
     if test_type == 'os-independent':
         return call_task('test_os_independent')
 
     if test_type == 'py3':
         return call_task('test_py3', args=args)
 
-    return call_task('test_os_dependent', args=args)
+    exit_code = call_task('test_os_dependent', args=args)
+
+    if os.environ.get(b'CODECOV_TOKEN', ''):
+        # Only publish coverage if we have a token.
+        call_task('coverator_publish')
+
+    return exit_code
 
 
 @task

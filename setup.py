@@ -9,7 +9,7 @@ import os
 from setuptools import setup, find_packages, Command
 
 
-VERSION = u'0.66.0'
+VERSION = u'0.67.3'
 
 
 class PublishCommand(Command):
@@ -51,6 +51,9 @@ DISTRIBUTION = setup(
     description='Chevah build system.',
     long_description=open('README.rst').read(),
     url='http://www.chevah.com',
+    install_requires=[
+        'coverator==0.1.1',
+        ],
     packages=find_packages('.'),
     package_data={'brink': [
         'static/requirements/*',
