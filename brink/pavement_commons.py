@@ -517,7 +517,7 @@ def coverator_publish():
 
         try:
             upload_coverage(*args, url=SETUP['test']['coverator_url'])
-        except Exception as error:
+        except Exception as error:  # noqa: cover
             print('Failed to upload coverage data: %s' % error)
 
 
