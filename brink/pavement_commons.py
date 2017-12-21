@@ -743,7 +743,6 @@ def publish_distributables(args):
     Publish download files and documentation.
 
     publish/downloads/PRODUCT_NAME will go to download website
-    publish
 
     [production|staging] [yes|no]
     """
@@ -776,26 +775,38 @@ def publish_distributables(args):
     pave.fs.deleteFolder(target=[pave.path.dist])
     pave.fs.createFolder(destination=[pave.path.dist])
 
-    # Create the things.
     call_task('create_download_page', args=[server])
+    # This will create all the distributables aka install kits, including
+    # the trial version.
     call_task('dist')
 
-    # Copy to the to be outbox folder for publishing.
     publish_downloads_folder = [pave.path.publish, 'downloads']
     publish_website_folder = [pave.path.publish, 'website']
     product_folder = [pave.fs.join(publish_downloads_folder), url_fragment]
     release_publish_folder = [
         pave.fs.join(publish_downloads_folder),
         url_fragment, version_major, version_minor]
+    trial_publish_folder = [
+        pave.fs.join(publish_downloads_folder), 'trial']
 
     # Create publishing content for download site.
     pave.fs.deleteFolder(publish_downloads_folder)
+    pave.fs.deleteFolder(trial_publish_folder)
     pave.fs.createFolder(release_publish_folder, recursive=True)
+    pave.fs.createFolder(trial_publish_folder, recursive=True)
 
-    # Copy the download files.
+    # Copy trial files from dist into publish:
+    pave.fs.copyFolderContent(
+        source=[pave.path.dist],
+        destination=trial_publish_folder,
+        mask='.*-trial.*',
+        )
+
+    # Copy the download files from dist into publish.
     pave.fs.copyFolderContent(
         source=[pave.path.dist],
         destination=release_publish_folder,
+        mask='.*' + version + '*',
         )
 
     # Copy publishing content for presentation site.
@@ -835,12 +846,21 @@ def publish_distributables(args):
                 pave.path.publish, 'website', 'downloads', 'index.html'],
             )
 
-    print("Publishing distributable(s) to %s ..." % (download_hostname))
+    print("Publishing distributables to %s ..." % (download_hostname))
     pave.rsync(
         username=download_username,
         hostname=download_hostname,
         source=[pave.path.publish, 'downloads', url_fragment + '/'],
         destination=download_hostname + '/' + url_fragment,
+        verbose=True,
+        )
+
+    print("Publishing trials to %s ..." % (download_hostname))
+    pave.rsync(
+        username=download_username,
+        hostname=download_hostname,
+        source=[pave.path.publish, 'downloads',  'trial/'],
+        destination=download_hostname + '/trial',
         verbose=True,
         )
 

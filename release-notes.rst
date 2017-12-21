@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.68.0, 2017-12-19
+--------------------------
+
+* Add support for publishing trial versions.
+
+
 Version 0.66.0, 2017-09-04
 --------------------------
 
