@@ -865,10 +865,11 @@ def publish_distributables(args):
         )
 
     print("Publishing download pages to %s..." % (documentation_hostname))
+    # We use relative source path to have it working on Windows.
     pave.rsync(
         username=documentation_username,
         hostname=documentation_hostname,
-        source=[pave.path.publish, 'website', 'downloads/'],
+        source=[SETUP['folders']['publish'], 'website', 'downloads/'],
         destination=documentation_hostname + '/downloads/' + url_fragment,
         verbose=True,
         )

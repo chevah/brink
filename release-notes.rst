@@ -4,6 +4,15 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.69.0, 2018-05-05
+--------------------------
+
+* Add support for rsync on Windows.
+* Documentation is now published using a relative path to work around rsync
+  issues on Windows path handling.
+* Update sys-console.js
+
+
 Version 0.68.0, 2017-12-19
 --------------------------
 
