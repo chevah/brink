@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.69.1, 2018-05-08
+--------------------------
+
+* Fix publish with rsync on Windows.
+
+
 Version 0.69.0, 2018-05-05
 --------------------------
 

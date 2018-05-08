@@ -850,7 +850,7 @@ def publish_distributables(args):
     pave.rsync(
         username=download_username,
         hostname=download_hostname,
-        source=[pave.path.publish, 'downloads', url_fragment + '/'],
+        source=[SETUP['folders']['publish'], 'downloads', url_fragment + '/'],
         destination=download_hostname + '/' + url_fragment,
         verbose=True,
         )
@@ -859,7 +859,7 @@ def publish_distributables(args):
     pave.rsync(
         username=download_username,
         hostname=download_hostname,
-        source=[pave.path.publish, 'downloads',  'trial/'],
+        source=[SETUP['folders']['publish'], 'downloads',  'trial/'],
         destination=download_hostname + '/trial',
         verbose=True,
         )
@@ -952,7 +952,7 @@ def publish_documentation(args):
     pave.rsync(
         username=documentation_username,
         hostname=documentation_hostname,
-        source=[pave.path.publish, 'website', 'documentation/'],
+        source=[SETUP['folders']['publish'], 'website', 'documentation/'],
         destination=destination_root,
         verbose=True,
         )
