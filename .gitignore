@@ -1,7 +1,7 @@
-build-*/
-cache
-dist/
+*.pyc
+/build-*
+/dist/
 pavement_lib*
 *.egg-info/
-*.pyc
-DEFAULT_VALUES
+/DEFAULT_VALUES
+/cache
