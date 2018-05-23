@@ -27,7 +27,7 @@ var DEBUG = 0
 var BINARIES_ROOT_URL = 'http://binary.chevah.com/production/msys-console'
 // A string indetifying the version of the environmet.
 // To keep it simple, it's set to the archive from which the env is created.
-var ENV_VERSION = 'git-windows-x86-2.11.0.chevah1.zip'
+var ENV_VERSION = 'git-windows-x86-2.11.0.chevah2.zip'
 
 /*
 If CHEVAH_FOLDER_NAME is a relative path, then it will

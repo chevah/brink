@@ -10,9 +10,10 @@ from __future__ import (
     unicode_literals,
     )
 
-from chevah.compat.testing import ChevahTestCase, mk
+from chevah.compat.testing import ChevahTestCase, conditionals, mk
 
 # Shut up the linter.
+conditionals
 mk
 
 

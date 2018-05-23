@@ -10,7 +10,9 @@ from __future__ import (
     unicode_literals,
     )
 import hashlib
-from brink.testing import BrinkTestCase, mk
+import os
+import sys
+from brink.testing import BrinkTestCase, conditionals, mk
 
 from brink.utils import BrinkPaver
 
@@ -76,3 +78,59 @@ class TestBrinkPaver(BrinkTestCase):
 
         expected = hashlib.md5(content).hexdigest()
         self.assertEqual(expected, result)
+
+    @conditionals.onOSFamily('posix')
+    def test_rsync(self):
+        """
+        On Unix it used the default SSH.
+        """
+        command = []
+        self.utils.execute = (
+            lambda **kwargs: not command.append(kwargs) and (0, ''))
+
+        self.utils.rsync(
+            username='some-user',
+            hostname='some-host',
+            source=['source', 'folder'],
+            destination='path/on/server',
+            )
+
+        self.assertEqual([{
+            'command': [
+                'rsync',
+                '-acz',
+                '-e',
+                "'ssh'",
+                'source/folder',
+                'some-user@some-host:path/on/server',
+                ],
+            'output': sys.stdout,
+            }], command)
+
+    @conditionals.onOSFamily('nt')
+    def test_rsync(self):
+        """
+        On Windows it used the dedicated SSH with a dedicated config file.
+        """
+        command = []
+        self.utils.execute = (
+            lambda **kwargs: not command.append(kwargs) and (0, ''))
+
+        self.utils.rsync(
+            username='some-user',
+            hostname='some-host',
+            source=['source', 'folder'],
+            destination='path/on/server',
+            )
+
+        self.assertEqual([{
+            'command': [
+                'rsync',
+                '-acz',
+                '-e',
+                "'ssh-rsync -F %s\\.ssh\\config'" % os.getenv('USERPROFILE'),
+                'source/folder',
+                'some-user@some-host:path/on/server',
+                ],
+            'output': sys.stdout,
+            }], command)
