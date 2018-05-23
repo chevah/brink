@@ -8,6 +8,7 @@ Version 0.69.2, 2018-05-23
 --------------------------
 
 * Use dedicated ssh on Windows for rsync.
+* Document the rsync/ssh configuration for windows.
 
 
 Version 0.69.1, 2018-05-08

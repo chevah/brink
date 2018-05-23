@@ -80,7 +80,7 @@ class TestBrinkPaver(BrinkTestCase):
         self.assertEqual(expected, result)
 
     @conditionals.onOSFamily('posix')
-    def test_rsync(self):
+    def test_rsync_unix(self):
         """
         On Unix it used the default SSH.
         """
@@ -108,7 +108,7 @@ class TestBrinkPaver(BrinkTestCase):
             }], command)
 
     @conditionals.onOSFamily('nt')
-    def test_rsync(self):
+    def test_rsync_windows(self):
         """
         On Windows it used the dedicated SSH with a dedicated config file.
         """

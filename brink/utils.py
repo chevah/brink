@@ -374,10 +374,10 @@ class BrinkPaver(object):
             # On Windows we use the cygwin ssh, and not the git ssh.
             # It needs an explicit config file.
             home_path = os.getenv('USERPROFILE')
-            ssh_command = "'ssh-rsync -F %s'" % (os.path.join(
+            ssh_command = 'ssh-rsync -F %s' % (os.path.join(
                 home_path, '.ssh', 'config'),)
         else:
-            ssh_command = "'ssh'"
+            ssh_command = 'ssh'
 
         command = ['rsync', '-acz', '-e', ssh_command]
         if verbose:
