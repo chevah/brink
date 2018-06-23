@@ -47,9 +47,9 @@ from brink.qm import (
 pave = BrinkPaver(setup=SETUP)
 
 
-class MD5SumFile(object):
+class ChecksumFile(object):
     """
-    A file storing md5 checksums for files.
+    A file storing sha256 checksums for files.
     """
 
     def __init__(self, segments):
@@ -61,9 +61,9 @@ class MD5SumFile(object):
 
     def addFile(self, file_path):
         """
-        Add file to file listed in md5 file.
+        Add file to file listed in checksum file.
         """
-        content = pave.createMD5Sum([file_path]) + '  ' + file_path + '\n'
+        content = pave.createSHA256Sum([file_path]) + '  ' + file_path + '\n'
         pave.fs.appendContentToFile(
             destination=self._segments, content=content)
 

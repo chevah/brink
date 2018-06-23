@@ -12,7 +12,7 @@ from __future__ import (
 
 from contextlib import closing
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
-from hashlib import md5
+from hashlib import md5, sha256
 import os
 import socket
 import subprocess
@@ -248,6 +248,23 @@ class BrinkPaver(object):
 
         return result
 
+    def createSHA256Sum(self, source):
+        '''
+        Returns an SHA256 hash for the file specified by file_path.
+        '''
+        shahash = sha256()
+
+        with open(self.fs.join(source), 'rb') as input_file:
+            while True:
+                read_buffer = input_file.read(8096)
+                if not read_buffer:
+                    break
+                shahash.update(read_buffer)
+
+            result = shahash.hexdigest()
+
+        return result
+
     def createNSIS(
             self, folder_name, product_name, product_version,
             product_url, product_publisher):
@@ -376,10 +393,17 @@ class BrinkPaver(object):
             home_path = os.getenv('USERPROFILE')
             ssh_command = 'ssh-rsync -F %s' % (os.path.join(
                 home_path, '.ssh', 'config'),)
+            arguments = [
+                '-rcz',
+                '-no-p', '--chmod=D755,F644',
+                '--chown=%s:www-data' % (username,),
+                '-e', ssh_command,
+                ]
         else:
-            ssh_command = 'ssh'
+            # On Linux we can just archive.
+            arguments= ['-cza', '-e', 'ssh']
 
-        command = ['rsync', '-acz', '-e', ssh_command]
+        command = ['rsync'] + arguments
         if verbose:
             command.append('-v')
         command.append(self.fs.join(source))
