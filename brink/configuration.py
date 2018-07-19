@@ -1,5 +1,8 @@
 """
 Configuration of a brink project.
+
+This is the basic public configuration.
+Private data is loaded from ~/.config/chevah-brink.ini
 """
 
 SETUP = {
@@ -31,11 +34,6 @@ SETUP = {
         },
     'buildbot': {
         'vcs': 'git',
-        'server': '172.20.0.11',
-        'port': 10087,
-        'username': 'chevah_buildbot',
-        'password': 'chevah_password',
-        'web_url': 'http://172.20.0.11:10088',
         'builders_filter': None,
         },
     'publish': {

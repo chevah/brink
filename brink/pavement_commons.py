@@ -23,6 +23,7 @@ from __future__ import (
     unicode_literals,
     )
 
+from ConfigParser import RawConfigParser
 import getpass
 import os
 import re
@@ -627,6 +628,29 @@ def apidoc():
     pave.sphinx.createHTML()
 
 
+def _get_user_configuration():
+    """
+    Return a dictionary with the configuration as found in
+    ~/.config/chevah-brink.ini.
+    """
+    
+    config_path = os.path.expanduser('~/.config/chevah-brink.ini')
+    config = RawConfigParser()
+    loaded = config.read([config_path])
+    if not loaded:
+        raise RuntimeException(
+            'Failed to read configuration from %s.' % (config_path,))
+
+    result = {}
+
+    for section in config.sections():
+        result[section] = {}
+        for option in config.options(section):
+            result[section][option] = config.get(section, option)
+
+    return result
+
+
 @task
 @consume_args
 def buildbot_try(args):
@@ -664,14 +688,16 @@ def buildbot_try(args):
         str(SETUP['buildbot']['port'])
         )
 
+    user_config = _get_user_configuration()
+
     new_args = [
         b'buildbot', b'try',
         b'--connect=pb',
         buildbot_master,
-        b'--web-status=%s' % (SETUP['buildbot']['web_url'],),
-        b'--username=%s' % (SETUP['buildbot']['username']),
-        b'--passwd=%s' % (SETUP['buildbot']['password']),
-        b'--vc=%s' % (SETUP['buildbot']['vcs']),
+        b'--web-status=%s' % (user_config['buildbot']['web_url'],),
+        b'--username=%s' % (user_config['buildbot']['username']),
+        b'--passwd=%s' % (user_config['buildbot']['password']),
+        b'--vc=%s' % (user_config['buildbot']['vcs']),
         buildbot_who,
         b'--branch=%s' % (pave.git.branch_name),
         b'--properties=author=%s' % (who.encode('utf-8'),),
@@ -697,15 +723,17 @@ def buildbot_list(args):
     '''
     from buildbot.scripts import runner
 
+    user_config = _get_user_configuration()
+
     new_args = [
         'buildbot', 'try',
         '--connect=pb',
-        '--master=%s:%d' % (
-            SETUP['buildbot']['server'],
-            SETUP['buildbot']['port']
+        '--master=%s:%s' % (
+            user_config['buildbot']['server'],
+            user_config['buildbot']['port']
             ),
-        '--username=%s' % (SETUP['buildbot']['username']),
-        '--passwd=%s' % (SETUP['buildbot']['password']),
+        '--username=%s' % (user_config['buildbot']['username']),
+        '--passwd=%s' % (user_config['buildbot']['password']),
         '--get-builder-names',
         ]
     sys.argv = new_args

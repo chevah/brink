@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.70.0, 2018-07-19
+--------------------------
+
+* Read buildbot credentials from local file.
+
+
 Version 0.69.4, 2018-06-23
 --------------------------
 
