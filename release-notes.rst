@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.70.2, 2018-07-20
+--------------------------
+
+* User config now has default values.
+
+
 Version 0.70.1, 2018-07-20
 --------------------------
 

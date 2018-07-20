@@ -641,10 +641,9 @@ def _get_user_configuration():
         raise RuntimeException(
             'Failed to read configuration from %s.' % (config_path,))
 
-    result = {}
+    result = SETUP.copy()
 
     for section in config.sections():
-        result[section] = {}
         for option in config.options(section):
             result[section][option] = config.get(section, option)
 
