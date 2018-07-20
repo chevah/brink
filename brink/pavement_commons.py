@@ -681,14 +681,14 @@ def buildbot_try(args):
         print('git config --global user.email your@email.tld')
         sys.exit(1)
 
+    user_config = _get_user_configuration()
+
     buildbot_who = b'--who="' + who.encode('utf-8') + b'"'
     buildbot_master = (
         b'--master=' +
-        SETUP['buildbot']['server'].encode('utf-8') + ':' +
-        str(SETUP['buildbot']['port'])
+        user_config['buildbot']['server'].encode('utf-8') + ':' +
+        str(user_config['buildbot']['port'])
         )
-
-    user_config = _get_user_configuration()
 
     new_args = [
         b'buildbot', b'try',
