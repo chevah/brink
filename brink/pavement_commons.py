@@ -631,14 +631,21 @@ def apidoc():
 def _get_user_configuration():
     """
     Return a dictionary with the configuration as found in
-    ~/.config/chevah-brink.ini.
+    ~/.config/chevah-brink.ini or %APPDATA%/chevah-brink.ini.
     """
     
-    config_path = os.path.expanduser('~/.config/chevah-brink.ini')
+    appdata_path = os.environ.get('APPDATA', '')
+    if appdata_path:
+        # On Windows you can't have folders starting with dot so we go with
+        # default APPDATA location.
+        config_path = appdata_path + '\\chevah-brink.ini'
+    else:
+        config_path = os.path.expanduser('~/.config/chevah-brink.ini')
+
     config = RawConfigParser()
     loaded = config.read([config_path])
     if not loaded:
-        raise RuntimeException(
+        raise RuntimeError(
             'Failed to read configuration from %s.' % (config_path,))
 
     result = SETUP.copy()
