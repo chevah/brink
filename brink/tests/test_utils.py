@@ -98,7 +98,7 @@ class TestBrinkPaver(BrinkTestCase):
         self.assertEqual([{
             'command': [
                 'rsync',
-                '-acz',
+                '-cza',
                 '-e',
                 'ssh',
                 'source/folder',
