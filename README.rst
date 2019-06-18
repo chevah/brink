@@ -53,20 +53,3 @@ chevah/python-package repository.
 
 Changes to paver.sh do not need an update in version as they are not
 versioned yet.
-
-
-Rsync on Windows
-================
-
-msys-console.js will download the msys version for the Unix tool, with the
-exception or rsync.
-rsync is the cygwin version and uses a dedicated ssh-rsync.
-It will also not find the config file, so you need to explicitly specify it.
-
-You will need to call it with `rsync -e 'ssh-rsync -F c:\path\to\.ssh\config`
-
-brink.utils.BrinkPaver.rsync loads the SSH configuration file
-from `%USERPROFILE%\.ssh\config`.
-
-It will not find the known host file, so on the SSH client config file you
-will need to add: `UserKnownHostFiles: c:\path\to\.ssh\known_hosts`.
