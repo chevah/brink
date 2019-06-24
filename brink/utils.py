@@ -401,7 +401,7 @@ class BrinkPaver(object):
                 ]
         else:
             # On Linux we can just archive.
-            arguments= ['-cza', '-e', 'ssh']
+            arguments = ['-cza', '-e', 'ssh']
 
         command = ['rsync'] + arguments
         if verbose:

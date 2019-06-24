@@ -127,6 +127,9 @@ class TestBrinkPaver(BrinkTestCase):
             'command': [
                 'rsync',
                 '-rcz',
+                '-no-p',
+                '--chmod=D755,F644',
+                '--chown=some-user:www-data',
                 '-e',
                 'ssh-rsync -F %s\\.ssh\\config' % os.getenv('USERPROFILE'),
                 'source/folder',

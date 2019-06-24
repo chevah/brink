@@ -311,7 +311,6 @@ test_version_exists() {
 #
 get_python_dist() {
     local remote_base_url=$1
-    local download_mode=$2
     local python_distributable=python-${PYTHON_VERSION}-${OS}-${ARCH}
     local wget_test
 
@@ -324,13 +323,8 @@ get_python_dist() {
         # We have the requested python version.
         get_binary_dist $python_distributable $remote_base_url/${OS}/${ARCH}
     else
-        if [ $download_mode == "strict" ]; then
-            echo "The requested version was not found on the remote server."
-            exit 1
-        fi
-        # Fall back to the non-versioned distribution.
-        echo "!!!Getting FALLBACK version!!!"
-        get_binary_dist $PYTHON_NAME-$OS-$ARCH $remote_base_url
+        echo "The requested version was not found on the remote server."
+        exit 1
     fi
 }
 
