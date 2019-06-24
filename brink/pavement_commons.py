@@ -23,7 +23,7 @@ from __future__ import (
     unicode_literals,
     )
 
-from ConfigParser import RawConfigParser
+from six.moves.configparser import RawConfigParser
 import getpass
 import os
 import re
@@ -633,7 +633,7 @@ def _get_user_configuration():
     Return a dictionary with the configuration as found in
     ~/.config/chevah-brink.ini or %APPDATA%/chevah-brink.ini.
     """
-    
+
     appdata_path = os.environ.get('APPDATA', '')
     if appdata_path:
         # On Windows you can't have folders starting with dot so we go with

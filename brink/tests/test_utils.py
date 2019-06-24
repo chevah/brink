@@ -126,7 +126,7 @@ class TestBrinkPaver(BrinkTestCase):
         self.assertEqual([{
             'command': [
                 'rsync',
-                '-acz',
+                '-rcz',
                 '-e',
                 'ssh-rsync -F %s\\.ssh\\config' % os.getenv('USERPROFILE'),
                 'source/folder',
