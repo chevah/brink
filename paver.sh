@@ -84,19 +84,13 @@ clean_build() {
     echo "Cleaning project temporary files..."
     rm -f DEFAULT_VALUES
     echo "Cleaning pyc files ..."
-    if [ $OS = "rhel4" ]; then
-        # RHEL 4 don't support + option in -exec
-        # We use -print0 and xargs to no fork for each file.
-        # find will fail if no file is found.
-        touch ./dummy_file_for_RHEL4.pyc
-        find ./ -name '*.pyc' -print0 | xargs -0 rm
-    else
-        # AIX's find complains if there are no matching files when using +.
-        [ $(uname) == AIX ] && touch ./dummy_file_for_AIX.pyc
-        # Faster than '-exec rm {} \;' and supported in most OS'es,
-        # details at http://www.in-ulm.de/~mascheck/various/find/#xargs
-        find ./ -name '*.pyc' -exec rm {} +
-    fi
+
+    # AIX's find complains if there are no matching files when using +.
+    [ $(uname) == AIX ] && touch ./dummy_file_for_AIX.pyc
+    # Faster than '-exec rm {} \;' and supported in most OS'es,
+    # details at http://www.in-ulm.de/~mascheck/various/find/#xargs
+    find ./ -name '*.pyc' -exec rm {} +
+
     # In some case pip hangs with a build folder in temp and
     # will not continue until it is manually removed.
     # On the OSX build server tmp is in $TMPDIR
@@ -233,12 +227,11 @@ pip_install() {
     # See https://github.com/pypa/pip/issues/3564
     rm -rf ${BUILD_FOLDER}/pip-build
     ${PYTHON_BIN} -m \
-        pip.__init__ install $1 \
+        pip install $1 \
             --trusted-host pypi.chevah.com \
             --index-url=$PIP_INDEX/simple \
             --build=${BUILD_FOLDER}/pip-build \
-            --cache-dir=${CACHE_FOLDER} \
-            --use-wheel
+            --cache-dir=${CACHE_FOLDER}
 
     exit_code=$?
     set -e
@@ -248,6 +241,31 @@ pip_install() {
     fi
 }
 
+#
+# Check for wget or curl and set needed download commands accordingly.
+#
+set_download_commands() {
+    set +o errexit
+    command -v wget > /dev/null
+    if [ $? -eq 0 ]; then
+        set -o errexit
+        # Using WGET for downloading Python package.
+        ONLINETEST_CMD="wget --spider --quiet"
+        # Use 1MB dots to reduce output, avoiding polluting Buildbot's pages.
+        DOWNLOAD_CMD="wget --progress=dot --execute dot_bytes=1m"
+        return
+    fi
+    command -v curl > /dev/null
+    if [ $? -eq 0 ]; then
+        set -o errexit
+        # Using CURL for downloading Python package.
+        ONLINETEST_CMD="curl --fail --silent --head --output /dev/null"
+        DOWNLOAD_CMD="curl --remote-name"
+        return
+    fi
+    echo "Missing wget and curl! One of them is needed for online operations."
+    exit 30
+}
 
 #
 # Download and extract a binary distribution.
@@ -268,9 +286,7 @@ get_binary_dist() {
         rm -rf $dist_name
         rm -f $tar_gz_file
         rm -f $tar_file
-        # Use 1M dot to reduce console pollution.
-        execute wget --progress=dot -e dotbytes=1M \
-            $remote_base_url/${tar_gz_file}
+        execute $DOWNLOAD_CMD $remote_base_url/${tar_gz_file}
         execute gunzip $tar_gz_file
         execute tar -xf $tar_file
         rm -f $tar_gz_file
@@ -284,12 +300,10 @@ get_binary_dist() {
 #
 test_version_exists() {
     local remote_base_url=$1
-    local wget_test
     local target_file=python-${PYTHON_VERSION}-${OS}-${ARCH}.tar.gz
 
-    wget --spider $remote_base_url/${OS}/${ARCH}/$target_file
-    wget_test=$?
-    return $wget_test
+    $ONLINETEST_CMD $remote_base_url/${OS}/${ARCH}/$target_file
+    return $?
 }
 
 #
@@ -297,7 +311,6 @@ test_version_exists() {
 #
 get_python_dist() {
     local remote_base_url=$1
-    local download_mode=$2
     local python_distributable=python-${PYTHON_VERSION}-${OS}-${ARCH}
     local wget_test
 
@@ -310,13 +323,8 @@ get_python_dist() {
         # We have the requested python version.
         get_binary_dist $python_distributable $remote_base_url/${OS}/${ARCH}
     else
-        if [ $download_mode == "strict" ]; then
-            echo "The requested version was not found on the remote server."
-            exit 1
-        fi
-        # Fall back to the non-versioned distribution.
-        echo "!!!Getting FALLBACK version!!!"
-        get_binary_dist $PYTHON_NAME-$OS-$ARCH $remote_base_url
+        echo "The requested version was not found on the remote server."
+        exit 1
     fi
 }
 
@@ -402,7 +410,7 @@ copy_python() {
                 # Remove it and try to install it again.
                 echo "Updating Python from" \
                     $python_installed_version to $PYTHON_VERSION
-                rm -rf ${BUILD_FOLDER}
+                rm -rf ${BUILD_FOLDER}/*
                 rm -rf ${python_distributable}
                 copy_python
             fi
@@ -416,7 +424,7 @@ copy_python() {
                 echo "Updating Python from UNVERSIONED to $PYTHON_VERSION"
                 # We have a different python installed.
                 # Remove it and try to install it again.
-                rm -rf ${BUILD_FOLDER}
+                rm -rf ${BUILD_FOLDER}/*
                 rm -rf ${python_distributable}
                 copy_python
             else
@@ -528,7 +536,7 @@ detect_os() {
 
     OS=$(uname -s | tr "[A-Z]" "[a-z]")
 
-    if [ "${OS%mingw*}" = "" ]; then
+    if [ "${OS%mingw*}" = "" -o "${OS%msys*}" = "" ]; then
 
         OS='windows'
         ARCH='x86'
@@ -543,11 +551,23 @@ detect_os() {
 
         # Solaris 10u8 (from 10/09) updated the libc version, so for older
         # releases we build on 10u3, and use that up to 10u7 (from 5/09).
+        # The "solaris10u3" code path also preserves the way to link to the
+        # OpenSSL 0.9.7 libs bundled in /usr/sfw/ with all Solaris 10 releases.
         if [ "${OS}" = "solaris10" ]; then
             # We extract the update number from the first line.
             update=$(head -1 /etc/release | cut -d'_' -f2 | sed 's/[^0-9]*//g')
             if [ "$update" -lt 8 ]; then
                 OS="solaris10u3"
+            fi
+        # Solaris 11 releases prior to 11.4 were bundled with OpenSSL libraries
+        # missing support for Elliptic-curve crypto. From here on:
+        #     * Solaris 11.4 (or newer) with OpenSSL 1.0.2 is "solaris11".
+        #     * Solaris 11.2/11.3 with OpenSSL 1.0.1 is "solaris112".
+        #     * Solaris 11.0/11.1 with OpenSSL 1.0.0 is not supported.
+        elif [ "${OS}" = "solaris11" ]; then
+            minor_version=$(uname -v | cut -d'.' -f2)
+            if [ "$minor_version" -lt 4 ]; then
+                OS="solaris112"
             fi
         fi
 
@@ -576,8 +596,18 @@ detect_os() {
             if egrep -q 'Red\ Hat|CentOS|Scientific' /etc/redhat-release; then
                 os_version_raw=$(\
                     cat /etc/redhat-release | sed s/.*release// | cut -d' ' -f2)
-                check_os_version "Red Hat Enterprise Linux" 4 \
+                check_os_version "Red Hat Enterprise Linux" 5 \
                     "$os_version_raw" os_version_chevah
+                # RHEL 7.4 and newer have OpenSSL 1.0.2, while 7.3 and older
+                # have version 1.0.1. Thus for the older RHEL 7 versions we use
+                # a separate OS signature, to make use of a dedicated Python
+                # package.
+                if [ "$os_version_chevah" -eq 7 ]; then
+                    if openssl version | grep -F -q "1.0.1"; then
+                        # We are on 1.0.1 which is pre RHEL 7.4
+                        os_version_chevah=7openssl101
+                    fi
+                fi
                 OS="rhel${os_version_chevah}"
             fi
         elif [ -f /etc/SuSE-release ]; then
@@ -588,17 +618,13 @@ detect_os() {
                 check_os_version "SUSE Linux Enterprise Server" 10 \
                     "$os_version_raw" os_version_chevah
                 OS="sles${os_version_chevah}"
-                # On 11.x, check for OpenSSL 1.0.x (a.k.a. Security Module).
-                if [ ${os_version_chevah} -eq 11 -a -x /usr/bin/openssl1 ]; then
-                    OS="sles11sm"
-                fi
             fi
         elif [ -f /etc/os-release ]; then
             source /etc/os-release
             linux_distro="$ID"
             distro_fancy_name="$NAME"
             case "$linux_distro" in
-                "ubuntu")
+                "ubuntu"|"ubuntu-core")
                     os_version_raw="$VERSION_ID"
                     check_os_version "$distro_fancy_name" 14.04 \
                         "$os_version_raw" os_version_chevah
@@ -609,8 +635,15 @@ detect_os() {
                         $(( ${os_version_chevah%%04} % 2 )) -eq 0 ]; then
                         OS="ubuntu${os_version_chevah}"
                     else
-                        echo "Unsupported Ubuntu, using generic Linux binaries!"
+                        echo "Unsupported Ubuntu, please try a LTS version!"
+                        exit 16
                     fi
+                    ;;
+                "debian")
+                    os_version_raw="$VERSION_ID"
+                    check_os_version "$distro_fancy_name" 7 \
+                        "$os_version_raw" os_version_chevah
+                    OS="debian${os_version_chevah}"
                     ;;
                 "raspbian")
                     os_version_raw="$VERSION_ID"
@@ -628,6 +661,16 @@ detect_os() {
                     # Arch Linux is a rolling distro, no version info available.
                     OS="archlinux"
                     ;;
+                "amzn")
+                    os_version_raw="$VERSION_ID"
+                    check_os_version "$distro_fancy_name" 2 \
+                        "$os_version_raw" os_version_chevah
+                    OS="amazon${os_version_chevah}"
+                    ;;
+                *)
+                    echo "Unsupported Linux distribution: $distro_fancy_name."
+                    exit 15
+                    ;;
             esac
         fi
     elif [ "${OS}" = "darwin" ]; then
@@ -637,12 +680,16 @@ detect_os() {
         check_os_version "Mac OS X" 10.8 "$os_version_raw" os_version_chevah
 
         if [ ${os_version_chevah:0:2} -eq 10 -a \
-            ${os_version_chevah:2:2} -ge 12  ]; then
-            # For newer, macOS versions, we use '1012'.
-            OS="macos1012"
+            ${os_version_chevah:2:2} -ge 13 ]; then
+            # For macOS 10.13 or newer we use 'macos'.
+            OS="macos"
+        elif [ ${os_version_chevah:0:2} -eq 10 -a \
+            ${os_version_chevah:2:2} -ge 8 ]; then
+            # For macOS 10.12 and OS X 10.8-10.11 we use 'osx'.
+            OS="osx"
         else
-            # For older, OS X versions, we use '108'.
-            OS="osx108"
+            echo "Unsupported Mac OS X version: $os_version_raw."
+            exit 17
         fi
 
 
@@ -700,6 +747,7 @@ detect_os() {
 
 detect_os
 update_path_variables
+set_download_commands
 
 if [ "$COMMAND" = "clean" ] ; then
     clean_build

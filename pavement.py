@@ -151,7 +151,6 @@ try:
 
     options.scope = {
         'include': [
-            'msys-console.js',
             'pavement.py',
             'release-notes.rst',
             'paver.sh',

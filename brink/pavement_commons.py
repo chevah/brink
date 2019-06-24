@@ -23,6 +23,7 @@ from __future__ import (
     unicode_literals,
     )
 
+from six.moves.configparser import RawConfigParser
 import getpass
 import os
 import re
@@ -47,9 +48,9 @@ from brink.qm import (
 pave = BrinkPaver(setup=SETUP)
 
 
-class MD5SumFile(object):
+class ChecksumFile(object):
     """
-    A file storing md5 checksums for files.
+    A file storing sha256 checksums for files.
     """
 
     def __init__(self, segments):
@@ -61,9 +62,9 @@ class MD5SumFile(object):
 
     def addFile(self, file_path):
         """
-        Add file to file listed in md5 file.
+        Add file to file listed in checksum file.
         """
-        content = pave.createMD5Sum([file_path]) + '  ' + file_path + '\n'
+        content = pave.createSHA256Sum([file_path]) + '  ' + file_path + '\n'
         pave.fs.appendContentToFile(
             destination=self._segments, content=content)
 
@@ -627,6 +628,35 @@ def apidoc():
     pave.sphinx.createHTML()
 
 
+def _get_user_configuration():
+    """
+    Return a dictionary with the configuration as found in
+    ~/.config/chevah-brink.ini or %APPDATA%/chevah-brink.ini.
+    """
+
+    appdata_path = os.environ.get('APPDATA', '')
+    if appdata_path:
+        # On Windows you can't have folders starting with dot so we go with
+        # default APPDATA location.
+        config_path = appdata_path + '\\chevah-brink.ini'
+    else:
+        config_path = os.path.expanduser('~/.config/chevah-brink.ini')
+
+    config = RawConfigParser()
+    loaded = config.read([config_path])
+    if not loaded:
+        raise RuntimeError(
+            'Failed to read configuration from %s.' % (config_path,))
+
+    result = SETUP.copy()
+
+    for section in config.sections():
+        for option in config.options(section):
+            result[section][option] = config.get(section, option)
+
+    return result
+
+
 @task
 @consume_args
 def buildbot_try(args):
@@ -657,21 +687,23 @@ def buildbot_try(args):
         print('git config --global user.email your@email.tld')
         sys.exit(1)
 
+    user_config = _get_user_configuration()
+
     buildbot_who = b'--who="' + who.encode('utf-8') + b'"'
     buildbot_master = (
         b'--master=' +
-        SETUP['buildbot']['server'].encode('utf-8') + ':' +
-        str(SETUP['buildbot']['port'])
+        user_config['buildbot']['server'].encode('utf-8') + ':' +
+        str(user_config['buildbot']['port'])
         )
 
     new_args = [
         b'buildbot', b'try',
         b'--connect=pb',
         buildbot_master,
-        b'--web-status=%s' % (SETUP['buildbot']['web_url'],),
-        b'--username=%s' % (SETUP['buildbot']['username']),
-        b'--passwd=%s' % (SETUP['buildbot']['password']),
-        b'--vc=%s' % (SETUP['buildbot']['vcs']),
+        b'--web-status=%s' % (user_config['buildbot']['web_url'],),
+        b'--username=%s' % (user_config['buildbot']['username']),
+        b'--passwd=%s' % (user_config['buildbot']['password']),
+        b'--vc=%s' % (user_config['buildbot']['vcs']),
         buildbot_who,
         b'--branch=%s' % (pave.git.branch_name),
         b'--properties=author=%s' % (who.encode('utf-8'),),
@@ -697,15 +729,17 @@ def buildbot_list(args):
     '''
     from buildbot.scripts import runner
 
+    user_config = _get_user_configuration()
+
     new_args = [
         'buildbot', 'try',
         '--connect=pb',
-        '--master=%s:%d' % (
-            SETUP['buildbot']['server'],
-            SETUP['buildbot']['port']
+        '--master=%s:%s' % (
+            user_config['buildbot']['server'],
+            user_config['buildbot']['port']
             ),
-        '--username=%s' % (SETUP['buildbot']['username']),
-        '--passwd=%s' % (SETUP['buildbot']['password']),
+        '--username=%s' % (user_config['buildbot']['username']),
+        '--passwd=%s' % (user_config['buildbot']['password']),
         '--get-builder-names',
         ]
     sys.argv = new_args
@@ -850,7 +884,7 @@ def publish_distributables(args):
     pave.rsync(
         username=download_username,
         hostname=download_hostname,
-        source=[pave.path.publish, 'downloads', url_fragment + '/'],
+        source=[SETUP['folders']['publish'], 'downloads', url_fragment + '/'],
         destination=download_hostname + '/' + url_fragment,
         verbose=True,
         )
@@ -859,16 +893,17 @@ def publish_distributables(args):
     pave.rsync(
         username=download_username,
         hostname=download_hostname,
-        source=[pave.path.publish, 'downloads',  'trial/'],
+        source=[SETUP['folders']['publish'], 'downloads',  'trial/'],
         destination=download_hostname + '/trial',
         verbose=True,
         )
 
     print("Publishing download pages to %s..." % (documentation_hostname))
+    # We use relative source path to have it working on Windows.
     pave.rsync(
         username=documentation_username,
         hostname=documentation_hostname,
-        source=[pave.path.publish, 'website', 'downloads/'],
+        source=[SETUP['folders']['publish'], 'website', 'downloads/'],
         destination=documentation_hostname + '/downloads/' + url_fragment,
         verbose=True,
         )
@@ -951,7 +986,7 @@ def publish_documentation(args):
     pave.rsync(
         username=documentation_username,
         hostname=documentation_hostname,
-        source=[pave.path.publish, 'website', 'documentation/'],
+        source=[SETUP['folders']['publish'], 'website', 'documentation/'],
         destination=destination_root,
         verbose=True,
         )

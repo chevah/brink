@@ -11,6 +11,8 @@ required chevah-brink version.
 paver.sh will also update the chevah-brink package each time `paver deps` is
 called.
 
+It will read the private configuration from ~/.config/chevah-brink.ini.
+
 
 Development
 ===========

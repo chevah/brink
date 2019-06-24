@@ -4,6 +4,65 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.70.3, 2018-07-24
+--------------------------
+
+* On Windows store the config in %APPDATA% path.
+
+
+Version 0.70.2, 2018-07-20
+--------------------------
+
+* User config now has default values.
+
+
+Version 0.70.1, 2018-07-20
+--------------------------
+
+* Fix test_remote.
+
+
+Version 0.70.0, 2018-07-19
+--------------------------
+
+* Read buildbot credentials from local file.
+
+
+Version 0.69.4, 2018-06-23
+--------------------------
+
+* Use fixed chmod for sync on Windows.
+* Add SHA256 checksum file.
+
+
+Version 0.69.3, 2018-05-23
+--------------------------
+
+* Fix rsync command line.
+
+
+Version 0.69.2, 2018-05-23
+--------------------------
+
+* Use dedicated ssh on Windows for rsync.
+* Document the rsync/ssh configuration for windows.
+
+
+Version 0.69.1, 2018-05-08
+--------------------------
+
+* Fix publish with rsync on Windows.
+
+
+Version 0.69.0, 2018-05-05
+--------------------------
+
+* Add support for rsync on Windows.
+* Documentation is now published using a relative path to work around rsync
+  issues on Windows path handling.
+* Update sys-console.js
+
+
 Version 0.68.0, 2017-12-19
 --------------------------
 
