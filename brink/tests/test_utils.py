@@ -137,3 +137,13 @@ class TestBrinkPaver(BrinkTestCase):
                 ],
             'output': sys.stdout,
             }], command)
+
+    def test_getPythonLibPath_default(self):
+        """
+        It will return a path which exists.
+        """
+        result = self.utils.getPythonLibPath()
+
+        # We test `scame` which should be a package specific to this
+        # build... to make sure we don't get a generic Python path.
+        self.assertContains('scame', os.listdir(result))

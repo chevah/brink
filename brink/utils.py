@@ -551,7 +551,7 @@ class BrinkPaver(object):
         if python_version is None:
             python_version = self.python_version
 
-        if os_name == 'windows':
+        if os_name == 'win':
             segments = ['lib', 'Lib']
         else:
             segments = ['lib', python_version]

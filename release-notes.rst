@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.71.1, 2018-08-22
+--------------------------
+
+* Fix utils.getPythonLibPath() with new short names.
+
+
 Version 0.71.0, 2018-08-21
 --------------------------
 

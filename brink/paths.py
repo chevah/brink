@@ -45,7 +45,7 @@ class ProjectPaths(object):
         if os_name is None:
             os_name = os.name
 
-        if os_name == 'nt':
+        if os_name in ['nt', 'win']:
             return self.fs.join(['lib', 'Scripts'])
         else:
             return self.fs.join(['bin'])
