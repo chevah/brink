@@ -97,29 +97,30 @@ BUILD_PACKAGES = [
     'gitdb==0.6.4',
     'gitpython==1.0.0',
     'pygithub==1.34',
-    ]
 
-# Packages required by the static analysis tests.
-LINT_PACKAGES = [
-    'scame==0.3.3',
+    # For Lint and static checkers.
+    'scame==0.5.1',
     'pyflakes>=1.5.0',
-    'closure-linter==2.3.13',
+    'chevah-js-linter==2.4.0',
     'pycodestyle==2.3.1',
     'bandit==1.4.0',
     'pylint==1.7.1',
     'astroid==1.5.3',
-    'enum34>=1.1.6',
-
-    # These are build packages, but are used for testing the documentation.
-    'sphinx==1.1.3-chevah1',
-    'repoze.sphinx.autointerface==0.7.1-chevah2',
+    # These are build packages, but are needed for testing the documentation.
+    'sphinx==1.2.2',
+    'repoze.sphinx.autointerface==0.7.1.c4',
     # Docutils is required for RST parsing and for Sphinx.
-    'docutils>=0.9.1-chevah2',
+    'docutils==0.12.c1',
     ]
 
 # Packages required to run the test suite.
 TEST_PACKAGES = [
-    'chevah-compat==0.43.2',
+    'chevah-compat==0.55.3',
+
+    # Used to detect Linux distributions.
+    'ld==0.5.0',
+    # used for remote debugging.
+    'remote_pdb==1.2.0',
 
     # We need a newer future to work with pylint/astoid.
     'future>=0.16.0',
@@ -128,11 +129,12 @@ TEST_PACKAGES = [
     # Never version of nose, hangs on closing some tests
     # due to some thread handling.
     'nose==1.3.7',
+    'nose-randomly==1.2.5',
     'mock',
 
     'coverage==4.4.1',
-    'codecov==2.0.3',
-    'coverator==0.1.1',
+    'diff_cover==0.9.11',
+    'codecov==2.0.15',
 
     # Test SFTP service using a 3rd party client.
     'paramiko',
@@ -148,6 +150,7 @@ try:
     from scame.formatcheck import ScameOptions
     options = ScameOptions()
     options.max_line_length = 80
+    options.progress = True
 
     options.scope = {
         'include': [
@@ -167,9 +170,6 @@ try:
 
     options.pycodestyle['enabled'] = True
     options.pycodestyle['hang_closing'] = True
-
-    options.closure_linter['enabled'] = True
-    options.closure_linter['ignore'] = [1, 10, 11, 110, 220]
 
     # For now these are disabled, as there are to many errors.
     options.bandit['enabled'] = False
@@ -274,14 +274,14 @@ def deps():
 
     env_ci = os.environ.get('CI', '').strip()
     if env_ci.lower() != 'true':
-        packages += BUILD_PACKAGES + LINT_PACKAGES
+        packages += BUILD_PACKAGES
     else:
         builder = os.environ.get('BUILDER_NAME', '')
         if 'os-independent' in builder or '-py3' in builder:
-            packages += LINT_PACKAGES
+            packages += BUILD_PACKAGES
             print('Installing only lint and test dependencies.')
         elif '-gk-' in builder:
-            packages += BUILD_PACKAGES + LINT_PACKAGES
+            packages += BUILD_PACKAGES
             print('Installing only build, lint and test dependencies.')
         else:
             print('Installing only test dependencies.')
@@ -359,6 +359,15 @@ def test(args):
     """
     Run Python tests.
     """
+
+
+@task
+@consume_args
+def remote(args):
+    """
+    Run tests on remote and wait for results.
+    """
+    call_task('test_remote', args=args + ['--wait'])
 
 
 @task
@@ -502,7 +511,7 @@ def publish(args):
     # We remove all the packages as this is what is usually done in publish.
     pave.pip(
         command='uninstall',
-        arguments=['--yes'] + BUILD_PACKAGES + TEST_PACKAGES + LINT_PACKAGES,
+        arguments=['--yes'] + BUILD_PACKAGES + TEST_PACKAGES,
         )
 
 

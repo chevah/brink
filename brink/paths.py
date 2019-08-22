@@ -33,7 +33,7 @@ class ProjectPaths(object):
         if os_name is None:
             os_name = os.name
 
-        if os_name == 'windows':
+        if os_name == 'win':
             return self.fs.join(['lib', 'python.exe'])
         else:
             return self.fs.join(['bin', 'python'])

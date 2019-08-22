@@ -49,7 +49,7 @@ class BrinkPaver(object):
         self.sphinx = BrinkSphinx(paver=self)
 
         self.python_command_normal = [self.path.python_executable]
-        if self.os_name == 'windows':
+        if self.os_name == 'win':
             self.python_command_super = [self.path.python_executable]
         elif self.os_name == 'sles10':
             self.python_command_super = [
@@ -131,7 +131,7 @@ class BrinkPaver(object):
                 ['--cache-dir=' + self.path.cache])
 
             pip_build = self.fs.join(pip_build_path)
-            if self.os_name != 'windows':
+            if self.os_name != 'win':
                 # On Non Windows, pip will fail if we pass an Unicode
                 # build path.
                 pip_build = pip_build.encode('utf-8')
@@ -387,7 +387,7 @@ class BrinkPaver(object):
         `destination` is path as string.
         """
         destination_uri = '%s@%s:%s' % (username, hostname, destination)
-        if self.os_name == 'windows':
+        if self.os_name == 'win':
             # On Windows we use the cygwin ssh, and not the git ssh.
             # It needs an explicit config file.
             home_path = os.getenv('USERPROFILE')

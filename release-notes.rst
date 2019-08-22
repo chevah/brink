@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.71.0, 2018-08-21
+--------------------------
+
+* Use shorter OS names: win, amzn, obsd, fbsd, sol.
+
+
 Version 0.70.3, 2018-07-24
 --------------------------
 
