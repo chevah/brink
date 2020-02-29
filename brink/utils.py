@@ -267,18 +267,22 @@ class BrinkPaver(object):
 
     def createNSIS(
             self, folder_name, product_name, product_version,
-            product_url, product_publisher):
-        '''Generate a self extracted install file using NSIS.'''
+            product_url, product_publisher, platform='win-x86'):
+        """
+        Generate a self extracted install file using NSIS.
+        """
         defines = (
             '!define PRODUCT_NAME "%s"\n'
             '!define PRODUCT_VERSION "%s"\n'
             '!define PRODUCT_PUBLISHER "%s"\n'
             '!define PRODUCT_URL "%s"\n'
+            '!define PLATFORM "%s"\n'
             '!define DISTRIBUTABLE_NAME "%s"\n' % (
                 product_name,
                 product_version,
                 product_publisher,
                 product_url,
+                platform,
                 folder_name,
                 ))
 

@@ -9,7 +9,7 @@ import os
 from setuptools import setup, find_packages, Command
 
 
-VERSION = u'0.71.1'
+VERSION = u'0.72.0'
 
 
 class PublishCommand(Command):

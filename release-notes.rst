@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.72.0, 2020-02-27
+--------------------------
+
+* Add NSIS support for win-x64.
+
+
 Version 0.71.1, 2018-08-22
 --------------------------
 
