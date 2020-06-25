@@ -17,35 +17,33 @@ from brink.testing import BrinkTestCase, conditionals, mk
 from brink.utils import BrinkPaver
 
 
+MINIMAL_SETUP = {
+    'folders': {
+        'source': 'brink',
+        'dist': 'dist',
+        'publish': 'publish',
+        }
+    }
+
+
 class TestBrinkPaver(BrinkTestCase):
     """
     Tests for BrinkPaver.
     """
 
-    MINIMAL_SETUP = {
-        'folders': {
-            'source': 'brink',
-            'dist': 'dist',
-            'publish': 'publish',
-            }
-        }
-
-    def setUp(self):
-        super(TestBrinkPaver, self).setUp()
-        self.utils = BrinkPaver(setup=self.MINIMAL_SETUP)
-
     def test_initialization(self):
         """
         It is initialized with a setup dictionary.
         """
-        result = BrinkPaver(setup=self.MINIMAL_SETUP)
+        result = BrinkPaver(setup=MINIMAL_SETUP)
 
-        self.assertEqual(self.MINIMAL_SETUP, result.setup)
+        self.assertEqual(MINIMAL_SETUP, result.setup)
 
     def test_convertToDOSNewlines(self):
         """
         Convert unix newlines to dos newlines.
         """
+        sut = BrinkPaver(setup=MINIMAL_SETUP)
         content = (
             u'one line\t \n'
             u' \tspaces\n'
@@ -53,7 +51,7 @@ class TestBrinkPaver(BrinkTestCase):
         self.test_segments = mk.fs.createFileInTemp(content=content)
         path = mk.fs.getRealPathFromSegments(self.test_segments)
 
-        self.utils._convertToDOSNewlines(path)
+        sut._convertToDOSNewlines(path)
 
         result = mk.fs.getFileContent(self.test_segments)
 
@@ -67,6 +65,7 @@ class TestBrinkPaver(BrinkTestCase):
         """
         Return the MD5 of file at path, which is specified as segments
         """
+        sut = BrinkPaver(setup=MINIMAL_SETUP)
         content = (
             u'one line\t \n'
             u' \tspaces\n'
@@ -74,7 +73,7 @@ class TestBrinkPaver(BrinkTestCase):
         self.test_segments = mk.fs.createFileInTemp(content=content)
         name = self.test_segments[-1]
 
-        result = self.utils.createMD5Sum([mk.fs.temp_path, name])
+        result = sut.createMD5Sum([mk.fs.temp_path, name])
 
         expected = hashlib.md5(content).hexdigest()
         self.assertEqual(expected, result)
@@ -84,11 +83,12 @@ class TestBrinkPaver(BrinkTestCase):
         """
         On Unix it used the default SSH.
         """
+        sut = BrinkPaver(setup=MINIMAL_SETUP)
         command = []
-        self.utils.execute = (
+        sut.execute = (
             lambda **kwargs: not command.append(kwargs) and (0, ''))
 
-        self.utils.rsync(
+        sut.rsync(
             username='some-user',
             hostname='some-host',
             source=['source', 'folder'],
@@ -112,11 +112,12 @@ class TestBrinkPaver(BrinkTestCase):
         """
         On Windows it used the dedicated SSH with a dedicated config file.
         """
+        sut = BrinkPaver(setup=MINIMAL_SETUP)
         command = []
-        self.utils.execute = (
+        sut.execute = (
             lambda **kwargs: not command.append(kwargs) and (0, ''))
 
-        self.utils.rsync(
+        sut.rsync(
             username='some-user',
             hostname='some-host',
             source=['source', 'folder'],
@@ -142,8 +143,35 @@ class TestBrinkPaver(BrinkTestCase):
         """
         It will return a path which exists.
         """
-        result = self.utils.getPythonLibPath()
+        sut = BrinkPaver(setup=MINIMAL_SETUP)
 
-        # We test `scame` which should be a package specific to this
+        result = sut.getPythonLibPath()
+
+        # We test `chevah` which should be a package specific to this
         # build... to make sure we don't get a generic Python path.
-        self.assertContains('scame', os.listdir(result))
+        self.assertContains(b'chevah', os.listdir(result))
+
+    def test_default_values(self):
+        """
+        It will make the runtime information and path available.
+
+        To check brink.sh we also test the environment variables
+        """
+        sut = BrinkPaver(setup=MINIMAL_SETUP)
+
+        self.assertEqual(b'python2.7', sut.python_version)
+
+        if os.getenv('CHEVAH_BUILD', b'') != b'':
+            # We run with custom builddir
+            build_dir = b'build-brink-\xc8\x9b'
+        else:
+            build_dir = b'build-brink'
+
+        # On Windows, brink path is always with backslashes.
+        expected_path = os.path.join(
+            os.getcwd(), build_dir).decode('utf-8').replace('\\', '/')
+
+        self.assertEqual(expected_path.encode('utf-8'), sut.path.build)
+
+        self.assertEqual(build_dir, os.environ['PYTHONPATH'])
+        self.assertEqual(b'python2.7', os.environ['CHEVAH_PYTHON'])

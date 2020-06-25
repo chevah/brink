@@ -66,14 +66,11 @@ class BrinkPaver(object):
 
     def _getDefaultValues(self):
         '''Get the default build folder and python version.'''
-        with open('DEFAULT_VALUES') as default_values:
-            output = default_values.read()
-        results = output.strip().split(' ')
         default_values = {
-            'build_folder': results[0],
-            'python_version': results[1],
-            'os_name': results[2],
-            'platform': results[3],
+            'build_folder': os.environ['PYTHONPATH'],
+            'python_version': os.environ['CHEVAH_PYTHON'],
+            'os_name': os.environ['CHEVAH_OS'],
+            'platform': os.environ['CHEVAH_ARCH'],
             }
         return default_values
 
@@ -118,23 +115,16 @@ class BrinkPaver(object):
         if command == 'install':
             pip_arguments.extend(['--trusted-host', 'pypi.chevah.com'])
             if only_cache:
-                pip_arguments.extend(['--no-index'])
+                pip_arguments.extend([b'--no-index'])
             else:
                 pip_arguments.extend(
-                    ['--index-url=' + index_url])
+                    [b'--index-url=' + index_url])
 
             if install_hook:
                 pip_arguments.extend([
-                    '--install-hook=%s' % (install_hook)])
-
-            pip_arguments.extend(
-                ['--cache-dir=' + self.path.cache])
+                    b'--install-hook=%s' % (install_hook)])
 
             pip_build = self.fs.join(pip_build_path)
-            if self.os_name != 'win':
-                # On Non Windows, pip will fail if we pass an Unicode
-                # build path.
-                pip_build = pip_build.encode('utf-8')
             pip_arguments.extend(['--build', pip_build])
 
             pip_arguments.extend([
@@ -322,7 +312,7 @@ class BrinkPaver(object):
             with self.fs.changeFolder([target]):
                 print("Executing %s" % make_nsis_command)
                 subprocess.call(make_nsis_command)
-        except OSError, os_error:
+        except OSError as os_error:
             if os_error.errno != 2:
                 raise
             print(
@@ -568,38 +558,6 @@ class BrinkPaver(object):
         Extract the ticket id as string from branch name.
         """
         return branch_name.split('-')[0]
-
-    def getBinaryDistributionFolder(self, target, platform=None):
-        """
-        Return segments for binary distribution folder.
-
-        It download binary distribution if it does not exists.
-        """
-        if platform is None:
-            platform = "%s-%s" % (self.os_name, self.cpu)
-
-        distribution = "%s-%s" % (target, platform)
-        distribution_segments = ['cache', distribution]
-
-        if self.fs.isFolder(distribution_segments):
-            return distribution_segments
-
-        if os.name == 'posix':
-            command = []
-        else:
-            command = ['C:\\MinGW\\msys\\1.0\\bin\\sh.exe']
-        command.extend(['./paver.sh'])
-
-        if target == 'agent-1.5':
-            command.append('get_agent')
-        else:
-            command.append('get_python')
-
-        command.extend(platform.split('-'))
-
-        (exit_code, output) = self.execute(command, output=sys.stdout)
-
-        return distribution_segments
 
     def node(self, command, arguments):
         """

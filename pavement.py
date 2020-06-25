@@ -19,7 +19,6 @@ from brink.pavement_commons import (
     buildbot_try,
     codecov_publish,
     coverage_prepare,
-    coverator_publish,
     default,
     github,
     harness,
@@ -33,6 +32,7 @@ from brink.pavement_commons import (
     publish_documentation,
     publish,
     rqm,
+    run_test,
     SETUP,
     test_coverage,
     test_diff,
@@ -53,7 +53,6 @@ buildbot_list
 buildbot_try
 codecov_publish
 coverage_prepare
-coverator_publish
 default
 github,
 harness
@@ -80,22 +79,22 @@ test_super
 # These are the hard dependencies needed by the library itself.
 RUN_PACKAGES = [
     'zope.interface==3.8.0',
-    'twisted==15.5.0.chevah4',
+    'twisted==15.5.0.chevah7',
     ]
 
 # Packages required to use the dev/build system.
 BUILD_PACKAGES = [
     # Buildbot is used for try scheduler
-    'buildbot==0.8.11.c7',
+    'buildbot==0.8.11.chevah11',
 
     'configparser==3.5.0b2',
-    'towncrier==16.0.0.chevah4',
+    'towncrier==17.4.0.chevah2',
 
     # For PQM
-    'smmap==0.8.2',
+    'smmap==0.9.0',
     'async==0.6.1',
     'gitdb==0.6.4',
-    'gitpython==1.0.0',
+    'gitpython==1.0.1',
     'pygithub==1.34',
 
     # For Lint and static checkers.
@@ -115,7 +114,7 @@ BUILD_PACKAGES = [
 
 # Packages required to run the test suite.
 TEST_PACKAGES = [
-    'chevah-compat==0.55.3',
+    'chevah-compat==0.58.0',
 
     # Used to detect Linux distributions.
     'ld==0.5.0',
@@ -134,7 +133,7 @@ TEST_PACKAGES = [
 
     'coverage==4.4.1',
     'diff_cover==0.9.11',
-    'codecov==2.0.15',
+    'codecov==2.1.7',
 
     # Test SFTP service using a 3rd party client.
     'paramiko',
@@ -193,7 +192,6 @@ SETUP['test']['package'] = 'brink.tests'
 SETUP['test']['elevated'] = 'elevated'
 SETUP['test']['cover_package'] = 'brink'
 SETUP['test']['nose_options'] = ['--with-run-reporter', '--with-timer']
-SETUP['test']['coverator_url'] = 'http://172.20.245.1:8080'
 SETUP['website_package'] = 'brink.website'
 SETUP['buildbot']['server'] = 'buildbot.chevah.com'
 SETUP['buildbot']['web_url'] = 'https://buildbot.chevah.com:10443'
@@ -269,7 +267,7 @@ def deps():
     """
     Install all dependencies.
     """
-    print('Installing dependencies to %s...' % (pave.path.build,))
+    print('Installing dependencies to ', pave.path.build)
     packages = RUN_PACKAGES + TEST_PACKAGES
 
     env_ci = os.environ.get('CI', '').strip()
@@ -306,11 +304,8 @@ def build():
     pave.fs.deleteFolder([
         pave.path.build, pave.getPythonLibPath(), 'brink'])
 
-    # Copy generated DEFAULT_VALUES file.
-    pave.fs.copyFile(['DEFAULT_VALUES'], [pave.path.build, 'DEFAULT_VALUES'])
-
     sys.argv = ['setup.py', 'build', '--build-base', build_target]
-    print("Building in " + build_target)
+    print("Building in ", build_target)
 
     pave.fs.deleteFolder(
         [pave.path.build, 'doc_source'])
@@ -318,6 +313,10 @@ def build():
         source=['documentation'],
         destination=[pave.path.build, 'doc_source'])
     pave.fs.createFolder([pave.path.build, 'doc_source', '_static'])
+
+    # Remove the build helpers.
+    if pave.fs.exists([pave.path.build, 'lib', 'config']):
+        pave.fs.deleteFolder([pave.path.build, 'lib', 'config'])
 
     import setup
     setup.DISTRIBUTION.run_command('install')
@@ -418,19 +417,19 @@ def test_ci(args):
 
     if os.environ.get(b'CODECOV_TOKEN', ''):
         # Only publish coverage if we have a token.
-        call_task('coverator_publish')
+        call_task('codecov_publish')
 
     return exit_code
 
 
 @task
 @consume_args
+@needs('build')
 def test_py3():
     """
     Run checks for py3 compatibility.
     """
     from pylint.lint import Run
-    from nose.core import main as nose_main
     arguments = ['--py3k', SETUP['folders']['source']]
     linter = Run(arguments, exit=False)
     stats = linter.linter.stats
@@ -443,7 +442,7 @@ def test_py3():
         sys.exit(1)
 
     print('Compiling in Py3 ...',)
-    command = ['python3', '-m', 'compileall', '-q', 'chevah']
+    command = ['python3', '-m', 'compileall', '-q', 'brink']
     pave.execute(command, output=sys.stdout)
     print('done')
 
@@ -467,11 +466,16 @@ def test_py3():
 
     warnings.showwarning = capture_warning
 
-    sys.args = ['nose', 'brink.tests.normal']
-    runner = nose_main(exit=False)
-    if not runner.success:
+    exit_code = run_test(
+        python_command=pave.python_command_normal,
+        switch_user='-',
+        arguments=[],
+        )
+
+    if exit_code:
         print('Test failed')
         sys.exit(1)
+
     if not captured_warnings:
         sys.exit(0)
 

@@ -4,6 +4,24 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.74.0, 2020-06-23
+--------------------------
+
+* ProjectPaths.cache was removed. The cache is now handled outside of the
+  Python code.
+* BrinkPaver.getBinaryDistributionFolder was removed.
+* The paver.sh script was renamed to brink.sh
+* The DEFAULT_VALUES file is no longer used.
+  It was replaced by environment variables.
+
+
+Version 0.73.0, 2020-06-22
+--------------------------
+
+* Add support for using with Unicode paths.
+* Use global cache for pip.
+
+
 Version 0.72.0, 2020-02-27
 --------------------------
 

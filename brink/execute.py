@@ -38,7 +38,7 @@ def execute(
             stdout=output,
             env=execute_environment,
             )
-    except OSError, error:
+    except OSError as error:
         if error.errno == 2:
             print('Failed to execute: %s' % ' '.join(command))
             print('Missing command: %s' % command[0])

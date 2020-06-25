@@ -134,7 +134,7 @@ class BrinkFilesystem(object):
                 os.makedirs(path)
             else:
                 os.mkdir(path)
-        except OSError, error:
+        except OSError as error:
             if error.errno == 17:
                 pass
             else:
@@ -252,7 +252,7 @@ class BrinkFilesystem(object):
         """
         try:
             os.unlink(self.join(path))
-        except OSError, error:
+        except OSError as error:
             if error.errno == 2:
                 pass
             else:
@@ -280,7 +280,7 @@ class BrinkFilesystem(object):
         try:
             shutil.rmtree(
                 self.join(target), ignore_errors=False, onerror=on_error)
-        except OSError, error:
+        except OSError as error:
             if error.errno == 2:
                 pass
             else:

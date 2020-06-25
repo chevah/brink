@@ -102,7 +102,7 @@ def _get_pull(repo, pull_id):
     try:
         return repo.get_pull(pull_id)
 
-    except GithubException, error:
+    except GithubException as error:
         print("Failed to get PR details")
         print(str(error))
         sys.exit(1)

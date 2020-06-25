@@ -1,7 +1,11 @@
 brink
 =====
 
-Reinventing, paver, distribute and other build system and distribution tools.
+.. image:: https://github.com/chevah/brink/workflows/GitHub-CI/badge.svg
+  :target: https://github.com/chevah/brink/actions
+
+
+Reinventing paver, distribute and other build system and distribution tools.
 
 There is a package generated for brink, called `chevah-brink`.
 
@@ -13,13 +17,16 @@ called.
 
 It will read the private configuration from ~/.config/chevah-brink.ini.
 
+This repo is also used as a testing ground for the general build system for the
+Chevah project.
+
 
 Development
 ===========
 
-Each change needs a dedicated ticket and a dedicated branch::
+Each change needs a dedicated branch::
 
-    $ git checkout -b TICKET_ID-short-name
+    $ git checkout -b short-name
 
 Create a PR and request a review.
 
@@ -29,8 +36,8 @@ you can merge from GitHub's merge button.
 The merge button will tell you if something is not right.
 
 
-Release Notes
-=============
+Release Process
+===============
 
 Each change in chevah/brink should be done under a different version number.
 
@@ -42,14 +49,16 @@ format as earlier releases (see the file contents).
 Note: The release-notes fragment files are only used on chevah/server, so the
 fragments folder was moved to brink/tests/release-notes on this package.
 
-Once a new version is merged, publish it to our package index server.
+Once a new version is merged, publish it to our package index server::
+
+    ./build-brink/bin/python setup.py bdist_wheel upload -r chevah
 
 
 Paver Script
 ============
 
-The paver.sh script should be kept in sync with the version from the
+The brink.sh script should be kept in sync with the version from the
 chevah/python-package repository.
 
-Changes to paver.sh do not need an update in version as they are not
-versioned yet.
+Changes to brink.sh do not need an update in version as they are not
+versioned.

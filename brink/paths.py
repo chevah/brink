@@ -15,11 +15,12 @@ class ProjectPaths(object):
     """
 
     def __init__(self, os_name, build_folder_name, folders, filesystem):
+        build_folder_name = build_folder_name.rstrip(b'/')
+        build_folder_name = build_folder_name.rstrip(b'\\')
         self.fs = filesystem
         self._os_name = os_name
-        self.product = os.path.abspath('.')
+        self.product = os.path.abspath(b'.')
         self.build = self.fs.join([self.product, build_folder_name])
-        self.cache = self.fs.join([self.product, 'cache'])
         self.dist = self.fs.join([self.product, folders['dist']])
         self.publish = self.fs.join([self.product, folders['publish']])
         self.python_executable = self.getPythonExecutable(os_name=os_name)

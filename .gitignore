@@ -3,5 +3,4 @@
 /dist/
 pavement_lib*
 *.egg-info/
-/DEFAULT_VALUES
 /cache

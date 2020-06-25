@@ -385,6 +385,19 @@ def test_remote(args):
     buildbot_try(arguments)
 
 
+def safe_command_output(test_command):
+    """
+    """
+    result = []
+    for part in test_command:
+        if 'CODECOV_TOKEN' in part:
+            result.append('CODECOV_TOKEN=***')
+            continue
+        result.append(part)
+
+    return ' '.join(result)
+
+
 def run_test(python_command, switch_user, arguments):
     test_command = python_command[:]
     test_command.extend([
@@ -392,7 +405,7 @@ def run_test(python_command, switch_user, arguments):
         switch_user,
         ])
 
-    # Maybe we are in buildslave and all arguments are sent in a single
+    # Maybe we  are in buildslave and all arguments are sent in a single
     # argument.
     if len(arguments) == 1:
         arguments = arguments[0].split(' ')
@@ -425,7 +438,7 @@ def run_test(python_command, switch_user, arguments):
 
     test_command.extend(test_args)
     with pushd(pave.path.build):
-        print(test_command)
+        print(safe_command_output(test_command))
         exit_code = subprocess.call(test_command)
         print('Exit code is: %d' % (exit_code))
         return exit_code
@@ -1000,7 +1013,7 @@ def clean():
     Clean build and dist folders.
 
     This is just a placeholder, since clean is handled by the outside
-    paver.sh scripts.
+    brink.sh scripts.
     """
 
 
