@@ -530,6 +530,11 @@ install_dependencies(){
         return
     fi
 
+    if [ "$COMMAND" == "deps" ] ; then
+        # Will be installed soon.
+        return
+    fi
+
     update_venv
 }
 
@@ -876,12 +881,10 @@ check_source_folder
 copy_python
 install_dependencies
 
-# Always update brink when running buildbot tasks.
-for paver_task in "deps" "test_os_dependent" "test_os_independent"; do
-    if [ "$COMMAND" == "$paver_task" ] ; then
-        install_base_deps
-    fi
-done
+# Update brink.conf dependencies when running deps.
+if [ "$COMMAND" == "deps" ] ; then
+    install_base_deps
+fi
 
 case $COMMAND in
     test_ci|test_py3)
