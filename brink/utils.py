@@ -113,7 +113,10 @@ class BrinkPaver(object):
         pip_arguments = [command]
 
         if command == 'install':
-            pip_arguments.extend(['--trusted-host', 'pypi.chevah.com'])
+            pip_arguments.extend([
+                '--trusted-host', 'pypi.chevah.com',
+                '--trusted-host', 'deag.chevah.com:10042',
+                ])
             if only_cache:
                 pip_arguments.extend([b'--no-index'])
             else:
@@ -126,10 +129,6 @@ class BrinkPaver(object):
 
             pip_build = self.fs.join(pip_build_path)
             pip_arguments.extend(['--build', pip_build])
-
-            pip_arguments.extend([
-                '--use-wheel',
-                ])
 
         if silent:
             pip_arguments.extend(['-q'])

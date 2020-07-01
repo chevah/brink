@@ -4,6 +4,18 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.74.2, 2020-07-01
+--------------------------
+
+* Allow pip from Chevah private pypi server.
+
+
+Version 0.74.1, 2020-07-01
+--------------------------
+
+* Update for latest pip version.
+
+
 Version 0.74.0, 2020-06-23
 --------------------------
 
