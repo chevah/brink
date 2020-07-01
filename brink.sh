@@ -306,15 +306,17 @@ pip_install() {
     # See https://github.com/pypa/pip/issues/3564
     rm -rf ${BUILD_FOLDER}/pip-build
     ${PYTHON_BIN} -m \
-        pip install $1 \
+        pip install \
             --trusted-host pypi.chevah.com \
-            --index-url=$PIP_INDEX/simple \
+            --trusted-host deag.chevah.com \
+            --index-url=$PIP_INDEX \
             --build=${BUILD_FOLDER}/pip-build \
+            $1
 
     exit_code=$?
     set -e
     if [ $exit_code -ne 0 ]; then
-        (>&2 echo "Failed to install brink.")
+        (>&2 echo "Failed to install $1.")
         exit 2
     fi
 }
