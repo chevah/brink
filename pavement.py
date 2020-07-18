@@ -95,7 +95,7 @@ BUILD_PACKAGES = [
     'async==0.6.1',
     'gitdb==0.6.4',
     'gitpython==1.0.1',
-    'pygithub==1.34',
+    'pygithub==1.45',
 
     # For Lint and static checkers.
     'scame==0.5.1',

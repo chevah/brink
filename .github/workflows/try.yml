@@ -1,0 +1,42 @@
+name: Try-Patch
+
+on:
+  workflow_dispatch:
+    inputs:
+      tests:
+        description: Run selected tests
+        default: ""
+        required: false
+      diff:
+        description: Diff in base64
+        default: ""
+        required: true
+
+jobs:
+
+  linux-unicode-path:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+    - name: Show action context
+      run: |
+        echo "${{ toJSON(github.event) }}"
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+
+    - name: Unpack diff
+      run: |
+        echo ${{ github.event.inputs.diff }} | base64 -d > patch.diff
+        cat patch.diff
+        patch -p1 < patch.diff
+
+    - name: Deps
+      run: ./brink.sh deps
+
+    - name: Test
+      run: ./brink.sh test_ci ${{ github.event.input.tests }}

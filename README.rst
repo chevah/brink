@@ -54,7 +54,7 @@ Once a new version is merged, publish it to our package index server::
     ./build-brink/bin/python setup.py bdist_wheel upload -r chevah
 
 
-Paver Script
+Brink Script
 ============
 
 The brink.sh script should be kept in sync with the version from the
