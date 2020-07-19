@@ -27,7 +27,9 @@ jobs:
 
     - name: Show action context
       run: |
-        echo "${{ toJSON(github.event) }}"
+        echo << EOF
+        ${{ toJSON(github.event) }}
+        EOF
 
     # Make sure we don't have multiple job
     - uses: chevah/auto-cancel-redundant-job@v1
