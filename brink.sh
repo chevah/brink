@@ -253,6 +253,7 @@ update_path_variables() {
     export CHEVAH_PYTHON=${PYTHON_NAME}
     export CHEVAH_OS=${OS}
     export CHEVAH_ARCH=${ARCH}
+    export CHEVAH_CACHE=${CACHE_FOLDER}
 
 }
 
@@ -410,7 +411,8 @@ get_python_dist() {
         # We have the requested python version.
         get_binary_dist $python_distributable $remote_base_url/${OS}/${ARCH}
     else
-        (>&2 echo "Requested version was not found on the remote server.")
+        echo "Requested version was not found on the remote server."
+        echo "$remote_base_url $python_distributable"
         exit 4
     fi
 }

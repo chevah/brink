@@ -28,7 +28,7 @@ jobs:
     - name: Show action context
       run: |
         echo << EOF
-        ${{ toJSON(github.event) }}
+        ${{ toJSON(github) }}
         EOF
 
     # Make sure we don't have multiple job
@@ -49,6 +49,12 @@ jobs:
       if: ${{ github.event.after }}
       run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip-ci'
 
+    - name: Cache build
+      uses: actions/cache@v2
+      with:
+        path: |
+          build-brink
+        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}
 
     - name: Deps
       run: ./brink.sh deps
@@ -74,11 +80,18 @@ jobs:
       run: |
         echo ${{ github.event.inputs.diff }} | base64 -d > patch.diff
         cat patch.diff
-        patch -p1 < patch.diff
+        git apply -v patch.diff
 
     - name: Fail on skip-ci
       if: ${{ github.event.after }}
       run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip ci'
+
+    - name: Cache build
+      uses: actions/cache@v2
+      with:
+        path: |
+          build-brink
+        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}
 
     - name: Deps
       run: ./brink.sh deps
@@ -103,6 +116,13 @@ jobs:
     - name: Fail on skip-ci
       if: ${{ github.event.after }}
       run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip-ci'
+
+    - name: Cache build
+      uses: actions/cache@v2
+      with:
+        path: |
+          build-brink
+        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}
 
     - name: Deps
       run: sh ./brink.sh deps
