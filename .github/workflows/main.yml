@@ -22,9 +22,10 @@ on:
 
 jobs:
 
-  linux-unicode-path:
+  linux_unicode_path:
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
+    if: ${{ github.job == github.event.inputs.job}}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -72,7 +73,7 @@ jobs:
         CHEVAH_BUILD: build-brink-ț
 
 
-  osx-unicode-path:
+  osx_unicode_path:
     runs-on: macos-latest
     if: ${{ github.event.inputs.job == github.job }}
 
