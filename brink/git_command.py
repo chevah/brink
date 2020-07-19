@@ -164,7 +164,6 @@ class BrinkGit(object):
         Return a list of (action, filename) that have changed in
         comparison with `ref`.
         """
-        result = []
         if ref:
             command = ['git', 'diff', '%s' % (ref)]
         else:

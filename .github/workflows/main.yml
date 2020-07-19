@@ -11,6 +11,10 @@ on:
         description: Run selected tests
         default: ""
         required: false
+      job:
+        description: Specific job to execute
+        default: ""
+        required: false
       diff:
         description: Diff in base64
         default: ""
@@ -21,6 +25,7 @@ jobs:
   linux-unicode-path:
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
+    if: ${{ github.event.inputs.job == github.job }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -70,6 +75,8 @@ jobs:
 
   osx-unicode-path:
     runs-on: macos-latest
+    if: ${{ github.event.inputs.job == github.job }}
+
     steps:
     - uses: chevah/auto-cancel-redundant-job@v1
     - uses: actions/checkout@v2
@@ -109,6 +116,8 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    if: ${{ github.event.inputs.job == github.job }}
+
     steps:
     - uses: chevah/auto-cancel-redundant-job@v1
     - uses: actions/checkout@v2

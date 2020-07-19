@@ -785,6 +785,7 @@ def buildbot_list(args):
                 if selector in line:
                     print(line)
 
+
 def _github_api(url, method=b'GET', json=None):
     """
     Return the JSON response from GitHub API.
@@ -810,6 +811,7 @@ def _github_api(url, method=b'GET', json=None):
 @cmdopts([
     ('wait', 'w', 'Wait for run to execute and show the result'),
     ('action=', 'a', 'Name of workflow for which to execute the actions.'),
+    ('job=', 'j', 'Execute a specific job'),
     ('tests=', 't', 'Tests to execute'),
     ('step=', 's', 'Show output only for step'),
     ('debug', 'd', 'Show debug output'),
@@ -831,6 +833,7 @@ def actions_try(options):
 
     wait = options.actions_try.get('wait', False)
     tests = options.actions_try.get('tests', '')
+    job = options.actions_try.get('job', '')
     debug = options.actions_try.get('debug', False)
     target_step = options.actions_try.get('step', '')
     branch = pave.git.branch_name
@@ -850,8 +853,9 @@ def actions_try(options):
         'inputs': {
             'tests': tests,
             'diff': diff,
+            'job': job,
+            },
         }
-    }
 
     # Triggering the run will not give us any positive feedback.
     url = '/actions/workflows/%s/dispatches' % (target,)
