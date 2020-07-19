@@ -815,7 +815,14 @@ def _github_api(url, method=b'GET', json=None):
     ('debug', 'd', 'Show debug output'),
     ])
 def actions_try(options):
-    '''Launch a try job on buildmaster.'''
+    """
+    Manual trigger of workflow based on current branch uncommited diff.
+
+    Make sure to stage/add any new files.
+
+    It will automatically push the local branch to make sure remote and local
+    are on the same base.
+    """
     try:
         target = options.actions_try.action
     except AttributeError:
