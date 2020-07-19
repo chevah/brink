@@ -36,6 +36,23 @@ you can merge from GitHub's merge button.
 The merge button will tell you if something is not right.
 
 
+Configuration file
+==================
+
+Configuration file used by command from here should be placed in
+`~/.config/chevah-brink.ini` and look like::
+
+    [actions]
+    token = GITHUT_PERSONAL_TOKEN
+
+    [buildbot]
+    server = YOUR.BUILDMASTER.ADDRESS
+    port = YOUR_BUILDMASTER_PORT
+    web_url = YOUR_BUILDMASTER_HTTP_STATUS_URL
+    username = BUILDMASTER_TRY_USERNAME
+    password = BUILDMASTER_TRY_PASSWORD
+
+
 Release Process
 ===============
 
