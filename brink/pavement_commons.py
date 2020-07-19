@@ -879,7 +879,7 @@ def actions_try(options):
             if run['status'] in ['in_progress', 'queue']:
                 in_progress.append(run)
             if debug:
-                print('Found run %s: %s - %s' % (
+                print('\tFound run %s: %s - %s' % (
                     run['id'], run['status'], run['conclusion']))
 
         if in_progress:
@@ -909,7 +909,7 @@ def actions_try(options):
         result, _ = _github_api(url)
 
         if debug:
-            print('Current run status: %s' % (result['status'],))
+            print('\tCurrent run status: %s' % (result['status'],))
 
         if result['status'] == 'in_progress':
 

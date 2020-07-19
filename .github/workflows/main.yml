@@ -25,7 +25,7 @@ jobs:
   linux_unicode_path:
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
-    if: github.event.inputs.job == "" || github.job == github.event.inputs.job
+    if: github.event.inputs.job == '' || github.job == github.event.inputs.job
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -75,7 +75,7 @@ jobs:
 
   osx_unicode_path:
     runs-on: macos-latest
-    if: github.event.inputs.job == "" || github.job == github.event.inputs.job
+    if: github.event.inputs.job == '' || github.job == github.event.inputs.job
 
     steps:
     - uses: chevah/auto-cancel-redundant-job@v1
@@ -116,7 +116,7 @@ jobs:
 
   windows:
     runs-on: windows-latest
-    if: github.event.inputs.job == "" || github.job == github.event.inputs.job
+    if: github.event.inputs.job == '' || github.job == github.event.inputs.job
 
     steps:
     - uses: chevah/auto-cancel-redundant-job@v1
