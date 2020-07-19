@@ -876,7 +876,7 @@ def actions_try(options):
 
         in_progress = []
         for run in result['workflow_runs']:
-            if run['status'] in ['in_progress', 'queue']:
+            if run['status'] in ['in_progress', 'queued']:
                 in_progress.append(run)
             if debug:
                 print('\tFound run %s: %s - %s' % (
@@ -902,7 +902,7 @@ def actions_try(options):
     # Pool for run completion.
     sleep = 2
     completed = None
-    for i in range(120):
+    for i in range(300):
         time.sleep(sleep)
 
         url = '/actions/runs/%s' % (run['id'])
