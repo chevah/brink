@@ -5,6 +5,16 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      tests:
+        description: Run selected tests
+        default: ""
+        required: false
+      diff:
+        description: Diff in base64
+        default: ""
+        required: true
 
 jobs:
 
@@ -20,6 +30,13 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 2
+
+    - name: Unpack diff
+      if: ${{ github.event.inputs.diff }}
+      run: |
+        echo ${{ github.event.inputs.diff }} | base64 -d > patch.diff
+        cat patch.diff
+        git apply -v patch.diff
 
     - name: Fail on skip ci
       run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip-ci'
@@ -37,7 +54,7 @@ jobs:
     - name: Test
       run: ./brink.sh test_ci
       env:
-        CHEVAH_BUILD: build-brink-ț
+        CHEVAH_BUILD: build-brink-ț ${{ github.event.input.tests }}
 
   osx-unicode-path:
     runs-on: macos-latest
@@ -46,6 +63,13 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 2
+
+    - name: Unpack diff
+      if: ${{ github.event.inputs.diff }}
+      run: |
+        echo ${{ github.event.inputs.diff }} | base64 -d > patch.diff
+        cat patch.diff
+        patch -p1 < patch.diff
 
     - name: Fail on skip ci
       run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip ci'

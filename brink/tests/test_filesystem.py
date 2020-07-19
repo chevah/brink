@@ -44,7 +44,7 @@ class TestBrinkFilesystem(BrinkTestCase):
 
         result = self.sut.which(command, extra_paths=extra_paths)
 
-        self.assertIsNone(result)
+        self.assertIsNotNone(result)
 
     def test_which_extra_paths_file_found(self):
         """
