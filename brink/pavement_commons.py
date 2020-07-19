@@ -911,7 +911,7 @@ def actions_try(options):
         if debug:
             print('\tCurrent run status: %s' % (result['status'],))
 
-        if result['status'] == 'in_progress':
+        if result['status'] in ['in_progress', 'queued']:
 
             if i % 5 == 0:
                 # Reduce the output noise.

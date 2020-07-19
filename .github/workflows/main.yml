@@ -75,7 +75,7 @@ jobs:
 
   osx_unicode_path:
     runs-on: macos-latest
-    if: github.event.inputs.job == '' || github.job == github.event.inputs.job
+    if: github.event.inputs.job == '' || github.event.inputs.job == 'osx_unicode_path'
 
     steps:
     - uses: chevah/auto-cancel-redundant-job@v1
@@ -116,7 +116,7 @@ jobs:
 
   windows:
     runs-on: windows-latest
-    if: github.event.inputs.job == '' || github.job == github.event.inputs.job
+    if: github.event.inputs.job == '' || github.event.inputs.job == 'windows'
 
     steps:
     - uses: chevah/auto-cancel-redundant-job@v1
