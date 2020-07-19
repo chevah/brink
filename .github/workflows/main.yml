@@ -68,9 +68,12 @@ jobs:
       run: mv build-brink build-brink-ț
 
     - name: Test
-      run: ./brink.sh test_ci ${{ github.event.input.tests }}
+      run: ./brink.sh test_ci ${{ github.event.inputs.tests }}
       env:
         CHEVAH_BUILD: build-brink-ț
+
+    - name: Move build back
+      run: mv build-brink-ț build-brink
 
 
   osx_unicode_path:
@@ -108,10 +111,13 @@ jobs:
       run: mv build-brink build-brink-ț
 
     - name: Test
-      run: ./brink.sh test_ci ${{ github.event.input.tests }}
+      run: ./brink.sh test_ci ${{ github.event.inputs.tests }}
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         CHEVAH_BUILD: build-brink-ț
+
+    - name: Move build back
+      run: mv build-brink-ț build-brink
 
 
   windows:
@@ -147,6 +153,6 @@ jobs:
       run: sh ./brink.sh deps
 
     - name: Test
-      run: sh ./brink.sh test_ci ${{ github.event.input.tests }}
+      run: sh ./brink.sh test_ci ${{ github.event.inputs.tests }}
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

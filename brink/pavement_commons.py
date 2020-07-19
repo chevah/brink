@@ -32,6 +32,7 @@ import subprocess
 import time
 from base64 import b64encode
 from io import BytesIO
+from pprint import pprint
 from zipfile import ZipFile
 
 from paver.easy import call_task, cmdopts, task, pushd, needs
@@ -786,7 +787,7 @@ def buildbot_list(args):
                     print(line)
 
 
-def _github_api(url, method=b'GET', json=None):
+def _github_api(url, method=b'GET', json=None, absolute=False):
     """
     Return the JSON response from GitHub API.
     """
@@ -794,12 +795,14 @@ def _github_api(url, method=b'GET', json=None):
 
     user_config = _get_user_configuration()
 
-    url = 'https://api.github.com/repos/chevah/%s%s' % (
-        SETUP['repository']['name'], url)
+    if not absolute:
+        url = 'https://api.github.com/repos/chevah/%s%s' % (
+            SETUP['repository']['name'], url)
     headers = {
         'accept': 'application/vnd.github.v3+json',
         'authorization': b'token ' + user_config['actions']['token'],
         }
+
     result = request(method=method, url=url, headers=headers, json=json)
     try:
         return result.json(), result
@@ -809,11 +812,11 @@ def _github_api(url, method=b'GET', json=None):
 
 @task
 @cmdopts([
-    ('wait', 'w', 'Wait for run to execute and show the result'),
-    ('action=', 'a', 'Name of workflow for which to execute the actions.'),
+    ('workflow=', 'w', 'Name of workflow for which to execute the actions.'),
     ('job=', 'j', 'Execute a specific job'),
     ('tests=', 't', 'Tests to execute'),
     ('step=', 's', 'Show output only for step'),
+    ('trigger', '', 'Only trigger and don\'t wait for run completion'),
     ('debug', 'd', 'Show debug output'),
     ])
 def actions_try(options):
@@ -826,12 +829,12 @@ def actions_try(options):
     are on the same base.
     """
     try:
-        target = options.actions_try.action
+        target = options.actions_try.workflow
     except AttributeError:
-        print('--action is required.')
+        print('--workflow is required.')
         sys.exit(1)
 
-    wait = options.actions_try.get('wait', False)
+    trigger = options.actions_try.get('trigger', False)
     tests = options.actions_try.get('tests', '')
     job = options.actions_try.get('job', '')
     debug = options.actions_try.get('debug', False)
@@ -846,6 +849,7 @@ def actions_try(options):
 
     # Push the latest changes to remote repo, as otherwise the diff will
     # not be valid.
+    print('Pushing all branch commits...')
     pave.git.push()
 
     payload = {
@@ -899,6 +903,10 @@ def actions_try(options):
 
     run = in_progress[0]
 
+    if trigger:
+        print('Queued run %s. See: %s' % (run['id'], run['html_url']))
+        return
+
     # Pool for run completion.
     sleep = 2
     completed = None
@@ -915,7 +923,7 @@ def actions_try(options):
 
             if i % 5 == 0:
                 # Reduce the output noise.
-                print('Waiting for run to end...')
+                print('Waiting for run to end... %s' % (result['html_url']))
 
             continue
 
@@ -923,7 +931,9 @@ def actions_try(options):
         break
 
     if not completed:
-        print('Run not completed in the timeout time...')
+        print('ERROR: Run not completed in the timeout time.')
+        print('Do a manual check at:')
+        print(run['html_url'])
         sys.exit(1)
 
     print('Run done with: %s' % (completed['conclusion']))
@@ -966,6 +976,11 @@ def actions_try(options):
     for log in target_logs:
         with archive.open(log) as stream:
             print(stream.read())
+
+    result, _ = _github_api(completed['jobs_url'], absolute=True)
+
+    for job in result['jobs']:
+        pprint(job)
 
 
 @task
