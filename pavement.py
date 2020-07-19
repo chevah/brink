@@ -89,7 +89,7 @@ BUILD_PACKAGES = [
     # Buildbot is used for try scheduler
     'buildbot==0.8.11.chevah11',
 
-    'configparser==3.5.0b2',
+    'configparser==4.0.2',
     'towncrier==17.4.0.chevah2',
 
     # For PQM
