@@ -24,6 +24,11 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+
+    - name: Show action context
+      run: |
+        echo "${{ toJSON(github.event) }}"
+
     # Make sure we don't have multiple job
     - uses: chevah/auto-cancel-redundant-job@v1
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -38,12 +43,10 @@ jobs:
         cat patch.diff
         git apply -v patch.diff
 
-    - name: Fail on skip ci
+    - name: Fail on skip-ci
+      if: ${{ github.event.after }}
       run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip-ci'
 
-    - name: Show action context
-      run: |
-        echo "${{ toJSON(github.event) }}"
 
     - name: Deps
       run: ./brink.sh deps
@@ -71,11 +74,9 @@ jobs:
         cat patch.diff
         patch -p1 < patch.diff
 
-    - name: Fail on skip ci
+    - name: Fail on skip-ci
+      if: ${{ github.event.after }}
       run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip ci'
-
-    - name: Fail on skip gha
-      run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip gha'
 
     - name: Deps
       run: ./brink.sh deps
@@ -97,7 +98,8 @@ jobs:
       with:
         fetch-depth: 2
 
-    - name: Fail on skip ci
+    - name: Fail on skip-ci
+      if: ${{ github.event.after }}
       run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip-ci'
 
     - name: Deps

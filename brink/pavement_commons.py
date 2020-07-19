@@ -816,9 +816,6 @@ def _github_api(url, method=b'GET', json=None):
     ])
 def actions_try(options):
     '''Launch a try job on buildmaster.'''
-    if not options:
-        return actions_list()
-
     try:
         target = options.actions_try.action
     except AttributeError:
@@ -938,7 +935,8 @@ def actions_try(options):
             if not member.lower().endswith(target_name):
                 continue
             target_logs.append(member)
-    else:
+
+    if not target_logs:
         # Show output for all steps from each job.
         for member in members:
             if '/' in member:
@@ -950,18 +948,6 @@ def actions_try(options):
     for log in target_logs:
         with archive.open(log) as stream:
             print(stream.read())
-
-
-@task
-@consume_args
-def actions_list(args):
-    """
-    List all the workflows available on GitHub actions for remote trigger.
-    """
-    result, _ = _github_api('/actions/workflows')
-    for w in result['workflows']:
-        if w['name'].lower().startswith('try-'):
-            print(w['html_url'].rsplit('/')[-1])
 
 
 @task

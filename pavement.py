@@ -15,7 +15,6 @@ import sys
 import warnings
 
 from brink.pavement_commons import (
-    actions_list,
     actions_try,
     buildbot_list,
     buildbot_try,
@@ -51,7 +50,6 @@ from paver.easy import call_task, consume_args, needs, no_help, pushd, task
 from paver.tasks import environment
 
 # Make pylint shut up.
-actions_list
 actions_try
 buildbot_list
 buildbot_try
