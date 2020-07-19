@@ -18,14 +18,13 @@ on:
       diff:
         description: Diff in base64
         default: ""
-        required: true
+        required: False
 
 jobs:
 
   linux-unicode-path:
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
-    if: ${{ github.event.inputs.job == github.job }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
