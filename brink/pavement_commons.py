@@ -31,9 +31,7 @@ import sys
 import subprocess
 import time
 from base64 import b64encode
-from datetime import datetime
 from io import BytesIO
-from pprint import pprint
 from zipfile import ZipFile
 
 from paver.easy import call_task, cmdopts, task, pushd, needs
@@ -818,6 +816,7 @@ def _parse_datetime(raw):
     import dateutil.parser as dp
     return dp.parse(raw)
 
+
 class TC:
     """
     Terminal colors.
@@ -999,8 +998,8 @@ def actions_try(options):
 
     result, _ = _github_api(completed['jobs_url'], absolute=True)
 
+    print('-' * 72)
     for job in result['jobs']:
-        print('-' * 72)
         print('Job: %s - %s' % (job['name'], job['conclusion']))
         start = _parse_datetime(job['started_at'])
         end = _parse_datetime(job['completed_at'])
@@ -1024,6 +1023,7 @@ def actions_try(options):
 
             print('  %s%s%s(%s): %s' % (
                 color, step['conclusion'], cend, duration, step['name']))
+        print('-' * 72)
 
 
 @task
