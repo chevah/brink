@@ -59,7 +59,7 @@ jobs:
       with:
         path: |
           build-brink
-        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}
+        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}-${{ hashFiles('brink.conf') }}
 
     - name: Deps
       run: ./brink.sh deps
@@ -102,7 +102,7 @@ jobs:
       with:
         path: |
           build-brink
-        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}
+        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}-${{ hashFiles('brink.conf') }}
 
     - name: Deps
       run: ./brink.sh deps
@@ -147,7 +147,7 @@ jobs:
       with:
         path: |
           build-brink
-        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}
+        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}-${{ hashFiles('brink.conf') }}
 
     - name: Deps
       run: sh ./brink.sh deps
