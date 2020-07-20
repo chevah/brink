@@ -31,6 +31,7 @@ import sys
 import subprocess
 import time
 from base64 import b64encode
+from datetime import datetime
 from io import BytesIO
 from pprint import pprint
 from zipfile import ZipFile
@@ -810,6 +811,14 @@ def _github_api(url, method=b'GET', json=None, absolute=False):
         return {}, result
 
 
+def _parse_datetime(raw):
+    """
+    Parse ISO datetime representation.
+    """
+    import dateutil.parser as dp
+    return dp.parse(raw)
+
+
 @task
 @cmdopts([
     ('workflow=', 'w', 'Name of workflow for which to execute the actions.'),
@@ -883,7 +892,7 @@ def actions_try(options):
             if run['status'] in ['in_progress', 'queued']:
                 in_progress.append(run)
             if debug:
-                print('\tFound run %s: %s - %s' % (
+                print('  fFound run %s: %s - %s' % (
                     run['id'], run['status'], run['conclusion']))
 
         if in_progress:
@@ -917,7 +926,7 @@ def actions_try(options):
         result, _ = _github_api(url)
 
         if debug:
-            print('\tCurrent run status: %s' % (result['status'],))
+            print('  Current run status: %s' % (result['status'],))
 
         if result['status'] in ['in_progress', 'queued']:
 
@@ -980,7 +989,18 @@ def actions_try(options):
     result, _ = _github_api(completed['jobs_url'], absolute=True)
 
     for job in result['jobs']:
-        pprint(job)
+        print('-' * 72)
+        print('Job: %s - %s' % (job['name'], job['conclusion']))
+        start = _parse_datetime(job['started_at'])
+        end = _parse_datetime(job['completed_at'])
+        duration = end - start
+        print('Duration: %s' % (duration,))
+        for step in job['steps']:
+            print('  Step: %s - %s' % (step['name'], step['conclusion']))
+            start = _parse_datetime(step['started_at'])
+            end = _parse_datetime(step['completed_at'])
+            duration = end - start
+            print('  Duration: %s' % (duration,))
 
 
 @task
