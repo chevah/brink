@@ -818,6 +818,17 @@ def _parse_datetime(raw):
     import dateutil.parser as dp
     return dp.parse(raw)
 
+class TC:
+    """
+    Terminal colors.
+    """
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    END = '\033[0m'
+    BOLD = '\033[1m'
+
 
 @task
 @cmdopts([
@@ -996,11 +1007,23 @@ def actions_try(options):
         duration = end - start
         print('Duration: %s' % (duration,))
         for step in job['steps']:
-            print('  Step: %s - %s' % (step['name'], step['conclusion']))
             start = _parse_datetime(step['started_at'])
             end = _parse_datetime(step['completed_at'])
             duration = end - start
-            print('  Duration: %s' % (duration,))
+            color = ''
+            cend = ''
+            if step['conclusion'] == 'success':
+                color = TC.GREEN
+                cend = TC.END
+            elif step['conclusion'] == 'failure':
+                color = TC.RED
+                cend = TC.END
+            elif step['conclusion'] == 'skipped':
+                color = TC.YELLOW
+                cend = TC.END
+
+            print('  %s%s%s(%s): %s' % (
+                color, step['conclusion'], cend, duration, step['name']))
 
 
 @task
