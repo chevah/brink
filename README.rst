@@ -53,6 +53,19 @@ Configuration file used by command from here should be placed in
     password = BUILDMASTER_TRY_PASSWORD
 
 
+GitHub Token Permissions
+========================
+
+Part of the brink script will interact with GitHub and will need special
+permissions.
+
+Get a new token from https://github.com/settings/tokens/new
+
+Below are the permissions required for each part:
+
+* `actions-try`: repo (all)
+
+
 Release Process
 ===============
 
