@@ -15,6 +15,7 @@ import sys
 import warnings
 
 from brink.pavement_commons import (
+    actions_try,
     buildbot_list,
     buildbot_try,
     codecov_publish,
@@ -49,6 +50,7 @@ from paver.easy import call_task, consume_args, needs, no_help, pushd, task
 from paver.tasks import environment
 
 # Make pylint shut up.
+actions_try
 buildbot_list
 buildbot_try
 codecov_publish
@@ -87,7 +89,7 @@ BUILD_PACKAGES = [
     # Buildbot is used for try scheduler
     'buildbot==0.8.11.chevah11',
 
-    'configparser==3.5.0b2',
+    'configparser==4.0.2',
     'towncrier==17.4.0.chevah2',
 
     # For PQM
@@ -95,7 +97,7 @@ BUILD_PACKAGES = [
     'async==0.6.1',
     'gitdb==0.6.4',
     'gitpython==1.0.1',
-    'pygithub==1.45',
+    'pygithub==1.34.0',
 
     # For Lint and static checkers.
     'scame==0.5.1',
@@ -110,6 +112,8 @@ BUILD_PACKAGES = [
     'repoze.sphinx.autointerface==0.7.1.c4',
     # Docutils is required for RST parsing and for Sphinx.
     'docutils==0.12.c1',
+
+    'python-dateutil>=2.8.1',
     ]
 
 # Packages required to run the test suite.

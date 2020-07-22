@@ -1,3 +1,6 @@
+#
+# A workflow which is only availale for manual trigger.
+#
 name: Try-Patch
 
 on:
@@ -21,19 +24,16 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
 
-    - name: Show action context
-      run: |
-        echo "${{ toJSON(github.event) }}"
-
     - uses: actions/checkout@v2
       with:
         fetch-depth: 2
 
     - name: Unpack diff
+      if: ${{ github.event.inputs.diff }}
       run: |
         echo ${{ github.event.inputs.diff }} | base64 -d > patch.diff
         cat patch.diff
-        patch -p1 < patch.diff
+        git apply -v patch.diff
 
     - name: Deps
       run: ./brink.sh deps

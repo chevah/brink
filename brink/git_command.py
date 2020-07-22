@@ -157,3 +157,21 @@ class BrinkGit(object):
             result.append((action, name))
 
         return result
+
+    @staticmethod
+    def diff(ref='master'):
+        """
+        Return a list of (action, filename) that have changed in
+        comparison with `ref`.
+        """
+        if ref:
+            command = ['git', 'diff', '%s' % (ref)]
+        else:
+            command = ['git', 'diff']
+
+        exit_code, output = execute(command)
+        if exit_code != 0:
+            print('Failed to diff repo.')
+            sys.exit(1)
+
+        return output

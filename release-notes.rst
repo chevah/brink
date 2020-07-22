@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.75.0, 2020-07-19
+--------------------------
+
+* Add support for GitHub actions try.
+
+
 Version 0.74.2, 2020-07-01
 --------------------------
 

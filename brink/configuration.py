@@ -36,6 +36,9 @@ SETUP = {
         'vcs': 'git',
         'builders_filter': None,
         },
+    'actions': {
+        'token': '',
+        },
     'publish': {
         'download_production_hostname': 'download.chevah.com',
         'download_staging_hostname': 'staging.download.chevah.com',

@@ -29,6 +29,11 @@ import os
 import re
 import sys
 import subprocess
+import time
+from base64 import b64encode
+from datetime import datetime
+from io import BytesIO
+from zipfile import ZipFile
 
 from paver.easy import call_task, cmdopts, task, pushd, needs
 from paver.tasks import BuildFailure, environment, help, consume_args
@@ -780,6 +785,250 @@ def buildbot_list(args):
             for line in new_out.getvalue().split('\n'):
                 if selector in line:
                     print(line)
+
+
+def _github_api(url, method=b'GET', json=None, absolute=False):
+    """
+    Return the JSON response from GitHub API.
+    """
+    from requests import request
+
+    user_config = _get_user_configuration()
+
+    if not absolute:
+        url = 'https://api.github.com/repos/chevah/%s%s' % (
+            SETUP['repository']['name'], url)
+    headers = {
+        'accept': 'application/vnd.github.v3+json',
+        'authorization': b'token ' + user_config['actions']['token'],
+        }
+
+    result = request(method=method, url=url, headers=headers, json=json)
+    try:
+        return result.json(), result
+    except ValueError:
+        return {}, result
+
+
+def _parse_datetime(raw):
+    """
+    Parse ISO datetime representation.
+    """
+    import dateutil.parser as dp
+    return dp.parse(raw)
+
+
+class TC:
+    """
+    Terminal colors.
+    """
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    END = '\033[0m'
+    BOLD = '\033[1m'
+
+
+@task
+@cmdopts([
+    ('workflow=', 'w', 'Name of workflow for which to execute the actions.'),
+    ('job=', 'j', 'Execute a specific job'),
+    ('tests=', 't', 'Tests to execute'),
+    ('step=', 's', 'Show output only for step'),
+    ('trigger', '', 'Only trigger and don\'t wait for run completion'),
+    ('debug', 'd', 'Show debug output'),
+    ])
+def actions_try(options):
+    """
+    Manual trigger of workflow based on current branch uncommited diff.
+
+    Make sure to stage/add any new files.
+
+    It will automatically push the local branch to make sure remote and local
+    are on the same base.
+    """
+    try:
+        target = options.actions_try.workflow
+    except AttributeError:
+        print('--workflow is required.')
+        sys.exit(1)
+
+    command_start = datetime.now()
+
+    trigger = options.actions_try.get('trigger', False)
+    tests = options.actions_try.get('tests', '')
+    job = options.actions_try.get('job', '')
+    debug = options.actions_try.get('debug', False)
+    target_step = options.actions_try.get('step', '')
+    branch = pave.git.branch_name
+
+    diff = pave.git.diff(ref=None)
+    if debug:
+        print(diff)
+
+    diff = b64encode(diff)
+
+    # Push the latest changes to remote repo, as otherwise the diff will
+    # not be valid.
+    print('Pushing all branch commits...')
+    pave.git.push()
+
+    payload = {
+        'ref': branch,
+        'inputs': {
+            'tests': tests,
+            'diff': diff,
+            'job': job,
+            },
+        }
+
+    # Triggering the run will not give us any positive feedback.
+    url = '/actions/workflows/%s/dispatches' % (target,)
+    result, response = _github_api(url, method='POST', json=payload)
+    if response.status_code != 204:
+        print("Failed to dispatch action: %s" % (result,))
+        sys.exit(1)
+
+    # We need to pool the status to see if we get our run ID.
+    # It will pool every 1 second but print status every 5 seconds.
+    sleep = 1
+    in_progress = []
+    for i in range(30):
+        time.sleep(sleep)
+
+        url = '/actions/runs?branch=%s&event=workflow_dispatch,' % (branch,)
+        result, _ = _github_api(url)
+
+        in_progress = []
+        for run in result['workflow_runs']:
+            if run['status'] in ['in_progress', 'queued']:
+                in_progress.append(run)
+            if debug:
+                print('  fFound run %s: %s - %s' % (
+                    run['id'], run['status'], run['conclusion']))
+
+        if in_progress:
+            break
+
+        if i % 5 == 0:
+            # Reduce the output noise.
+            print('Run not found in the queue. Retrying...')
+
+    if not in_progress:
+        print('Failed to get the triggered run.')
+        sys.exit(1)
+
+    if len(in_progress) > 1:
+        print(
+            '!!!WARNING!!! Multiple pending runs found. Trying last one.')
+
+    run = in_progress[0]
+
+    if trigger:
+        print('Queued run %s. See: %s' % (run['id'], run['html_url']))
+        return
+
+    # Pool for run completion.
+    sleep = 2
+    completed = None
+    for i in range(300):
+        time.sleep(sleep)
+
+        url = '/actions/runs/%s' % (run['id'])
+        result, _ = _github_api(url)
+
+        if debug:
+            print('  Current run status: %s' % (result['status'],))
+
+        if result['status'] in ['in_progress', 'queued']:
+
+            if i % 5 == 0:
+                # Reduce the output noise.
+                print('Waiting for run to end... %s' % (result['html_url']))
+
+            continue
+
+        completed = result
+        break
+
+    if not completed:
+        print('ERROR: Run not completed in the timeout time.')
+        print('Do a manual check at:')
+        print(run['html_url'])
+        sys.exit(1)
+
+    print('Run done with: %s' % (completed['conclusion']))
+    # Run done. Get logs
+
+    # This will redirect to the logs zip file.
+    url = '/actions/runs/%s/logs' % (completed['id'],)
+    result, response = _github_api(url)
+    if response.status_code != 200:
+        print('Failed to get run logs. %s' % (response.text))
+        sys.exit(1)
+
+    if response.headers['Content-Type'] != 'application/zip':
+        print('Run logs are not ZIP.')
+        sys.exit(1)
+
+    # The archive will contain a TXT for each job inside the run,
+    # and separate directories for each job with separate step output.
+    archive = ZipFile(BytesIO(response.content))
+    members = archive.namelist()
+
+    target_logs = []
+    if target_step:
+        target_name = '_%s.txt' % (target_step,)
+        # Show output only for a step.
+        for member in members:
+            if not member.lower().endswith(target_name):
+                continue
+            target_logs.append(member)
+
+    if not target_logs:
+        # Show output for all steps from each job.
+        for member in members:
+            if '/' in member:
+                continue
+            if member.endswith(').txt'):
+                continue
+            target_logs.append(member)
+
+    for log in target_logs:
+        with archive.open(log) as stream:
+            print(stream.read())
+
+    result, _ = _github_api(completed['jobs_url'], absolute=True)
+
+    print('-' * 72)
+    for job in result['jobs']:
+        print('Job: %s - %s' % (job['name'], job['conclusion']))
+        start = _parse_datetime(job['started_at'])
+        end = _parse_datetime(job['completed_at'])
+        duration = end - start
+        print('Duration: %s' % (duration,))
+        for step in job['steps']:
+            start = _parse_datetime(step['started_at'])
+            end = _parse_datetime(step['completed_at'])
+            duration = end - start
+            color = ''
+            cend = ''
+            if step['conclusion'] == 'success':
+                color = TC.GREEN
+                cend = TC.END
+            elif step['conclusion'] == 'failure':
+                color = TC.RED
+                cend = TC.END
+            elif step['conclusion'] == 'skipped':
+                color = TC.YELLOW
+                cend = TC.END
+
+            print('  %s%s%s(%s): %s' % (
+                color, step['conclusion'], cend, duration, step['name']))
+        print('-' * 72)
+
+    print('Total duration: %s' % (datetime.now() - command_start,))
 
 
 @task

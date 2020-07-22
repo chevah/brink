@@ -5,15 +5,37 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      tests:
+        description: Run selected tests
+        default: ""
+        required: false
+      job:
+        description: Specific job to execute
+        default: ""
+        required: false
+      diff:
+        description: Diff in base64
+        default: ""
+        required: False
 
 jobs:
 
-  linux-unicode-path:
+  linux_unicode_path:
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
+    if: github.event.inputs.job == '' || github.event.inputs.job == 'linux_unicode_path'
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+
+    - name: Show action context
+      run: |
+        echo << EOF
+        ${{ toJSON(github) }}
+        EOF
+
     # Make sure we don't have multiple job
     - uses: chevah/auto-cancel-redundant-job@v1
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -21,12 +43,23 @@ jobs:
       with:
         fetch-depth: 2
 
-    - name: Fail on skip ci
+    - name: Unpack diff
+      if: ${{ github.event.inputs.diff }}
+      run: |
+        echo ${{ github.event.inputs.diff }} | base64 -d > patch.diff
+        cat patch.diff
+        git apply -v patch.diff
+
+    - name: Fail on skip-ci
+      if: ${{ github.event.after }}
       run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip-ci'
 
-    - name: Show action context
-      run: |
-        echo "${{ toJSON(github.event) }}"
+    - name: Cache build
+      uses: actions/cache@v2
+      with:
+        path: |
+          build-brink
+        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}-${{ hashFiles('brink.conf') }}
 
     - name: Deps
       run: ./brink.sh deps
@@ -35,23 +68,41 @@ jobs:
       run: mv build-brink build-brink-ț
 
     - name: Test
-      run: ./brink.sh test_ci
+      run: ./brink.sh test_ci ${{ github.event.inputs.tests }}
       env:
         CHEVAH_BUILD: build-brink-ț
 
-  osx-unicode-path:
+    - name: Move build back
+      run: mv build-brink-ț build-brink
+
+
+  osx_unicode_path:
     runs-on: macos-latest
+    if: github.event.inputs.job == '' || github.event.inputs.job == 'osx_unicode_path'
+
     steps:
     - uses: chevah/auto-cancel-redundant-job@v1
     - uses: actions/checkout@v2
       with:
         fetch-depth: 2
 
-    - name: Fail on skip ci
+    - name: Unpack diff
+      if: ${{ github.event.inputs.diff }}
+      run: |
+        echo ${{ github.event.inputs.diff }} | base64 -d > patch.diff
+        cat patch.diff
+        git apply -v patch.diff
+
+    - name: Fail on skip-ci
+      if: ${{ github.event.after }}
       run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip ci'
 
-    - name: Fail on skip gha
-      run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip gha'
+    - name: Cache build
+      uses: actions/cache@v2
+      with:
+        path: |
+          build-brink
+        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}-${{ hashFiles('brink.conf') }}
 
     - name: Deps
       run: ./brink.sh deps
@@ -60,26 +111,48 @@ jobs:
       run: mv build-brink build-brink-ț
 
     - name: Test
-      run: ./brink.sh test_ci
+      run: ./brink.sh test_ci ${{ github.event.inputs.tests }}
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         CHEVAH_BUILD: build-brink-ț
 
+    - name: Move build back
+      run: mv build-brink-ț build-brink
+
+
   windows:
     runs-on: windows-latest
+    if: github.event.inputs.job == '' || github.event.inputs.job == 'windows'
+
     steps:
     - uses: chevah/auto-cancel-redundant-job@v1
     - uses: actions/checkout@v2
       with:
         fetch-depth: 2
 
-    - name: Fail on skip ci
+    - name: Unpack diff
+      if: ${{ github.event.inputs.diff }}
+      run: |
+        [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String("${{ github.event.inputs.diff }}")) | Out-File -FilePath patch.diff
+        get-content patch.diff
+        git apply -v patch.diff
+
+
+    - name: Fail on skip-ci
+      if: ${{ github.event.after }}
       run: git log -1 --pretty=format:"%s" ${{ toJSON(github.event.after) }} | grep -v 'skip-ci'
+
+    - name: Cache build
+      uses: actions/cache@v2
+      with:
+        path: |
+          build-brink
+        key: ${{ runner.os }}-${{ hashFiles('pavement.py') }}-${{ hashFiles('brink.conf') }}
 
     - name: Deps
       run: sh ./brink.sh deps
 
     - name: Test
-      run: sh ./brink.sh test_ci
+      run: sh ./brink.sh test_ci ${{ github.event.inputs.tests }}
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
