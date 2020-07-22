@@ -31,9 +31,10 @@ jobs:
     steps:
 
     - name: Show action context
-      env:
-        GITHUB_CONTEXT: ${{ toJSON(github) }}
-      run: echo $GITHUB_CONTEXT
+      run: |
+        echo << EOF
+        ${{ toJSON(github) }}
+        EOF
 
     # Make sure we don't have multiple job
     - uses: chevah/auto-cancel-redundant-job@v1
@@ -44,12 +45,10 @@ jobs:
 
     - name: Unpack diff
       if: ${{ github.event.inputs.diff }}
-      env:
-        CHEVAH_DIFF: ${{ github.event.inputs.diff }}
       run: |
-        echo $CHEVAH_DIFF | base64 -d > patch.diff
-        git apply -v patch.diff
+        echo ${{ github.event.inputs.diff }} | base64 -d > patch.diff
         cat patch.diff
+        git apply -v patch.diff
 
     - name: Fail on skip-ci
       if: ${{ github.event.after }}

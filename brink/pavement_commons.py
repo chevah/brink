@@ -31,6 +31,7 @@ import sys
 import subprocess
 import time
 from base64 import b64encode
+from datetime import datetime
 from io import BytesIO
 from zipfile import ZipFile
 
@@ -853,6 +854,8 @@ def actions_try(options):
         print('--workflow is required.')
         sys.exit(1)
 
+    command_start = datetime.now()
+
     trigger = options.actions_try.get('trigger', False)
     tests = options.actions_try.get('tests', '')
     job = options.actions_try.get('job', '')
@@ -1024,6 +1027,8 @@ def actions_try(options):
             print('  %s%s%s(%s): %s' % (
                 color, step['conclusion'], cend, duration, step['name']))
         print('-' * 72)
+
+    print('Total duration: %s' % (datetime.now() - command_start,))
 
 
 @task
