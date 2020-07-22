@@ -39,11 +39,11 @@ The merge button will tell you if something is not right.
 Configuration file
 ==================
 
-Configuration file used by command from here should be placed in
-`~/.config/chevah-brink.ini` and look like::
+Configuration file used by commands in this repo should be saved as
+`~/.config/chevah-brink.ini` with the following format::
 
     [actions]
-    token = GITHUT_PERSONAL_TOKEN
+    token = GITHUB_PERSONAL_TOKEN
 
     [buildbot]
     server = YOUR.BUILDMASTER.ADDRESS
@@ -59,9 +59,9 @@ GitHub Token Permissions
 Part of the brink script will interact with GitHub and will need special
 permissions.
 
-Get a new token from https://github.com/settings/tokens/new
+Get a new token from https://github.com/settings/tokens/new.
 
-Below are the permissions required for each part:
+Permissions required for each part:
 
 * `actions-try`: repo (all)
 
