@@ -93,7 +93,7 @@ class BrinkSphinx(object):
     def createConfiguration(
             self, destination, project, version, themes_path,
             theme_name='standalone', intersphinx_mapping=None,
-            copyright='Chevah Team',
+            copyright='Chevah Team', extra_configuration=''
             ):
         """
         Generates the configuration files for creating Sphinx based
@@ -113,6 +113,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     ]
+suppress_warnings = ['toc.secnum']
 source_suffix = '.rst'
 # Ignore included files in root and in child folders from being reported
 # as not part of the toctree.
@@ -141,6 +142,7 @@ pdf_stylesheets = ['sphinx', 'kerning', 'a4']
 pdf_use_toc = False
 pdf_toc_depth = 2
 
+%(extra_configuration)s
 """ % (  # Indentation here is strange, since we use multi-line string.
             {
                 'theme_name': theme_name,
@@ -149,6 +151,7 @@ pdf_toc_depth = 2
                 'intersphinx_mapping': intersphinx_mapping,
                 'copyright': copyright,
                 'themes_path': themes_path,
+                'extra_configuration': extra_configuration,
                 }
             )
 

@@ -9,13 +9,13 @@ Reinventing paver, distribute and other build system and distribution tools.
 
 There is a package generated for brink, called `chevah-brink`.
 
-paver.sh will check the source code for `pavement.py` and will install the
+`brink.sh` checks the source code for `pavement.py` and installs the
 required chevah-brink version.
 
-paver.sh will also update the chevah-brink package each time `paver deps` is
-called.
+`brink.sh` also updates the chevah-brink package each time `./brink.sh deps`
+is called.
 
-It will read the private configuration from ~/.config/chevah-brink.ini.
+It reads the private configuration from `~/.config/chevah-brink.ini`.
 
 This repo is also used as a testing ground for the general build system for the
 Chevah project.

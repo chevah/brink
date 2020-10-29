@@ -88,6 +88,7 @@ RUN_PACKAGES = [
 BUILD_PACKAGES = [
     # Buildbot is used for try scheduler
     'buildbot==0.8.11.chevah11',
+    'SQLAlchemy>=1.3.18',
 
     'configparser==4.0.2',
     'towncrier==17.4.0.chevah2',
@@ -105,10 +106,10 @@ BUILD_PACKAGES = [
     'chevah-js-linter==2.4.0',
     'pycodestyle==2.3.1',
     'bandit==1.4.0',
-    'pylint==1.7.1',
-    'astroid==1.5.3',
+    'pylint==1.9.4',
+    'astroid==1.6.6',
     # These are build packages, but are needed for testing the documentation.
-    'sphinx==1.2.2',
+    'sphinx==1.6.3',
     'repoze.sphinx.autointerface==0.7.1.c4',
     # Docutils is required for RST parsing and for Sphinx.
     'docutils==0.12.c1',
@@ -118,7 +119,7 @@ BUILD_PACKAGES = [
 
 # Packages required to run the test suite.
 TEST_PACKAGES = [
-    'chevah-compat==0.58.0',
+    'chevah-compat==0.58.2',
 
     # Used to detect Linux distributions.
     'ld==0.5.0',
@@ -135,7 +136,7 @@ TEST_PACKAGES = [
     'nose-randomly==1.2.5',
     'mock',
 
-    'coverage==4.4.1',
+    'coverage==4.5.4',
     'diff_cover==0.9.11',
     'codecov==2.1.7',
 

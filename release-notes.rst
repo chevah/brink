@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.76.0, 2020-10-28
+--------------------------
+
+* Allow adding custom configuration to Sphinx config file.
+
+
 Version 0.75.0, 2020-07-19
 --------------------------
 
