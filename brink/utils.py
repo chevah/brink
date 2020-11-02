@@ -456,12 +456,12 @@ class BrinkPaver(object):
                 if url:
                     continue
                 release['url'] = (
-                  base_url + '/' +
-                  base_name.lower() + '-' +
-                  release['platform'] + '-'+
-                  self.setup['product']['version'] + '.' +
-                  DIST_EXTENSION[release['type']]
-                  )
+                    base_url + '/' +
+                    base_name.lower() + '-' +
+                    release['platform'] + '-' +
+                    self.setup['product']['version'] + '.' +
+                    DIST_EXTENSION[release['type']]
+                    )
 
         data = {
             'introduction': introduction,
