@@ -449,12 +449,24 @@ class BrinkPaver(object):
             self.setup['product']['version_major'],
             self.setup['product']['version_minor'],
             )
+
+        for _, distributables in self.setup['product']['distributables']:
+            for release in distributables[1:]:
+                url = release.get('url', '')
+                if url:
+                    continue
+                release['url'] = (
+                    base_url + '/' +
+                    base_name.lower() + '-' +
+                    release['platform'] + '-' +
+                    self.setup['product']['version'] + '.' +
+                    DIST_EXTENSION[release['type']]
+                    )
+
         data = {
             'introduction': introduction,
-            'changelog': changelog,
             'base_url': base_url,
             'version': self.setup['product']['version'],
-            'extensions': DIST_EXTENSION,
             'base_name': product_name.replace(' ', '-').lower(),
             'page_title': page_title,
             'distributables': self.setup['product']['distributables'],
@@ -477,7 +489,7 @@ class BrinkPaver(object):
             template='download_page_content.j2',
             data=data
             )
-        changelog_html = self.renderRST(source=data['changelog'])
+        changelog_html = self.renderRST(source=changelog)
         content = content.replace(
             'CHANGELOG-CONTENT-PLACEHOLDER', changelog_html)
 

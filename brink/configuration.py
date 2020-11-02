@@ -83,5 +83,5 @@ DIST_EXTENSION = {
     DIST_TYPE['NSIS']: 'exe',
     DIST_TYPE['TAR_GZ']: 'tar.gz',
     DIST_TYPE['TAR_GZ_LINK']: 'tar.gz',
-    DIST_TYPE['NSIS_RENAMED']: 'rename_to_exe'
+    DIST_TYPE['NSIS_RENAMED']: 'rename_to_exe',
     }
