@@ -76,6 +76,7 @@ DIST_TYPE = {
     'TAR_GZ': 2,
     'NSIS_RENAMED': 3,
     'TAR_GZ_LINK': 4,
+    'URL': 5,
     }
 
 DIST_EXTENSION = {
@@ -84,4 +85,5 @@ DIST_EXTENSION = {
     DIST_TYPE['TAR_GZ']: 'tar.gz',
     DIST_TYPE['TAR_GZ_LINK']: 'tar.gz',
     DIST_TYPE['NSIS_RENAMED']: 'rename_to_exe',
+    DIST_TYPE['URL']: '',
     }
