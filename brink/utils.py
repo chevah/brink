@@ -415,23 +415,19 @@ class BrinkPaver(object):
         return sys.modules[module_name]
 
     def createDownloadPage(
-            self, introduction, changelog, base_name, hostname,
-            create_index=True, product_name=None, page_title=None):
+            self, introduction, changelog, base_url, product_name,
+            version=None, create_index=True, page_title=None):
         """
         Create a download page for product based on information from `data`.
 
         * introduction - a text/description for the top of the page.
         * changelog - the whole changelog of this release
           (and previous releases).
-        * base_name - Name used to construct the URL path to the download file.
         * product_name - Name used to describe the product which is downloaded.
-        * hostname - FQDN for the host where the files are stored.
+        * base_url - URL without the trailing slash.
         * create_index - When `True` will create the index.html
         """
         from brink.pavement_commons import DIST_EXTENSION
-
-        if not product_name:
-            product_name = base_name
 
         if not page_title:
             page_title = "%s %s Downloads" % (
@@ -439,35 +435,31 @@ class BrinkPaver(object):
                 self.setup['product']['version'],
                 )
 
+        if not version:
+            version = self.setup['product']['version']
+
         target_folder = self.path.dist
 
         self.fs.createFolder([target_folder])
-
-        base_url = "http://%s/%s/%s/%s" % (
-            hostname,
-            base_name.lower(),
-            self.setup['product']['version_major'],
-            self.setup['product']['version_minor'],
-            )
 
         for _, distributables in self.setup['product']['distributables']:
             for release in distributables[1:]:
                 url = release.get('url', '')
                 if url:
                     continue
+
                 release['url'] = (
                     base_url + '/' +
-                    base_name.lower() + '-' +
+                    product_name.lower() + '-' +
                     release['platform'] + '-' +
-                    self.setup['product']['version'] + '.' +
+                    version + '.' +
                     DIST_EXTENSION[release['type']]
                     )
 
         data = {
             'introduction': introduction,
             'base_url': base_url,
-            'version': self.setup['product']['version'],
-            'base_name': product_name.replace(' ', '-').lower(),
+            'version': version,
             'page_title': page_title,
             'distributables': self.setup['product']['distributables'],
             }

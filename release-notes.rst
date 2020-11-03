@@ -4,6 +4,19 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.77.2, 2020-11-03
+--------------------------
+
+* Fix trial download page create.
+
+
+Version 0.77.1, 2020-11-03
+--------------------------
+
+* Allow creating download page with custom versions. Done to help with trial
+  download page creation.
+
+
 Version 0.77.0, 2020-11-01
 --------------------------
 
