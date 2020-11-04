@@ -4,6 +4,12 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.78.0, 2020-11-04
+--------------------------
+
+* Refactor the publishing of the download and documentation pages.
+
+
 Version 0.77.2, 2020-11-03
 --------------------------
 

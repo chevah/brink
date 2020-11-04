@@ -429,26 +429,35 @@ class BrinkPaver(object):
         """
         from brink.pavement_commons import DIST_EXTENSION
 
+        if not version:
+            version = self.setup['product']['version']
+
         if not page_title:
             page_title = "%s %s Downloads" % (
                 product_name,
-                self.setup['product']['version'],
+                version,
                 )
-
-        if not version:
-            version = self.setup['product']['version']
 
         target_folder = self.path.dist
 
         self.fs.createFolder([target_folder])
 
-        for _, distributables in self.setup['product']['distributables']:
+        # We create a deep copy of distributables so that when we update the
+        # URLs the original copy is not affected.
+        resolved_distributables = []
+
+        for name, distributables in self.setup['product']['distributables']:
+            all_distributables = [distributables[0].copy()]
+
             for release in distributables[1:]:
-                url = release.get('url', '')
+                resolved_release = release.copy()
+                all_distributables.append(resolved_release)
+
+                url = resolved_release.get('url', '')
                 if url:
                     continue
 
-                release['url'] = (
+                resolved_release['url'] = (
                     base_url + '/' +
                     product_name.lower() + '-' +
                     release['platform'] + '-' +
@@ -456,12 +465,14 @@ class BrinkPaver(object):
                     DIST_EXTENSION[release['type']]
                     )
 
+            resolved_distributables.append((name, all_distributables))
+
         data = {
             'introduction': introduction,
             'base_url': base_url,
             'version': version,
             'page_title': page_title,
-            'distributables': self.setup['product']['distributables'],
+            'distributables': resolved_distributables,
             }
 
         website_package = self.setup['website_package']
@@ -474,7 +485,7 @@ class BrinkPaver(object):
             destination=download_page,
             )
 
-        print("Creating download page...")
+        print("Creating download page for %s..." % (version,))
         content = self.renderJinja(
             package=website_package,
             folder='jinja',

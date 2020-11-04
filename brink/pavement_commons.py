@@ -1061,32 +1061,23 @@ def publish_distributables(args):
     version_major = SETUP['product']['version_major']
     version_minor = SETUP['product']['version_minor']
 
-    # Set download site.
-    if target == 'production':
-        server = SETUP['publish']['download_production_hostname']
-    else:
-        server = SETUP['publish']['download_staging_hostname']
-
     # Start with a clean base.
     pave.fs.deleteFolder(target=[pave.path.dist])
     pave.fs.createFolder(destination=[pave.path.dist])
 
-    call_task('create_download_page', args=[server])
     # This will create all the distributables aka install kits, including
     # the trial version.
     call_task('dist')
 
     publish_downloads_folder = [pave.path.publish, 'downloads']
-    publish_website_folder = [pave.path.publish, 'website']
     product_folder = [pave.fs.join(publish_downloads_folder), url_fragment]
+    trial_publish_folder = [
+        pave.fs.join(publish_downloads_folder), 'trial']
     release_publish_folder = [
         pave.fs.join(publish_downloads_folder),
         url_fragment, version_major, version_minor]
-    trial_publish_folder = [
-        pave.fs.join(publish_downloads_folder), 'trial']
 
     # Create publishing content for download site.
-    pave.fs.deleteFolder(publish_downloads_folder)
     pave.fs.deleteFolder(trial_publish_folder)
     pave.fs.createFolder(release_publish_folder, recursive=True)
     pave.fs.createFolder(trial_publish_folder, recursive=True)
@@ -1105,17 +1096,6 @@ def publish_distributables(args):
         mask='.*' + version + '*',
         )
 
-    # Copy publishing content for presentation site.
-    pave.fs.deleteFolder(publish_website_folder)
-    pave.fs.createFolder(publish_website_folder)
-    pave.fs.createFolder([pave.fs.join(publish_website_folder), 'downloads'])
-    release_html_name = version + '.html'
-    pave.fs.copyFile(
-        source=[pave.path.dist, release_html_name],
-        destination=[
-            pave.path.publish, 'website', 'downloads', release_html_name],
-        )
-
     # For production, update latest download page.
     publish_config = SETUP['publish']
     if target == 'production':
@@ -1126,21 +1106,9 @@ def publish_distributables(args):
         download_hostname = publish_config['download_production_hostname']
         download_username = publish_config['download_production_username']
 
-        documentation_hostname = publish_config['website_production_hostname']
-        documentation_username = publish_config['website_production_username']
     else:
         download_hostname = publish_config['download_staging_hostname']
         download_username = publish_config['download_staging_username']
-
-        documentation_hostname = publish_config['website_staging_hostname']
-        documentation_username = publish_config['website_staging_username']
-
-    if latest:
-        pave.fs.copyFile(
-            source=[pave.path.dist, release_html_name],
-            destination=[
-                pave.path.publish, 'website', 'downloads', 'index.html'],
-            )
 
     print("Publishing distributables to %s ..." % (download_hostname))
     pave.rsync(
@@ -1157,16 +1125,6 @@ def publish_distributables(args):
         hostname=download_hostname,
         source=[SETUP['folders']['publish'], 'downloads',  'trial/'],
         destination=download_hostname + '/trial',
-        verbose=True,
-        )
-
-    print("Publishing download pages to %s..." % (documentation_hostname))
-    # We use relative source path to have it working on Windows.
-    pave.rsync(
-        username=documentation_username,
-        hostname=documentation_hostname,
-        source=[SETUP['folders']['publish'], 'website', 'downloads/'],
-        destination=documentation_hostname + '/downloads/' + url_fragment,
         verbose=True,
         )
 
@@ -1201,6 +1159,10 @@ def publish_documentation(args):
 
     product_name = SETUP['product']['name'].lower()
     version = SETUP['product']['version']
+    url_fragment = SETUP['product']['url_fragment']
+
+    print("Preparing documentation publish to %s latest:%s for %s %s" % (
+        target, latest, product_name, version))
 
     publish_website_folder = [pave.path.publish, 'website']
     publish_documentation_folder = [
@@ -1211,6 +1173,8 @@ def publish_documentation(args):
         pave.path.publish, 'website', 'documentation', 'v', version]
     publish_latest_folder = [
         pave.path.publish, 'website', 'documentation', 'latest']
+    publish_downloads_folder = [
+        pave.path.publish, 'website', 'downloads']
 
     # Create publishing content for website.
     pave.fs.createFolder([pave.path.publish])
@@ -1218,6 +1182,7 @@ def publish_documentation(args):
     pave.fs.createFolder(publish_website_folder)
     pave.fs.createFolder(publish_documentation_folder)
     pave.fs.createFolder(publish_documentation_versioned_folder)
+    pave.fs.createFolder(publish_downloads_folder)
 
     call_task('documentation_website')
     pave.fs.copyFolder(
@@ -1225,11 +1190,31 @@ def publish_documentation(args):
         destination=publish_release_folder,
         )
 
+    call_task('download_pages', args=[target])
+
+    trial_folder = [
+        pave.path.publish, 'website', 'documentation', 'trial']
+    pave.fs.deleteFolder(trial_folder)
+    pave.fs.createFolder(trial_folder)
+
+    pave.fs.copyFile(
+        source=[pave.path.dist, 'trial.html'],
+        destination=trial_folder + ['index.html'],
+        )
+    pave.fs.copyFile(
+        source=[pave.path.dist, 'index.html'],
+        destination=publish_downloads_folder + [version + '.html'],
+        )
+
     # If we are releasing the latest version, also copy file to latest folder.
     if latest:
         pave.fs.copyFolder(
             source=[pave.path.build, 'doc', 'html'],
             destination=publish_latest_folder,
+            )
+        pave.fs.copyFile(
+            source=[pave.path.dist, 'index.html'],
+            destination=publish_downloads_folder + ['index.html'],
             )
 
     publish_config = SETUP['publish']
@@ -1250,6 +1235,16 @@ def publish_documentation(args):
         hostname=documentation_hostname,
         source=[SETUP['folders']['publish'], 'website', 'documentation/'],
         destination=destination_root,
+        verbose=True,
+        )
+
+    print("Publishing download pages to %s..." % (documentation_hostname))
+    # We use relative source path to have it working on Windows.
+    pave.rsync(
+        username=documentation_username,
+        hostname=documentation_hostname,
+        source=[SETUP['folders']['publish'], 'website', 'downloads/'],
+        destination=documentation_hostname + '/downloads/' + url_fragment,
         verbose=True,
         )
 
