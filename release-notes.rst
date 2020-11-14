@@ -4,6 +4,13 @@ chevah-brink release notes
 Here are the release notes for past brink version.
 
 
+Version 0.78.1, 2020-11-14
+--------------------------
+
+* Reduce the list of extension from Sphinx.
+* Remove support for PDF doc generation.
+
+
 Version 0.78.0, 2020-11-04
 --------------------------
 
